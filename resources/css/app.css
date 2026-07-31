@@ -1,9 +1,63 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+@source "../**/*.blade.php";
+@source "../**/*.js";
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        "Segoe UI",
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        sans-serif;
+
+    --color-laras-50: #eff6ff;
+    --color-laras-100: #dbeafe;
+    --color-laras-200: #bfdbfe;
+    --color-laras-300: #93c5fd;
+    --color-laras-400: #60a5fa;
+    --color-laras-500: #3b82f6;
+    --color-laras-600: #2563eb;
+    --color-laras-700: #1d4ed8;
+    --color-laras-800: #1e40af;
+    --color-laras-900: #1e3a8a;
+    --color-laras-950: #0b2a5b;
+
+    --color-laras-accent-100: #fef3c7;
+    --color-laras-accent-400: #fbbf24;
+    --color-laras-accent-500: #f59e0b;
+
+    --shadow-laras:
+        0 1px 2px rgb(15 23 42 / 0.04),
+        0 12px 32px rgb(15 23 42 / 0.06);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+html {
+    min-width: 320px;
+    background: #f8fafc;
+}
+
+body {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+    touch-action: manipulation;
 }

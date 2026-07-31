@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -35,7 +36,10 @@ Route::middleware('auth')->group(function (): void {
         )->name('onboarding.accounts.store');
     });
 
-    Route::view('/dashboard', 'dashboard.index')
+    Route::get(
+        '/dashboard',
+        [DashboardController::class, 'index']
+    )
         ->middleware('onboarding.completed')
         ->name('dashboard');
 });
