@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -8,6 +9,33 @@ Route::get('/', function () {
         : redirect()->route('login');
 })->name('home');
 
-Route::view('/dashboard', 'dashboard.index')
-    ->middleware('auth')
-    ->name('dashboard');
+Route::middleware('auth')->group(function (): void {
+    Route::middleware('onboarding.pending')->group(function (): void {
+        Route::get('/onboarding', [OnboardingController::class, 'show'])
+            ->name('onboarding.show');
+
+        Route::get(
+            '/onboarding/preferences',
+            [OnboardingController::class, 'editPreferences']
+        )->name('onboarding.preferences.edit');
+
+        Route::post(
+            '/onboarding/preferences',
+            [OnboardingController::class, 'storePreferences']
+        )->name('onboarding.preferences.store');
+
+        Route::get(
+            '/onboarding/accounts',
+            [OnboardingController::class, 'accounts']
+        )->name('onboarding.accounts');
+
+        Route::post(
+            '/onboarding/accounts',
+            [OnboardingController::class, 'storeAccounts']
+        )->name('onboarding.accounts.store');
+    });
+
+    Route::view('/dashboard', 'dashboard.index')
+        ->middleware('onboarding.completed')
+        ->name('dashboard');
+});
