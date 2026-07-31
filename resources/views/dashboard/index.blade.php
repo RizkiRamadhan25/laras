@@ -12,6 +12,16 @@
 <body class="min-h-screen bg-slate-50 text-slate-950">
     <main class="mx-auto flex min-h-screen max-w-5xl items-center px-5 py-12">
         <section class="w-full rounded-2xl border border-slate-200 bg-white p-7 shadow-sm sm:p-10">
+            @if (session('status'))
+                <div
+                    class="mb-7 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800"
+                    role="status"
+                >
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            {{-- Content --}}
             <div class="flex flex-col justify-between gap-8 sm:flex-row sm:items-start">
                 <div>
                     <p class="text-sm font-semibold text-blue-700">
