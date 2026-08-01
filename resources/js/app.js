@@ -1,7 +1,10 @@
 import Alpine from 'alpinejs';
 
 import {
-    createIcons,
+    Archive,
+    ArchiveRestore,
+    ArrowDown,
+    ArrowUp,
     ArrowLeftRight,
     Bell,
     CalendarDays,
@@ -9,12 +12,14 @@ import {
     ChevronDown,
     CircleDollarSign,
     CircleUserRound,
+    createIcons,
     Landmark,
     LayoutDashboard,
     Lightbulb,
     ListTodo,
     LogOut,
     Menu,
+    Pencil,
     Plus,
     Search,
     Settings,
@@ -31,6 +36,10 @@ Alpine.start();
 
 const larasIcons = {
     ArrowLeftRight,
+    Archive,
+    ArchiveRestore,
+    ArrowDown,
+    ArrowUp,
     Bell,
     CalendarDays,
     ChartNoAxesCombined,
@@ -43,6 +52,7 @@ const larasIcons = {
     ListTodo,
     LogOut,
     Menu,
+    Pencil,
     Plus,
     Search,
     Settings,
