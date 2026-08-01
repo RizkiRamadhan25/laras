@@ -42,6 +42,10 @@ import {
     Play,
     RotateCcw,
     SlidersHorizontal,
+    BellRing,
+    CheckCheck,
+    CircleAlert,
+    CircleCheck,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -88,6 +92,10 @@ const larasIcons = {
     Play,
     RotateCcw,
     SlidersHorizontal,
+    BellRing,
+    CheckCheck,
+    CircleAlert,
+    CircleCheck,
 };
 
 const renderIcons = () => {

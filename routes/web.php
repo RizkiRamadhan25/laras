@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -212,5 +213,40 @@ Route::middleware('auth')->group(function (): void {
             )
                 ->whereNumber('activity')
                 ->name('activities.destroy');
+        });
+
+    Route::middleware('onboarding.completed')
+        ->prefix('notifications')
+        ->name('notifications.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [NotificationController::class, 'index']
+            )->name('index');
+
+            Route::patch(
+                '/read-all',
+                [
+                    NotificationController::class,
+                    'markAllRead',
+                ]
+            )->name('read-all');
+
+            Route::get(
+                '/{notification}/open',
+                [NotificationController::class, 'open']
+            )
+                ->whereUuid('notification')
+                ->name('open');
+
+            Route::patch(
+                '/{notification}/read',
+                [
+                    NotificationController::class,
+                    'markRead',
+                ]
+            )
+                ->whereUuid('notification')
+                ->name('read');
         });
 });
