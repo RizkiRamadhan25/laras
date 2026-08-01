@@ -4,6 +4,7 @@ use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\TransactionController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -97,5 +98,39 @@ Route::middleware('auth')->group(function (): void {
             )
                 ->whereNumber('account')
                 ->name('destroy');
+        });
+
+    Route::middleware('onboarding.completed')
+        ->prefix('transactions')
+        ->name('transactions.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [TransactionController::class, 'index']
+            )->name('index');
+
+            Route::get(
+                '/create',
+                [TransactionController::class, 'create']
+            )->name('create');
+
+            Route::post(
+                '/',
+                [TransactionController::class, 'store']
+            )->name('store');
+
+            Route::get(
+                '/{transaction}',
+                [TransactionController::class, 'show']
+            )
+                ->whereNumber('transaction')
+                ->name('show');
+
+            Route::patch(
+                '/{transaction}/cancel',
+                [TransactionController::class, 'cancel']
+            )
+                ->whereNumber('transaction')
+                ->name('cancel');
         });
 });
