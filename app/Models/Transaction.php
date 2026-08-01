@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\TransactionEntryRole;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transaction extends Model
 {
@@ -112,5 +113,12 @@ class Transaction extends Model
         return bccomp($total, '0.00', 2) < 0
             ? bcsub('0.00', $total, 2)
             : $total;
+    }
+
+    public function subscriptionBilling(): HasOne
+    {
+        return $this->hasOne(
+            SubscriptionBilling::class
+        );
     }
 }

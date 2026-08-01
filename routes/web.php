@@ -6,6 +6,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SubscriptionBillingController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -212,5 +215,124 @@ Route::middleware('auth')->group(function (): void {
             )
                 ->whereNumber('activity')
                 ->name('activities.destroy');
+        });
+
+    Route::middleware('onboarding.completed')
+        ->prefix('notifications')
+        ->name('notifications.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [NotificationController::class, 'index']
+            )->name('index');
+
+            Route::patch(
+                '/read-all',
+                [
+                    NotificationController::class,
+                    'markAllRead',
+                ]
+            )->name('read-all');
+
+            Route::get(
+                '/{notification}/open',
+                [NotificationController::class, 'open']
+            )
+                ->whereUuid('notification')
+                ->name('open');
+
+            Route::patch(
+                '/{notification}/read',
+                [
+                    NotificationController::class,
+                    'markRead',
+                ]
+            )
+                ->whereUuid('notification')
+                ->name('read');
+        });
+
+    Route::middleware('onboarding.completed')
+        ->prefix('subscriptions')
+        ->name('subscriptions.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [SubscriptionController::class, 'index']
+            )->name('index');
+
+            Route::get(
+                '/create',
+                [SubscriptionController::class, 'create']
+            )->name('create');
+
+            Route::post(
+                '/',
+                [SubscriptionController::class, 'store']
+            )->name('store');
+
+            Route::get(
+                '/{subscription}/billings/{billing}',
+                [
+                    SubscriptionBillingController::class,
+                    'show',
+                ]
+            )
+                ->whereNumber('subscription')
+                ->whereNumber('billing')
+                ->name('billings.show');
+
+            Route::patch(
+                '/{subscription}/billings/{billing}/retry',
+                [
+                    SubscriptionBillingController::class,
+                    'retry',
+                ]
+            )
+                ->whereNumber('subscription')
+                ->whereNumber('billing')
+                ->name('billings.retry');
+
+            Route::get(
+                '/{subscription}',
+                [SubscriptionController::class, 'show']
+            )
+                ->whereNumber('subscription')
+                ->name('show');
+
+            Route::get(
+                '/{subscription}/edit',
+                [SubscriptionController::class, 'edit']
+            )
+                ->whereNumber('subscription')
+                ->name('edit');
+
+            Route::put(
+                '/{subscription}',
+                [SubscriptionController::class, 'update']
+            )
+                ->whereNumber('subscription')
+                ->name('update');
+
+            Route::patch(
+                '/{subscription}/pause',
+                [SubscriptionController::class, 'pause']
+            )
+                ->whereNumber('subscription')
+                ->name('pause');
+
+            Route::patch(
+                '/{subscription}/resume',
+                [SubscriptionController::class, 'resume']
+            )
+                ->whereNumber('subscription')
+                ->name('resume');
+
+            Route::patch(
+                '/{subscription}/cancel',
+                [SubscriptionController::class, 'cancel']
+            )
+                ->whereNumber('subscription')
+                ->name('cancel');
         });
 });
