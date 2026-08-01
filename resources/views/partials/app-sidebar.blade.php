@@ -12,17 +12,21 @@
             'label' => 'Aktivitas',
             'description' => 'Agenda dan jadwal',
             'icon' => 'calendar-days',
-            'href' => '#',
-            'active' => false,
-            'enabled' => false,
+            'href' => route('activities.index'),
+            'active' => request()->routeIs(
+                'activities.*'
+            ),
+            'enabled' => true,
         ],
         [
             'label' => 'Prioritas',
             'description' => 'Tugas dan fokus',
             'icon' => 'list-todo',
-            'href' => '#',
-            'active' => false,
-            'enabled' => false,
+            'href' => route('priorities.index'),
+            'active' => request()->routeIs(
+                'priorities.*'
+            ),
+            'enabled' => true,
         ],
         [
             'label' => 'Keuangan',

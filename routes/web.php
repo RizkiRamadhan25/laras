@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\ActivityController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -132,5 +133,84 @@ Route::middleware('auth')->group(function (): void {
             )
                 ->whereNumber('transaction')
                 ->name('cancel');
+        });
+
+    Route::middleware('onboarding.completed')
+        ->group(function (): void {
+            Route::get(
+                '/activities',
+                [ActivityController::class, 'index']
+            )->name('activities.index');
+
+            Route::get(
+                '/priorities',
+                [ActivityController::class, 'priorities']
+            )->name('priorities.index');
+
+            Route::get(
+                '/activities/create',
+                [ActivityController::class, 'create']
+            )->name('activities.create');
+
+            Route::post(
+                '/activities',
+                [ActivityController::class, 'store']
+            )->name('activities.store');
+
+            Route::get(
+                '/activities/{activity}/edit',
+                [ActivityController::class, 'edit']
+            )
+                ->whereNumber('activity')
+                ->name('activities.edit');
+
+            Route::put(
+                '/activities/{activity}',
+                [ActivityController::class, 'update']
+            )
+                ->whereNumber('activity')
+                ->name('activities.update');
+
+            Route::patch(
+                '/activities/{activity}/start',
+                [ActivityController::class, 'start']
+            )
+                ->whereNumber('activity')
+                ->name('activities.start');
+
+            Route::patch(
+                '/activities/{activity}/complete',
+                [ActivityController::class, 'complete']
+            )
+                ->whereNumber('activity')
+                ->name('activities.complete');
+
+            Route::patch(
+                '/activities/{activity}/cancel',
+                [ActivityController::class, 'cancel']
+            )
+                ->whereNumber('activity')
+                ->name('activities.cancel');
+
+            Route::patch(
+                '/activities/{activity}/reopen',
+                [ActivityController::class, 'reopen']
+            )
+                ->whereNumber('activity')
+                ->name('activities.reopen');
+
+            Route::patch(
+                '/activities/{activity}/restore',
+                [ActivityController::class, 'restore']
+            )
+                ->whereNumber('activity')
+                ->name('activities.restore');
+
+            Route::delete(
+                '/activities/{activity}',
+                [ActivityController::class, 'destroy']
+            )
+                ->whereNumber('activity')
+                ->name('activities.destroy');
         });
 });
