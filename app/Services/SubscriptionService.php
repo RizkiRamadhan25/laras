@@ -16,6 +16,7 @@ use DateTimeInterface;
 use DomainException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\UniqueConstraintViolationException;
 use ValueError;
 
 class SubscriptionService
@@ -377,11 +378,6 @@ class SubscriptionService
             ->next_billing_on
             ->toDateString();
 
-        /*
-        * Gunakan whereDate karena SQLite dapat menyimpan date cast
-        * sebagai "Y-m-d 00:00:00", sedangkan MySQL DATE menyimpan
-        * sebagai "Y-m-d".
-        */
         $billing = SubscriptionBilling::query()
             ->where(
                 'subscription_id',
@@ -394,31 +390,79 @@ class SubscriptionService
             ->first();
 
         if ($billing === null) {
-            $billing = new SubscriptionBilling([
-                'subscription_id' =>
-                    $subscription->id,
+            try {
+                return SubscriptionBilling::query()
+                    ->create([
+                        'subscription_id' =>
+                            $subscription->id,
 
-                'scheduled_for' =>
-                    $scheduledFor,
-            ]);
+                        'user_id' =>
+                            $subscription->user_id,
+
+                        'transaction_id' => null,
+
+                        'scheduled_for' =>
+                            $scheduledFor,
+
+                        'amount' =>
+                            $subscription->amount,
+
+                        'currency_code' =>
+                            $subscription->currency_code,
+
+                        'status' =>
+                            SubscriptionBillingStatus
+                                ::Scheduled,
+
+                        'attempted_at' => null,
+                        'processed_at' => null,
+                        'failure_reason' => null,
+                        'metadata' => null,
+                    ])
+                    ->refresh();
+            } catch (
+                UniqueConstraintViolationException
+            ) {
+                /*
+                * Proses scheduler lain mungkin telah membuat
+                * billing yang sama lebih dahulu.
+                */
+                $billing =
+                    SubscriptionBilling::query()
+                        ->where(
+                            'subscription_id',
+                            $subscription->id
+                        )
+                        ->whereDate(
+                            'scheduled_for',
+                            $scheduledFor
+                        )
+                        ->firstOrFail();
+            }
         }
 
         if (
-            $billing->exists
-            && $billing->status
-                === SubscriptionBillingStatus::Posted
+            $billing->status
+            === SubscriptionBillingStatus::Posted
         ) {
+            return $billing;
+        }
+
+        if ($billing->status->isFinal()) {
             return $billing;
         }
 
         $billing->fill([
             'user_id' => $subscription->user_id,
-            'transaction_id' => null,
             'amount' => $subscription->amount,
 
             'currency_code' =>
                 $subscription->currency_code,
 
+            /*
+            * Billing failed boleh dicoba kembali pada
+            * pemeriksaan scheduler berikutnya.
+            */
             'status' =>
                 SubscriptionBillingStatus::Scheduled,
 
