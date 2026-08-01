@@ -34,6 +34,14 @@ import {
     Wallet,
     WalletCards,
     X,
+    AlarmClock,
+    Check,
+    Clock,
+    Flag,
+    MapPin,
+    Play,
+    RotateCcw,
+    SlidersHorizontal,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -72,6 +80,14 @@ const larasIcons = {
     Wallet,
     WalletCards,
     X,
+    AlarmClock,
+    Check,
+    Clock,
+    Flag,
+    MapPin,
+    Play,
+    RotateCcw,
+    SlidersHorizontal,
 };
 
 const renderIcons = () => {
