@@ -123,6 +123,23 @@ class NotificationController extends Controller
             }
         }
 
+        $subscriptionId = $ownedNotification
+            ->data['subscription_id']
+                ?? null;
+
+        if ($subscriptionId !== null) {
+            $subscription = $request->user()
+                ->subscriptions()
+                ->find((int) $subscriptionId);
+
+            if ($subscription !== null) {
+                return redirect()->route(
+                    'subscriptions.show',
+                    $subscription->id
+                );
+            }
+        }
+
         /*
          * Detail langganan belum memiliki antarmuka.
          * Setelah Langkah 5C, notifikasi pengingat dan gagal

@@ -7,6 +7,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SubscriptionController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -248,5 +249,67 @@ Route::middleware('auth')->group(function (): void {
             )
                 ->whereUuid('notification')
                 ->name('read');
+        });
+
+    Route::middleware('onboarding.completed')
+        ->prefix('subscriptions')
+        ->name('subscriptions.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [SubscriptionController::class, 'index']
+            )->name('index');
+
+            Route::get(
+                '/create',
+                [SubscriptionController::class, 'create']
+            )->name('create');
+
+            Route::post(
+                '/',
+                [SubscriptionController::class, 'store']
+            )->name('store');
+
+            Route::get(
+                '/{subscription}',
+                [SubscriptionController::class, 'show']
+            )
+                ->whereNumber('subscription')
+                ->name('show');
+
+            Route::get(
+                '/{subscription}/edit',
+                [SubscriptionController::class, 'edit']
+            )
+                ->whereNumber('subscription')
+                ->name('edit');
+
+            Route::put(
+                '/{subscription}',
+                [SubscriptionController::class, 'update']
+            )
+                ->whereNumber('subscription')
+                ->name('update');
+
+            Route::patch(
+                '/{subscription}/pause',
+                [SubscriptionController::class, 'pause']
+            )
+                ->whereNumber('subscription')
+                ->name('pause');
+
+            Route::patch(
+                '/{subscription}/resume',
+                [SubscriptionController::class, 'resume']
+            )
+                ->whereNumber('subscription')
+                ->name('resume');
+
+            Route::patch(
+                '/{subscription}/cancel',
+                [SubscriptionController::class, 'cancel']
+            )
+                ->whereNumber('subscription')
+                ->name('cancel');
         });
 });

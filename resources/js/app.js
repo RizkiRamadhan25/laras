@@ -46,6 +46,8 @@ import {
     CheckCheck,
     CircleAlert,
     CircleCheck,
+    CirclePause,
+    Repeat2,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -96,6 +98,8 @@ const larasIcons = {
     CheckCheck,
     CircleAlert,
     CircleCheck,
+    CirclePause,
+    Repeat2,
 };
 
 const renderIcons = () => {

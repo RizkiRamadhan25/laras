@@ -126,4 +126,69 @@ class Subscription extends Model
                 $this->interval_count
             );
     }
+
+    public function monthlyEquivalent(): string
+    {
+        $intervalCount = max(
+            1,
+            $this->interval_count
+        );
+
+        $monthlyAmount = match (
+            $this->interval_unit
+        ) {
+            SubscriptionIntervalUnit::Day =>
+                bcmul(
+                    bcdiv(
+                        $this->amount,
+                        (string) $intervalCount,
+                        6
+                    ),
+                    '30.4375',
+                    2
+                ),
+
+            SubscriptionIntervalUnit::Week =>
+                bcmul(
+                    bcdiv(
+                        $this->amount,
+                        (string) $intervalCount,
+                        6
+                    ),
+                    '4.345',
+                    2
+                ),
+
+            SubscriptionIntervalUnit::Month =>
+                bcdiv(
+                    $this->amount,
+                    (string) $intervalCount,
+                    2
+                ),
+
+            SubscriptionIntervalUnit::Year =>
+                bcdiv(
+                    $this->amount,
+                    (string) (
+                        $intervalCount * 12
+                    ),
+                    2
+                ),
+        };
+
+        return bcadd(
+            $monthlyAmount,
+            '0',
+            2
+        );
+    }
+
+    public function yearlyEquivalent(): string
+    {
+        return bcmul(
+            $this->monthlyEquivalent(),
+            '12',
+            2
+        );
+    }
 }

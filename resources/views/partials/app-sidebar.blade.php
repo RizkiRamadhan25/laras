@@ -45,6 +45,16 @@
             'enabled' => true,
         ],
         [
+            'label' => 'Langganan',
+            'description' => 'Tagihan berulang',
+            'icon' => 'repeat-2',
+            'href' => route('subscriptions.index'),
+            'active' => request()->routeIs(
+                'subscriptions.*'
+            ),
+            'enabled' => true,
+        ],
+        [
             'label' => 'Analisis',
             'description' => 'Insight dan laporan',
             'icon' => 'chart-no-axes-combined',
