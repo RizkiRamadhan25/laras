@@ -491,4 +491,297 @@
             </div>
         </article>
     </section>
+        @php
+        $dashboardRecommendationItems =
+            $dashboardRecommendations[
+                'items'
+            ] ?? collect();
+
+        $dashboardRecommendationSummary =
+            $dashboardRecommendations[
+                'summary'
+            ] ?? [
+                'total' => 0,
+                'critical' => 0,
+                'attention' => 0,
+                'insight' => 0,
+                'suppressed' => 0,
+            ];
+
+        $dashboardRecommendationGeneratedAt =
+            $dashboardRecommendations[
+                'generated_at'
+            ] ?? null;
+
+        $dashboardRecommendationHasMore =
+            $dashboardRecommendations[
+                'has_more'
+            ] ?? false;
+
+        $dashboardTimezone =
+            auth()->user()
+                ?->preference
+                ?->timezone
+            ?? config(
+                'laras.defaults.timezone',
+                'Asia/Jakarta'
+            );
+    @endphp
+
+    <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-laras">
+        <header class="flex flex-col justify-between gap-4 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:px-6">
+            <div class="flex items-start gap-3">
+                <span class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-laras-100 text-laras-700">
+                    <i
+                        data-lucide="lightbulb"
+                        class="size-5"
+                    ></i>
+                </span>
+
+                <div>
+                    <h2 class="font-semibold text-slate-950">
+                        Rekomendasi personal
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-400">
+                        Tindakan yang paling disarankan saat ini.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                @if (
+                    $dashboardRecommendationGeneratedAt
+                    !== null
+                )
+                    <span class="text-xs text-slate-400">
+                        Diperbarui
+
+                        {{ $dashboardRecommendationGeneratedAt
+                            ->setTimezone(
+                                $dashboardTimezone
+                            )
+                            ->locale('id')
+                            ->diffForHumans() }}
+                    </span>
+                @endif
+
+                <a
+                    href="{{ route(
+                        'recommendations.index'
+                    ) }}"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-laras-700 transition hover:text-laras-900"
+                >
+                    Lihat semua
+
+                    <span aria-hidden="true">
+                        →
+                    </span>
+                </a>
+            </div>
+        </header>
+
+        @if ($dashboardRecommendationItems->isEmpty())
+            <div class="px-6 py-12 text-center">
+                <span class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                    <i
+                        data-lucide="circle-check"
+                        class="size-6"
+                    ></i>
+                </span>
+
+                <h3 class="mt-4 font-semibold text-slate-900">
+                    Semuanya terkendali
+                </h3>
+
+                <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
+                    Tidak ada aktivitas mendesak, tagihan gagal,
+                    langganan dekat jatuh tempo, atau perubahan
+                    pengeluaran penting saat ini.
+                </p>
+            </div>
+        @else
+            <div class="grid gap-4 p-5 lg:grid-cols-3 sm:p-6">
+                @foreach (
+                    $dashboardRecommendationItems
+                    as $item
+                )
+                    @php
+                        $recommendationStyle =
+                            match (
+                                $item['severity']
+                            ) {
+                                'danger' => [
+                                    'border' =>
+                                        'border-rose-200',
+
+                                    'background' =>
+                                        'bg-rose-50/60',
+
+                                    'icon' =>
+                                        'bg-rose-100 text-rose-700',
+
+                                    'badge' =>
+                                        'bg-rose-100 text-rose-700',
+
+                                    'label' =>
+                                        'Mendesak',
+                                ],
+
+                                'warning' => [
+                                    'border' =>
+                                        'border-amber-200',
+
+                                    'background' =>
+                                        'bg-amber-50/60',
+
+                                    'icon' =>
+                                        'bg-amber-100 text-amber-700',
+
+                                    'badge' =>
+                                        'bg-amber-100 text-amber-700',
+
+                                    'label' =>
+                                        'Perhatian',
+                                ],
+
+                                default => [
+                                    'border' =>
+                                        'border-blue-200',
+
+                                    'background' =>
+                                        'bg-blue-50/50',
+
+                                    'icon' =>
+                                        'bg-blue-100 text-blue-700',
+
+                                    'badge' =>
+                                        'bg-blue-100 text-blue-700',
+
+                                    'label' =>
+                                        'Insight',
+                                ],
+                            };
+                    @endphp
+
+                    <article class="flex h-full flex-col rounded-2xl border {{ $recommendationStyle['border'] }} {{ $recommendationStyle['background'] }} p-5">
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="flex size-11 shrink-0 items-center justify-center rounded-2xl {{ $recommendationStyle['icon'] }}">
+                                <i
+                                    data-lucide="{{ $item['icon'] }}"
+                                    class="size-5"
+                                ></i>
+                            </span>
+
+                            <div class="flex items-center gap-2">
+                                <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $recommendationStyle['badge'] }}">
+                                    {{ $recommendationStyle[
+                                        'label'
+                                    ] }}
+                                </span>
+
+                                <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 shadow-sm">
+                                    {{ $item['score'] }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 flex-1">
+                            <h3 class="font-semibold leading-6 text-slate-950">
+                                {{ $item['title'] }}
+                            </h3>
+
+                            <p class="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
+                                {{ $item['message'] }}
+                            </p>
+
+                            <p class="mt-3 line-clamp-2 text-xs leading-5 text-slate-400">
+                                {{ $item['meta'] }}
+                            </p>
+                        </div>
+
+                        <a
+                            href="{{ route(
+                                'recommendations.open',
+                                $item['key']
+                            ) }}"
+                            class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-laras-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-laras-800 focus:outline-none focus:ring-4 focus:ring-laras-200"
+                        >
+                            {{ $item[
+                                'action_label'
+                            ] }}
+                        </a>
+                    </article>
+                @endforeach
+            </div>
+
+            <footer class="flex flex-col justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:px-6">
+                <div class="flex flex-wrap gap-2">
+                    @if (
+                        $dashboardRecommendationSummary[
+                            'critical'
+                        ] > 0
+                    )
+                        <span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                            {{ $dashboardRecommendationSummary[
+                                'critical'
+                            ] }}
+                            mendesak
+                        </span>
+                    @endif
+
+                    @if (
+                        $dashboardRecommendationSummary[
+                            'attention'
+                        ] > 0
+                    )
+                        <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                            {{ $dashboardRecommendationSummary[
+                                'attention'
+                            ] }}
+                            perhatian
+                        </span>
+                    @endif
+
+                    @if (
+                        $dashboardRecommendationSummary[
+                            'insight'
+                        ] > 0
+                    )
+                        <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                            {{ $dashboardRecommendationSummary[
+                                'insight'
+                            ] }}
+                            insight
+                        </span>
+                    @endif
+
+                    @if (
+                        $dashboardRecommendationSummary[
+                            'suppressed'
+                        ] > 0
+                    )
+                        <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                            {{ $dashboardRecommendationSummary[
+                                'suppressed'
+                            ] }}
+                            suppressed
+                        </span>
+                    @endif
+                </div>
+
+                @if ($dashboardRecommendationHasMore)
+                    <p class="text-xs text-slate-400">
+                        Menampilkan tiga dari
+
+                        {{ $dashboardRecommendationSummary[
+                            'total'
+                        ] }}
+
+                        rekomendasi.
+                    </p>
+                @endif
+            </footer>
+        @endif
+    </section>
 @endsection

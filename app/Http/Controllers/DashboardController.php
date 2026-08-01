@@ -15,11 +15,13 @@ class DashboardController extends Controller
 
     public function index(Request $request): View
     {
+        $user = $request->user()->loadMissing(
+            'preference'
+        );
+
         return view(
             'dashboard.index',
-            $this->analytics->build(
-                $request->user()
-            )
+            $this->analytics->build($user)
         );
     }
 }

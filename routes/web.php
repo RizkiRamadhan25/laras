@@ -10,6 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionBillingController;
 use App\Http\Controllers\ExpenseAnalysisController;
+use App\Http\Controllers\RecommendationController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -57,6 +58,52 @@ Route::middleware('auth')->group(function (): void {
             'index',
         ]
     )->name('analysis.index');
+
+    Route::prefix('recommendations')
+        ->name('recommendations.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [
+                    RecommendationController::class,
+                    'index',
+                ]
+            )->name('index');
+
+            Route::get(
+                '/history',
+                [
+                    RecommendationController::class,
+                    'history',
+                ]
+            )->name('history');
+
+            Route::get(
+                '/{recommendation}/open',
+                [
+                    RecommendationController::class,
+                    'open',
+                ]
+            )
+                ->where(
+                    'recommendation',
+                    '[A-Za-z0-9\-]+'
+                )
+                ->name('open');
+
+            Route::patch(
+                '/{recommendation}/feedback',
+                [
+                    RecommendationController::class,
+                    'feedback',
+                ]
+            )
+                ->where(
+                    'recommendation',
+                    '[A-Za-z0-9\-]+'
+                )
+                ->name('feedback');
+        });
 
     Route::middleware('onboarding.completed')
         ->prefix('accounts')

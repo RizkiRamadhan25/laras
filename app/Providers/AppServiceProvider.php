@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
+use App\View\Composers\DashboardRecommendationComposer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,6 +58,11 @@ class AppServiceProvider extends ServiceProvider
                             ->count(),
                 ]);
             }
+        );
+
+        View::composer(
+            'dashboard.index',
+            DashboardRecommendationComposer::class
         );
     }
 }
