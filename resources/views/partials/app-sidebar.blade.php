@@ -68,9 +68,13 @@
             'label' => 'Rekomendasi',
             'description' => 'Saran personal',
             'icon' => 'lightbulb',
-            'href' => '#',
-            'active' => false,
-            'enabled' => false,
+            'href' => route(
+                'recommendations.index'
+            ),
+            'active' => request()->routeIs(
+                'recommendations.*'
+            ),
+            'enabled' => true,
         ],
     ];
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionBillingController;
 use App\Http\Controllers\ExpenseAnalysisController;
+use App\Http\Controllers\RecommendationController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -57,6 +58,14 @@ Route::middleware('auth')->group(function (): void {
             'index',
         ]
     )->name('analysis.index');
+
+    Route::get(
+        '/recommendations',
+        [
+            RecommendationController::class,
+            'index',
+        ]
+    )->name('recommendations.index');
 
     Route::middleware('onboarding.completed')
         ->prefix('accounts')
