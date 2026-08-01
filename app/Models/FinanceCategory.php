@@ -50,4 +50,11 @@ class FinanceCategory extends Model
     {
         return $this->hasMany(TransactionEntry::class);
     }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(
+            Subscription::class
+        );
+    }
 }

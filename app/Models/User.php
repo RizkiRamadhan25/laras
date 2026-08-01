@@ -81,8 +81,24 @@ class User extends Authenticatable
         return $this->hasMany(Activity::class);
     }
 
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(
+            Subscription::class
+        )->orderBy('next_billing_on')
+            ->orderBy('id');
+    }
+
+    public function subscriptionBillings(): HasMany
+    {
+        return $this->hasMany(
+            SubscriptionBilling::class
+        );
+    }
+    
     public function preference(): HasOne
     {
         return $this->hasOne(UserPreference::class);
     }
+
 }
