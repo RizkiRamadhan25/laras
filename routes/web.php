@@ -9,6 +9,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionBillingController;
+use App\Http\Controllers\ExpenseAnalysisController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -48,6 +49,14 @@ Route::middleware('auth')->group(function (): void {
     )
         ->middleware('onboarding.completed')
         ->name('dashboard');
+
+    Route::get(
+        '/analysis',
+        [
+            ExpenseAnalysisController::class,
+            'index',
+        ]
+    )->name('analysis.index');
 
     Route::middleware('onboarding.completed')
         ->prefix('accounts')

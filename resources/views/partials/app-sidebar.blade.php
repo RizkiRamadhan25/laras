@@ -58,9 +58,11 @@
             'label' => 'Analisis',
             'description' => 'Insight dan laporan',
             'icon' => 'chart-no-axes-combined',
-            'href' => '#',
-            'active' => false,
-            'enabled' => false,
+            'href' => route('analysis.index'),
+            'active' => request()->routeIs(
+                'analysis.*'
+            ),
+            'enabled' => true,
         ],
         [
             'label' => 'Rekomendasi',
