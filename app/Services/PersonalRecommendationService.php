@@ -17,7 +17,8 @@ class PersonalRecommendationService
 {
     public function __construct(
         private readonly ActivityRecommendationService $activityRecommendationService,
-        private readonly ExpenseAnalysisService $expenseAnalysisService
+        private readonly ExpenseAnalysisService $expenseAnalysisService,
+        private readonly RecommendationInteractionService $interactionService
     ) {
     }
 
@@ -613,6 +614,21 @@ class PersonalRecommendationService
             )
             ->values();
 
+        $feedbackResult =
+            $this->interactionService
+                ->applyFeedback(
+                    user: $user,
+                    items: $items,
+                    reference: $now
+                );
+
+        $items = $feedbackResult['items'];
+
+        $suppressedCount =
+            $feedbackResult[
+                'suppressed_count'
+            ];
+
         return [
             'generated_at' => $now,
             'items' => $items,
@@ -640,6 +656,9 @@ class PersonalRecommendationService
                         'info'
                     )
                     ->count(),
+
+                'suppressed' =>
+                    $suppressedCount,
             ],
         ];
     }

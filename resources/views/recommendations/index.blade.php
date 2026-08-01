@@ -38,21 +38,37 @@
                     </p>
                 </div>
 
-                <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-laras">
-                    <p class="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
-                        Diperbarui
-                    </p>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <a
+                        href="{{ route(
+                            'recommendations.history'
+                        ) }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    >
+                        <i
+                            data-lucide="history"
+                            class="size-4"
+                        ></i>
 
-                    <p class="mt-1 text-sm font-semibold text-slate-800">
-                        {{ $recommendations[
-                            'generated_at'
-                        ]
-                            ->setTimezone($timezone)
-                            ->locale('id')
-                            ->translatedFormat(
-                                'd F Y, H:i'
-                            ) }}
-                    </p>
+                        Riwayat feedback
+                    </a>
+
+                    <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-laras">
+                        <p class="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
+                            Diperbarui
+                        </p>
+
+                        <p class="mt-1 text-sm font-semibold text-slate-800">
+                            {{ $recommendations[
+                                'generated_at'
+                            ]
+                                ->setTimezone($timezone)
+                                ->locale('id')
+                                ->translatedFormat(
+                                    'd F Y, H:i'
+                                ) }}
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -251,16 +267,98 @@
                                     </div>
                                 </div>
 
-                                <a
-                                    href="{{ $item[
-                                        'action_url'
-                                    ] }}"
-                                    class="inline-flex shrink-0 items-center justify-center rounded-xl bg-laras-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-laras-800"
-                                >
-                                    {{ $item[
-                                        'action_label'
-                                    ] }}
-                                </a>
+                                <div class="flex shrink-0 flex-col gap-2 lg:w-56">
+                                    <a
+                                        href="{{ route(
+                                            'recommendations.open',
+                                            $item['key']
+                                        ) }}"
+                                        class="inline-flex items-center justify-center rounded-xl bg-laras-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-laras-800"
+                                    >
+                                        {{ $item[
+                                            'action_label'
+                                        ] }}
+                                    </a>
+
+                                    <form
+                                        method="POST"
+                                        action="{{ route(
+                                            'recommendations.feedback',
+                                            $item['key']
+                                        ) }}"
+                                    >
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <input
+                                            type="hidden"
+                                            name="interaction_type"
+                                            value="followed_up"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                        >
+                                            <i
+                                                data-lucide="circle-check"
+                                                class="size-4"
+                                            ></i>
+
+                                            Sudah ditindaklanjuti
+                                        </button>
+                                    </form>
+
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <form
+                                            method="POST"
+                                            action="{{ route(
+                                                'recommendations.feedback',
+                                                $item['key']
+                                            ) }}"
+                                        >
+                                            @csrf
+                                            @method('PATCH')
+
+                                            <input
+                                                type="hidden"
+                                                name="interaction_type"
+                                                value="dismissed"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-2 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+                                            >
+                                                Ingatkan nanti
+                                            </button>
+                                        </form>
+
+                                        <form
+                                            method="POST"
+                                            action="{{ route(
+                                                'recommendations.feedback',
+                                                $item['key']
+                                            ) }}"
+                                        >
+                                            @csrf
+                                            @method('PATCH')
+
+                                            <input
+                                                type="hidden"
+                                                name="interaction_type"
+                                                value="irrelevant"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex w-full items-center justify-center rounded-xl border border-rose-200 bg-white px-2 py-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+                                            >
+                                                Tidak relevan
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </article>
                     @endforeach

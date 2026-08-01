@@ -59,13 +59,51 @@ Route::middleware('auth')->group(function (): void {
         ]
     )->name('analysis.index');
 
-    Route::get(
-        '/recommendations',
-        [
-            RecommendationController::class,
-            'index',
-        ]
-    )->name('recommendations.index');
+    Route::prefix('recommendations')
+        ->name('recommendations.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [
+                    RecommendationController::class,
+                    'index',
+                ]
+            )->name('index');
+
+            Route::get(
+                '/history',
+                [
+                    RecommendationController::class,
+                    'history',
+                ]
+            )->name('history');
+
+            Route::get(
+                '/{recommendation}/open',
+                [
+                    RecommendationController::class,
+                    'open',
+                ]
+            )
+                ->where(
+                    'recommendation',
+                    '[A-Za-z0-9\-]+'
+                )
+                ->name('open');
+
+            Route::patch(
+                '/{recommendation}/feedback',
+                [
+                    RecommendationController::class,
+                    'feedback',
+                ]
+            )
+                ->where(
+                    'recommendation',
+                    '[A-Za-z0-9\-]+'
+                )
+                ->name('feedback');
+        });
 
     Route::middleware('onboarding.completed')
         ->prefix('accounts')

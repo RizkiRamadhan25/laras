@@ -28,6 +28,7 @@ class DashboardRecommendationComposer
                         'critical' => 0,
                         'attention' => 0,
                         'insight' => 0,
+                        'suppressed' => 0,
                     ],
                     'generated_at' => null,
                     'has_more' => false,

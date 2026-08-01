@@ -95,7 +95,14 @@ class User extends Authenticatable
             SubscriptionBilling::class
         );
     }
-    
+
+    public function recommendationInteractions(): HasMany
+    {
+        return $this->hasMany(
+            RecommendationInteraction::class
+        );
+    }
+
     public function preference(): HasOne
     {
         return $this->hasOne(UserPreference::class);

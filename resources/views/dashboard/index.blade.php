@@ -490,7 +490,6 @@
                 @endforeach
             </div>
         </article>
-        
     </section>
         @php
         $dashboardRecommendationItems =
@@ -506,6 +505,7 @@
                 'critical' => 0,
                 'attention' => 0,
                 'insight' => 0,
+                'suppressed' => 0,
             ];
 
         $dashboardRecommendationGeneratedAt =
@@ -701,9 +701,10 @@
                         </div>
 
                         <a
-                            href="{{ $item[
-                                'action_url'
-                            ] }}"
+                            href="{{ route(
+                                'recommendations.open',
+                                $item['key']
+                            ) }}"
                             class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-laras-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-laras-800 focus:outline-none focus:ring-4 focus:ring-laras-200"
                         >
                             {{ $item[
@@ -752,6 +753,19 @@
                                 'insight'
                             ] }}
                             insight
+                        </span>
+                    @endif
+
+                    @if (
+                        $dashboardRecommendationSummary[
+                            'suppressed'
+                        ] > 0
+                    )
+                        <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                            {{ $dashboardRecommendationSummary[
+                                'suppressed'
+                            ] }}
+                            suppressed
                         </span>
                     @endif
                 </div>
