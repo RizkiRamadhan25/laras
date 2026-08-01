@@ -50,6 +50,9 @@ import {
     CirclePause,
     Repeat2,
     History,
+    Camera,
+    Image,
+    Trash2,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -103,6 +106,9 @@ const larasIcons = {
     CirclePause,
     Repeat2,
     History,
+    Camera,
+    Image,
+    Trash2,
 };
 
 const renderIcons = () => {

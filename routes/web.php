@@ -11,6 +11,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionBillingController;
 use App\Http\Controllers\ExpenseAnalysisController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\SettingsController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -390,5 +391,49 @@ Route::middleware('auth')->group(function (): void {
             )
                 ->whereNumber('subscription')
                 ->name('cancel');
+        });
+
+    Route::prefix('settings')
+        ->name('settings.')
+        ->group(function (): void {
+            Route::get(
+                '/',
+                [
+                    SettingsController::class,
+                    'index',
+                ]
+            )->name('index');
+
+            Route::patch(
+                '/profile',
+                [
+                    SettingsController::class,
+                    'updateProfile',
+                ]
+            )->name('profile.update');
+
+            Route::patch(
+                '/preferences',
+                [
+                    SettingsController::class,
+                    'updatePreferences',
+                ]
+            )->name('preferences.update');
+
+            Route::patch(
+                '/photo',
+                [
+                    SettingsController::class,
+                    'updatePhoto',
+                ]
+            )->name('photo.update');
+
+            Route::delete(
+                '/photo',
+                [
+                    SettingsController::class,
+                    'destroyPhoto',
+                ]
+            )->name('photo.destroy');
         });
 });

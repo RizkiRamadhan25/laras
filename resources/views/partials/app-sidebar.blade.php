@@ -209,31 +209,98 @@
             </p>
 
             <div class="mt-3">
-                <div
-                    class="flex cursor-not-allowed items-center gap-3 rounded-2xl px-3 py-3 text-slate-400"
-                    aria-disabled="true"
+                <a
+                    href="{{ route('settings.index') }}"
+                    x-on:click="sidebarOpen = false"
+                    @class([
+                        'group flex items-center gap-3 rounded-2xl px-3 py-3 transition',
+
+                        'bg-laras-50 text-laras-800' =>
+                            request()->routeIs(
+                                'settings.*'
+                            ),
+
+                        'text-slate-600 hover:bg-slate-100 hover:text-slate-950' =>
+                            ! request()->routeIs(
+                                'settings.*'
+                            ),
+                    ])
+                    @if (
+                        request()->routeIs(
+                            'settings.*'
+                        )
+                    )
+                        aria-current="page"
+                    @endif
                 >
-                    <span class="flex size-10 items-center justify-center rounded-xl bg-slate-100">
-                        <i data-lucide="settings" class="size-[19px]"></i>
+                    <span
+                        @class([
+                            'flex size-10 shrink-0 items-center justify-center rounded-xl transition',
+
+                            'bg-laras-700 text-white shadow-sm' =>
+                                request()->routeIs(
+                                    'settings.*'
+                                ),
+
+                            'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-slate-800' =>
+                                ! request()->routeIs(
+                                    'settings.*'
+                                ),
+                        ])
+                    >
+                        <i
+                            data-lucide="settings"
+                            class="size-[19px]"
+                        ></i>
                     </span>
 
-                    <span class="text-sm font-semibold">
-                        Pengaturan
-                    </span>
+                    <span class="min-w-0">
+                        <span class="block text-sm font-semibold">
+                            Pengaturan
+                        </span>
 
-                    <span class="ml-auto rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide">
-                        Segera
+                        <span
+                            @class([
+                                'mt-0.5 block truncate text-xs',
+
+                                'text-laras-600' =>
+                                    request()->routeIs(
+                                        'settings.*'
+                                    ),
+
+                                'text-slate-400' =>
+                                    ! request()->routeIs(
+                                        'settings.*'
+                                    ),
+                            ])
+                        >
+                            Profil dan preferensi
+                        </span>
                     </span>
-                </div>
+                </a>
             </div>
         </div>
     </div>
 
     <div class="shrink-0 border-t border-slate-100 p-4">
         <div class="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-laras-950 text-sm font-semibold text-white">
-                {{ $userInitial }}
-            </span>
+            @if (auth()->user()->profilePhotoUrl() !== null)
+                <img
+                    src="{{ auth()->user()->profilePhotoUrl() }}"
+                    alt="Foto profil {{ auth()->user()->name }}"
+                    class="size-10 shrink-0 rounded-xl border border-slate-200 object-cover"
+                >
+            @else
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-laras-950 text-sm font-semibold text-white">
+                    {{ mb_strtoupper(
+                        mb_substr(
+                            auth()->user()->name,
+                            0,
+                            1
+                        )
+                    ) }}
+                </span>
+            @endif
 
             <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-semibold text-slate-900">
