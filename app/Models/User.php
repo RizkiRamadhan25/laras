@@ -127,4 +127,11 @@ class User extends Authenticatable
         );
     }
 
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(
+            Budget::class
+        );
+    }
+
 }

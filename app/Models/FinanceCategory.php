@@ -57,4 +57,11 @@ class FinanceCategory extends Model
             Subscription::class
         );
     }
+
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(
+            Budget::class
+        );
+    }
 }
