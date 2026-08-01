@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountSecurityController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataPrivacyController;
 use App\Http\Controllers\ExpenseAnalysisController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
@@ -410,6 +411,22 @@ Route::middleware('auth')->group(function (): void {
                     '/security/sessions/logout-others',
                     [AccountSecurityController::class, 'logoutOtherDevices']
                 )->name('security.sessions.logout-others');
+
+                Route::post(
+                    '/data/export',
+                    [
+                        DataPrivacyController::class,
+                        'export',
+                    ]
+                )->name('data.export');
+
+                Route::delete(
+                    '/account',
+                    [
+                        DataPrivacyController::class,
+                        'destroy',
+                    ]
+                )->name('account.destroy');
             });
     });
 });

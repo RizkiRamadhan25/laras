@@ -634,5 +634,9 @@
         @include(
             'settings.partials.security'
         )
+
+        @include(
+            'settings.partials.data-privacy'
+        )
     </div>
 @endsection

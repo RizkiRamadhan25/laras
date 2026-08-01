@@ -56,6 +56,9 @@ import {
     KeyRound,
     MonitorSmartphone,
     History,
+    Download,
+    FileJson,
+    TriangleAlert,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -115,6 +118,9 @@ const larasIcons = {
     ShieldCheck,
     KeyRound,
     MonitorSmartphone,
+    Download,
+    FileJson,
+    TriangleAlert,
 };
 
 const renderIcons = () => {
