@@ -26,11 +26,11 @@
         ],
         [
             'label' => 'Keuangan',
-            'description' => 'Saldo dan transaksi',
+            'description' => 'Rekening dan saldo',
             'icon' => 'wallet-cards',
-            'href' => '#',
-            'active' => false,
-            'enabled' => false,
+            'href' => route('accounts.index'),
+            'active' => request()->routeIs('accounts.*'),
+            'enabled' => true,
         ],
         [
             'label' => 'Analisis',
