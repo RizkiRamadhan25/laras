@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
+import './features/expense-analysis';
 
 import {
     createIcons,
@@ -48,6 +49,7 @@ import {
     CircleCheck,
     CirclePause,
     Repeat2,
+    History,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -100,6 +102,7 @@ const larasIcons = {
     CircleCheck,
     CirclePause,
     Repeat2,
+    History,
 };
 
 const renderIcons = () => {
