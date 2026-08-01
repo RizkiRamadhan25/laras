@@ -174,8 +174,10 @@ class SettingsController extends Controller
             ),
         ])->save();
 
-        return redirect()
-            ->route('settings.index')
+        return redirect(
+            route('settings.index')
+            .'#profile'
+        )
             ->with(
                 'status',
                 'Profil berhasil diperbarui.'
@@ -217,8 +219,10 @@ class SettingsController extends Controller
             'preference'
         );
 
-        return redirect()
-            ->route('settings.index')
+        return redirect(
+            route('settings.index')
+            .'#preferences'
+        )
             ->with(
                 'status',
                 'Preferensi berhasil diperbarui.'
@@ -251,8 +255,10 @@ class SettingsController extends Controller
             );
         }
 
-        return redirect()
-            ->route('settings.index')
+        return redirect(
+            route('settings.index')
+            .'#profile'
+        )
             ->with(
                 'status',
                 'Foto profil berhasil diperbarui.'
@@ -277,8 +283,10 @@ class SettingsController extends Controller
             );
         }
 
-        return redirect()
-            ->route('settings.index')
+        return redirect(
+            route('settings.index')
+            .'#profile'
+        )
             ->with(
                 'status',
                 'Foto profil berhasil dihapus.'

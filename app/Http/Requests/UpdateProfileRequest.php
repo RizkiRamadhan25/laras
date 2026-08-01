@@ -11,6 +11,12 @@ class UpdateProfileRequest extends FormRequest
         return $this->user() !== null;
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return route('settings.index')
+            .'#profile';
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge([

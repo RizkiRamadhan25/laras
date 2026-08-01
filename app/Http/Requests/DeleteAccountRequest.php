@@ -64,4 +64,10 @@ class DeleteAccountRequest extends FormRequest
                 'Ketik HAPUS AKUN untuk mengonfirmasi penghapusan.',
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('settings.index')
+            .'#data-privacy';
+    }
 }

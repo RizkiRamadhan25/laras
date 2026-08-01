@@ -12,6 +12,12 @@ class UpdatePreferencesRequest extends FormRequest
         return $this->user() !== null;
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return route('settings.index')
+            .'#preferences';
+    }
+
     /**
      * @return array<string, mixed>
      */

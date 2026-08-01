@@ -51,8 +51,10 @@ class AccountSecurityController extends Controller
             request: $request
         );
 
-        return redirect()
-            ->route('settings.index')
+        return redirect(
+            route('settings.index')
+            .'#security'
+        )
             ->with(
                 'status',
                 'Kata sandi berhasil diperbarui. Perangkat lain juga telah dikeluarkan.'
@@ -78,8 +80,10 @@ class AccountSecurityController extends Controller
             request: $request
         );
 
-        return redirect()
-            ->route('settings.index')
+        return redirect(
+            route('settings.index')
+            .'#security'
+        )
             ->with(
                 'status',
                 'Seluruh perangkat lain berhasil dikeluarkan.'

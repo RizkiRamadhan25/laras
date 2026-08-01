@@ -49,4 +49,10 @@ class UpdateProfilePhotoRequest extends FormRequest
                 'Resolusi foto minimal 128 × 128 dan maksimal 6000 × 6000 piksel.',
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('settings.index')
+            .'#profile';
+    }
 }

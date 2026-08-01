@@ -1,6 +1,7 @@
 import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
 import './features/expense-analysis';
+import './features/settings';
 
 import {
     createIcons,
@@ -59,6 +60,7 @@ import {
     Download,
     FileJson,
     TriangleAlert,
+    Database,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -121,6 +123,7 @@ const larasIcons = {
     Download,
     FileJson,
     TriangleAlert,
+    Database,
 };
 
 const renderIcons = () => {

@@ -63,8 +63,9 @@ class AccountSecurityTest extends TestCase
                         self::NEW_PASSWORD,
                 ]
             )
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#security'
             )
             ->assertSessionHas('status');
 
@@ -129,6 +130,7 @@ class AccountSecurityTest extends TestCase
             )
             ->assertRedirect(
                 route('settings.index')
+                .'#security'
             )
             ->assertSessionHasErrors(
                 'current_password'
@@ -171,6 +173,7 @@ class AccountSecurityTest extends TestCase
             )
             ->assertRedirect(
                 route('settings.index')
+                .'#security'
             )
             ->assertSessionHasErrors(
                 'password'
@@ -207,6 +210,7 @@ class AccountSecurityTest extends TestCase
             )
             ->assertRedirect(
                 route('settings.index')
+                .'#security'
             )
             ->assertSessionHasErrors(
                 'password'
@@ -237,8 +241,9 @@ class AccountSecurityTest extends TestCase
                         self::CURRENT_PASSWORD,
                 ]
             )
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#security'
             )
             ->assertSessionHas('status');
 

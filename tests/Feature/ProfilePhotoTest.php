@@ -38,8 +38,9 @@ class ProfilePhotoTest extends TestCase
             );
 
         $response
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#profile'
             )
             ->assertSessionHas('status');
 
@@ -93,8 +94,9 @@ class ProfilePhotoTest extends TestCase
                             ->size(600),
                 ]
             )
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#profile'
             );
 
         $user->refresh();
@@ -135,8 +137,9 @@ class ProfilePhotoTest extends TestCase
                     'settings.photo.destroy'
                 )
             )
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#profile'
             )
             ->assertSessionHas('status');
 
@@ -175,6 +178,7 @@ class ProfilePhotoTest extends TestCase
             )
             ->assertRedirect(
                 route('settings.index')
+                .'#profile'
             )
             ->assertSessionHasErrors(
                 'photo'

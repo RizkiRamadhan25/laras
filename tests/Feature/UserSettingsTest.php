@@ -41,8 +41,9 @@ class UserSettingsTest extends TestCase
                         'Rizki Ramadhan',
                 ]
             )
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#profile'
             )
             ->assertSessionHas('status');
 
@@ -79,8 +80,9 @@ class UserSettingsTest extends TestCase
                         0,
                 ]
             )
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#preferences'
             )
             ->assertSessionHas('status');
 
@@ -148,6 +150,7 @@ class UserSettingsTest extends TestCase
             )
             ->assertRedirect(
                 route('settings.index')
+                .'#preferences'
             )
             ->assertSessionHasErrors([
                 'timezone',
@@ -276,8 +279,9 @@ class UserSettingsTest extends TestCase
                         1,
                 ]
             )
-            ->assertRedirectToRoute(
-                'settings.index'
+            ->assertRedirect(
+                route('settings.index')
+                .'#preferences'
             );
 
         $this->assertDatabaseHas(

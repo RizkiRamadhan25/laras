@@ -115,6 +115,7 @@ class DataPrivacyTest extends TestCase
             )
             ->assertRedirect(
                 route('settings.index')
+                .'#data-privacy'
             )
             ->assertSessionHasErrors(
                 'delete_current_password'
@@ -149,6 +150,7 @@ class DataPrivacyTest extends TestCase
             )
             ->assertRedirect(
                 route('settings.index')
+                .'#data-privacy'
             )
             ->assertSessionHasErrors(
                 'confirmation'

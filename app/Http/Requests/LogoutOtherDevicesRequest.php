@@ -38,4 +38,10 @@ class LogoutOtherDevicesRequest extends FormRequest
                 'Kata sandi saat ini tidak sesuai.',
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('settings.index')
+            .'#security';
+    }
 }

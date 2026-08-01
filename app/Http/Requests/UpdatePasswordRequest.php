@@ -74,4 +74,10 @@ class UpdatePasswordRequest extends FormRequest
                 'kata sandi baru',
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('settings.index')
+            .'#security';
+    }
 }

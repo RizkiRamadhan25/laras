@@ -1,6 +1,7 @@
 <section
     id="data-privacy"
-    class="mt-8"
+    data-settings-section
+    class="mt-8 scroll-mt-44"
 >
     <header>
         <p class="text-sm font-semibold text-laras-700">
