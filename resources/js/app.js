@@ -28,6 +28,11 @@ import {
     Wallet,
     WalletCards,
     X,
+    ArrowDownLeft,
+    ArrowUpRight,
+    Ban,
+    Eye,
+    ReceiptText,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -61,6 +66,11 @@ const larasIcons = {
     Wallet,
     WalletCards,
     X,
+    ArrowDownLeft,
+    ArrowUpRight,
+    Ban,
+    Eye,
+    ReceiptText,
 };
 
 const renderIcons = () => {

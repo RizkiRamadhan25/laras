@@ -33,6 +33,14 @@
             'enabled' => true,
         ],
         [
+            'label' => 'Transaksi',
+            'description' => 'Riwayat arus dana',
+            'icon' => 'receipt-text',
+            'href' => route('transactions.index'),
+            'active' => request()->routeIs('transactions.*'),
+            'enabled' => true,
+        ],
+        [
             'label' => 'Analisis',
             'description' => 'Insight dan laporan',
             'icon' => 'chart-no-axes-combined',

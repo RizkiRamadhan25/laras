@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
-use App\Enums\AccountType;
+use App\Enums\FinanceFlowType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Account extends Model
+class FinanceCategory extends Model
 {
-    /** @use HasFactory<\Database\Factories\AccountFactory> */
+    /** @use HasFactory<\Database\Factories\FinanceCategoryFactory> */
     use HasFactory, SoftDeletes;
 
     /**
@@ -20,14 +20,10 @@ class Account extends Model
     protected $fillable = [
         'user_id',
         'name',
-        'type',
-        'institution',
-        'currency_code',
-        'initial_balance',
-        'cached_balance',
-        'account_number_last_four',
-        'color',
+        'flow_type',
         'icon',
+        'color',
+        'is_system',
         'is_active',
         'sort_order',
     ];
@@ -38,9 +34,8 @@ class Account extends Model
     protected function casts(): array
     {
         return [
-            'type' => AccountType::class,
-            'initial_balance' => 'decimal:2',
-            'cached_balance' => 'decimal:2',
+            'flow_type' => FinanceFlowType::class,
+            'is_system' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];

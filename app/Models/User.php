@@ -64,6 +64,18 @@ class User extends Authenticatable
             ->orderBy('id');
     }
 
+    public function financeCategories(): HasMany
+    {
+        return $this->hasMany(FinanceCategory::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public function preference(): HasOne
     {
         return $this->hasOne(UserPreference::class);
