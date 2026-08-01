@@ -8,6 +8,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SubscriptionBillingController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -269,6 +270,28 @@ Route::middleware('auth')->group(function (): void {
                 '/',
                 [SubscriptionController::class, 'store']
             )->name('store');
+
+            Route::get(
+                '/{subscription}/billings/{billing}',
+                [
+                    SubscriptionBillingController::class,
+                    'show',
+                ]
+            )
+                ->whereNumber('subscription')
+                ->whereNumber('billing')
+                ->name('billings.show');
+
+            Route::patch(
+                '/{subscription}/billings/{billing}/retry',
+                [
+                    SubscriptionBillingController::class,
+                    'retry',
+                ]
+            )
+                ->whereNumber('subscription')
+                ->whereNumber('billing')
+                ->name('billings.retry');
 
             Route::get(
                 '/{subscription}',

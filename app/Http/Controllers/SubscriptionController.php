@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Enums\SubscriptionBillingStatus;
+use App\Models\SubscriptionBilling;
 
 class SubscriptionController extends Controller
 {
@@ -282,21 +284,94 @@ class SubscriptionController extends Controller
         Request $request,
         int $subscription
     ): View {
-        $ownedSubscription = $request->user()
-            ->subscriptions()
+        $user = $request->user()->load(
+            'preference'
+        );
+
+        $ownedSubscription = Subscription::query()
+            ->where('user_id', $user->id)
             ->with([
                 'account',
                 'financeCategory',
-                'billings.transaction',
             ])
             ->findOrFail($subscription);
 
+        $baseBillingQuery =
+            SubscriptionBilling::query()
+                ->where(
+                    'subscription_id',
+                    $ownedSubscription->id
+                )
+                ->where(
+                    'user_id',
+                    $user->id
+                );
+
+        $billingSummary = [
+            'total' => (
+                clone $baseBillingQuery
+            )->count(),
+
+            'posted' => (
+                clone $baseBillingQuery
+            )
+                ->where(
+                    'status',
+                    SubscriptionBillingStatus
+                        ::Posted->value
+                )
+                ->count(),
+
+            'failed' => (
+                clone $baseBillingQuery
+            )
+                ->where(
+                    'status',
+                    SubscriptionBillingStatus
+                        ::Failed->value
+                )
+                ->count(),
+
+            'scheduled' => (
+                clone $baseBillingQuery
+            )
+                ->where(
+                    'status',
+                    SubscriptionBillingStatus
+                        ::Scheduled->value
+                )
+                ->count(),
+
+            'total_paid' => (
+                clone $baseBillingQuery
+            )
+                ->where(
+                    'status',
+                    SubscriptionBillingStatus
+                        ::Posted->value
+                )
+                ->sum('amount'),
+        ];
+
+        $billings = (
+            clone $baseBillingQuery
+        )
+            ->with('transaction')
+            ->orderByDesc('scheduled_for')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
         return view('subscriptions.show', [
-            'user' => $request->user()->load(
-                'preference'
-            ),
+            'user' => $user,
+
             'subscription' =>
                 $ownedSubscription,
+
+            'billings' => $billings,
+
+            'billingSummary' =>
+                $billingSummary,
         ]);
     }
 

@@ -13,6 +13,7 @@ use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class SubscriptionBillingProcessorService
 {
@@ -20,6 +21,72 @@ class SubscriptionBillingProcessorService
         private readonly TransactionPostingService $transactionPostingService,
         private readonly SubscriptionService $subscriptionService
     ) {
+    }
+
+    public function retry(
+        User $user,
+        int $subscriptionId,
+        int $billingId
+    ): SubscriptionBilling {
+        $subscription = Subscription::query()
+            ->where('user_id', $user->id)
+            ->findOrFail($subscriptionId);
+
+        $billing = $subscription
+            ->billings()
+            ->findOrFail($billingId);
+
+        if (
+            $billing->status
+            !== SubscriptionBillingStatus::Failed
+        ) {
+            throw new DomainException(
+                'Hanya tagihan berstatus gagal yang dapat dicoba kembali.'
+            );
+        }
+
+        if (
+            $subscription->status
+            !== SubscriptionStatus::Active
+        ) {
+            throw new DomainException(
+                'Langganan harus aktif sebelum tagihan dapat dicoba kembali.'
+            );
+        }
+
+        if (! $subscription->auto_post) {
+            throw new DomainException(
+                'Pencatatan otomatis tidak aktif untuk langganan ini.'
+            );
+        }
+
+        $timezone = $user->preference()
+            ->value('timezone')
+            ?? config(
+                'laras.defaults.timezone',
+                'Asia/Jakarta'
+            );
+
+        $today = CarbonImmutable::today(
+            $timezone
+        );
+
+        if (
+            $billing->scheduled_for
+                ->isAfter($today)
+        ) {
+            throw new DomainException(
+                'Tagihan yang belum jatuh tempo tidak dapat dicoba kembali.'
+            );
+        }
+
+        return $this->process(
+            billing: $billing,
+            reference: CarbonImmutable::now(
+                $timezone
+            ),
+            force: true
+        );
     }
 
     public function process(

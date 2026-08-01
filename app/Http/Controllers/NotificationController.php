@@ -127,6 +127,38 @@ class NotificationController extends Controller
             ->data['subscription_id']
                 ?? null;
 
+        $billingId = $ownedNotification
+            ->data['subscription_billing_id']
+                ?? null;
+
+        if (
+            $subscriptionId !== null
+            && $billingId !== null
+        ) {
+            $subscription = $request->user()
+                ->subscriptions()
+                ->find((int) $subscriptionId);
+
+            if ($subscription !== null) {
+                $billing = $subscription
+                    ->billings()
+                    ->find((int) $billingId);
+
+                if ($billing !== null) {
+                    return redirect()->route(
+                        'subscriptions.billings.show',
+                        [
+                            'subscription' =>
+                                $subscription->id,
+
+                            'billing' =>
+                                $billing->id,
+                        ]
+                    );
+                }
+            }
+        }
+
         if ($subscriptionId !== null) {
             $subscription = $request->user()
                 ->subscriptions()
