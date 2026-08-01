@@ -11,6 +11,7 @@ use Illuminate\View\View;
 use App\Http\Requests\UpdateProfilePhotoRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Enums\SecurityEventType;
 
 class SettingsController extends Controller
 {
@@ -28,6 +29,26 @@ class SettingsController extends Controller
             $previewTimezone
         );
 
+        $securityEvents = $user
+            ->securityEvents()
+            ->latest('occurred_at')
+            ->latest('id')
+            ->limit(8)
+            ->get();
+
+        $lastPasswordChangedAt = $user
+            ->securityEvents()
+            ->where(
+                'type',
+                SecurityEventType
+                    ::PasswordChanged
+                    ->value
+            )
+            ->latest('occurred_at')
+            ->latest('id')
+            ->first()
+            ?->occurred_at;
+
         return view(
             'settings.index',
             [
@@ -35,6 +56,12 @@ class SettingsController extends Controller
 
                 'preference' =>
                     $user->preference,
+
+                'securityEvents' =>
+                    $securityEvents,
+
+                'lastPasswordChangedAt' =>
+                    $lastPasswordChangedAt,
 
                 'timezones' => [
                     'Asia/Jakarta' => [

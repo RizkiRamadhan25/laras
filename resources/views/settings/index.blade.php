@@ -631,5 +631,8 @@
                 </form>
             </div>
         </section>
+        @include(
+            'settings.partials.security'
+        )
     </div>
 @endsection

@@ -120,4 +120,11 @@ class User extends Authenticatable
         );
     }
 
+    public function securityEvents(): HasMany
+    {
+        return $this->hasMany(
+            SecurityEvent::class
+        );
+    }
+
 }

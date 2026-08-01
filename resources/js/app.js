@@ -49,10 +49,13 @@ import {
     CircleCheck,
     CirclePause,
     Repeat2,
-    History,
     Camera,
     Image,
     Trash2,
+    ShieldCheck,
+    KeyRound,
+    MonitorSmartphone,
+    History,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -109,6 +112,9 @@ const larasIcons = {
     Camera,
     Image,
     Trash2,
+    ShieldCheck,
+    KeyRound,
+    MonitorSmartphone,
 };
 
 const renderIcons = () => {
