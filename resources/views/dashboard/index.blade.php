@@ -1,22 +1,28 @@
 @extends('layouts.app')
 
 @section('title', 'Dashboard — Laras')
-
 @section('page-title', 'Dashboard')
-
 @section(
     'page-description',
-    'Ringkasan aktivitas, prioritas, dan kondisi keuanganmu.'
+    'Ringkasan aktivitas dan kondisi keuanganmu.'
 )
 
 @section('content')
     @php
-        $formattedTotalBalance = number_format(
-            (float) $totalBalance,
+        $formatMoney = static fn (
+            string $amount
+        ): string => number_format(
+            (float) $amount,
             0,
             ',',
             '.'
         );
+
+        $positiveNetCashFlow = bccomp(
+            $netCashFlow,
+            '0.00',
+            2
+        ) >= 0;
     @endphp
 
     <section>
@@ -27,39 +33,54 @@
                 </p>
 
                 <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                    {{ $greeting }},
-                    {{ $user->name }}.
+                    {{ $greeting }}, {{ $user->name }}.
                 </h1>
 
                 <p class="mt-3 max-w-2xl leading-7 text-slate-500">
-                    Berikut gambaran awal harimu. Modul aktivitas, prioritas,
-                    transaksi, dan rekomendasi akan segera dihubungkan ke
-                    dashboard ini.
+                    Berikut ringkasan keuanganmu untuk
+                    {{ $monthLabel }}.
                 </p>
             </div>
 
-            <button
-                type="button"
-                disabled
-                class="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-laras-700 px-5 py-3 text-sm font-semibold text-white opacity-60"
-                title="Fitur akan tersedia pada tahap berikutnya"
-            >
-                <i data-lucide="plus" class="size-4"></i>
-                Tambah cepat
-            </button>
+            <div class="flex flex-wrap gap-2">
+                <a
+                    href="{{ route(
+                        'transactions.create',
+                        ['type' => 'income']
+                    ) }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                >
+                    <i
+                        data-lucide="arrow-down-left"
+                        class="size-4"
+                    ></i>
+                    Pemasukan
+                </a>
+
+                <a
+                    href="{{ route(
+                        'transactions.create',
+                        ['type' => 'expense']
+                    ) }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-laras-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-laras-800"
+                >
+                    <i
+                        data-lucide="plus"
+                        class="size-4"
+                    ></i>
+                    Tambah transaksi
+                </a>
+            </div>
         </div>
 
         <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
-                <div class="flex items-start justify-between gap-4">
-                    <span class="flex size-11 items-center justify-center rounded-2xl bg-laras-50 text-laras-700">
-                        <i data-lucide="wallet-cards" class="size-5"></i>
-                    </span>
-
-                    <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                        Aktif
-                    </span>
-                </div>
+                <span class="flex size-11 items-center justify-center rounded-2xl bg-laras-50 text-laras-700">
+                    <i
+                        data-lucide="wallet-cards"
+                        class="size-5"
+                    ></i>
+                </span>
 
                 <p class="mt-5 text-sm font-medium text-slate-500">
                     Total saldo
@@ -67,87 +88,349 @@
 
                 <p class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
                     <span class="text-sm font-medium text-slate-400">
-                        {{ $user->preference?->currency_code ?? 'IDR' }}
+                        {{ $currencyCode }}
                     </span>
-                    {{ $formattedTotalBalance }}
+
+                    {{ $formatMoney($totalBalance) }}
                 </p>
 
                 <p class="mt-2 text-xs text-slate-400">
-                    Dari seluruh rekening aktif
+                    {{ $accounts->count() }} rekening aktif
                 </p>
             </article>
 
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
-                <div class="flex items-start justify-between gap-4">
-                    <span class="flex size-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                        <i data-lucide="landmark" class="size-5"></i>
-                    </span>
-                </div>
+                <span class="flex size-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <i
+                        data-lucide="arrow-down-left"
+                        class="size-5"
+                    ></i>
+                </span>
 
                 <p class="mt-5 text-sm font-medium text-slate-500">
-                    Rekening aktif
+                    Pemasukan bulan ini
                 </p>
 
-                <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-                    {{ $accounts->count() }}
+                <p class="mt-2 text-2xl font-semibold tracking-tight text-emerald-700">
+                    <span class="text-sm font-medium text-emerald-500">
+                        {{ $currencyCode }}
+                    </span>
+
+                    {{ $formatMoney($monthlyIncome) }}
                 </p>
 
                 <p class="mt-2 text-xs text-slate-400">
-                    Bank, dompet digital, dan tunai
+                    Transaksi berstatus tercatat
                 </p>
             </article>
 
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
-                <div class="flex items-start justify-between gap-4">
-                    <span class="flex size-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
-                        <i data-lucide="calendar-days" class="size-5"></i>
-                    </span>
-
-                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-                        Segera
-                    </span>
-                </div>
+                <span class="flex size-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-700">
+                    <i
+                        data-lucide="arrow-up-right"
+                        class="size-5"
+                    ></i>
+                </span>
 
                 <p class="mt-5 text-sm font-medium text-slate-500">
-                    Aktivitas hari ini
+                    Pengeluaran bulan ini
                 </p>
 
-                <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-                    0
+                <p class="mt-2 text-2xl font-semibold tracking-tight text-rose-700">
+                    <span class="text-sm font-medium text-rose-500">
+                        {{ $currencyCode }}
+                    </span>
+
+                    {{ $formatMoney($monthlyExpense) }}
                 </p>
 
                 <p class="mt-2 text-xs text-slate-400">
-                    Belum ada agenda yang dicatat
+                    Termasuk biaya admin transfer
                 </p>
             </article>
 
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
-                <div class="flex items-start justify-between gap-4">
-                    <span class="flex size-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
-                        <i data-lucide="sparkles" class="size-5"></i>
-                    </span>
-
-                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-                        Segera
-                    </span>
-                </div>
+                <span
+                    @class([
+                        'flex size-11 items-center justify-center rounded-2xl',
+                        'bg-sky-50 text-sky-700' =>
+                            $positiveNetCashFlow,
+                        'bg-amber-50 text-amber-700' =>
+                            ! $positiveNetCashFlow,
+                    ])
+                >
+                    <i
+                        data-lucide="chart-no-axes-combined"
+                        class="size-5"
+                    ></i>
+                </span>
 
                 <p class="mt-5 text-sm font-medium text-slate-500">
-                    Rekomendasi Laras
+                    Arus kas bersih
                 </p>
 
-                <p class="mt-2 text-lg font-semibold tracking-tight text-slate-950">
-                    Belum tersedia
+                <p
+                    @class([
+                        'mt-2 text-2xl font-semibold tracking-tight',
+                        'text-sky-700' => $positiveNetCashFlow,
+                        'text-amber-700' => ! $positiveNetCashFlow,
+                    ])
+                >
+                    {{ $positiveNetCashFlow ? '' : '-' }}
+
+                    <span class="text-sm font-medium opacity-70">
+                        {{ $currencyCode }}
+                    </span>
+
+                    {{ $formatMoney(
+                        $positiveNetCashFlow
+                            ? $netCashFlow
+                            : bcsub(
+                                '0.00',
+                                $netCashFlow,
+                                2
+                            )
+                    ) }}
                 </p>
 
                 <p class="mt-2 text-xs text-slate-400">
-                    Akan muncul setelah pola penggunaan terbentuk
+                    Dari {{ $postedTransactionCount }}
+                    transaksi bulan berjalan
                 </p>
             </article>
         </div>
     </section>
 
     <section class="mt-6 grid gap-6 xl:grid-cols-[1.45fr_0.75fr]">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras sm:p-6">
+            <header>
+                <h2 class="font-semibold text-slate-950">
+                    Arus kas bulan berjalan
+                </h2>
+
+                <p class="mt-1 text-sm text-slate-400">
+                    Perbandingan pemasukan dan pengeluaran harian.
+                </p>
+            </header>
+
+            <div class="mt-6 h-80">
+                <canvas
+                    id="dashboard-cash-flow-chart"
+                    aria-label="Grafik arus kas bulan berjalan"
+                ></canvas>
+            </div>
+
+            <script
+                id="dashboard-cash-flow-data"
+                type="application/json"
+            >{!! json_encode(
+                array_merge(
+                    $cashFlowChart,
+                    ['currency' => $currencyCode]
+                ),
+                JSON_HEX_TAG
+                | JSON_HEX_APOS
+                | JSON_HEX_AMP
+                | JSON_HEX_QUOT
+            ) !!}</script>
+        </article>
+
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras sm:p-6">
+            <header>
+                <h2 class="font-semibold text-slate-950">
+                    Distribusi pengeluaran
+                </h2>
+
+                <p class="mt-1 text-sm text-slate-400">
+                    Kategori terbesar pada bulan berjalan.
+                </p>
+            </header>
+
+            @if ($categoryBreakdown->isEmpty())
+                <div class="flex h-80 flex-col items-center justify-center text-center">
+                    <span class="flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                        <i
+                            data-lucide="chart-no-axes-combined"
+                            class="size-6"
+                        ></i>
+                    </span>
+
+                    <p class="mt-4 font-semibold text-slate-800">
+                        Belum ada pengeluaran
+                    </p>
+
+                    <p class="mt-2 text-sm text-slate-400">
+                        Distribusi kategori akan muncul setelah transaksi dicatat.
+                    </p>
+                </div>
+            @else
+                <div class="mt-6 h-52">
+                    <canvas
+                        id="dashboard-category-chart"
+                        aria-label="Grafik distribusi pengeluaran"
+                    ></canvas>
+                </div>
+
+                <script
+                    id="dashboard-category-data"
+                    type="application/json"
+                >{!! json_encode(
+                    array_merge(
+                        $categoryChart,
+                        ['currency' => $currencyCode]
+                    ),
+                    JSON_HEX_TAG
+                    | JSON_HEX_APOS
+                    | JSON_HEX_AMP
+                    | JSON_HEX_QUOT
+                ) !!}</script>
+
+                <div class="mt-6 space-y-3">
+                    @foreach ($categoryBreakdown as $category)
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="size-3 shrink-0 rounded-full"
+                                style="
+                                    background-color:
+                                    {{ $category['color'] }}
+                                "
+                            ></span>
+
+                            <p class="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">
+                                {{ $category['name'] }}
+                            </p>
+
+                            <p class="shrink-0 text-sm font-semibold text-slate-900">
+                                {{ $currencyCode }}
+                                {{ $formatMoney(
+                                    $category['amount']
+                                ) }}
+                            </p>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </article>
+    </section>
+
+    <section class="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.85fr]">
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-laras">
+            <header class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-5 sm:px-6">
+                <div>
+                    <h2 class="font-semibold text-slate-950">
+                        Transaksi terbaru
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-400">
+                        Aktivitas keuangan paling baru.
+                    </p>
+                </div>
+
+                <a
+                    href="{{ route('transactions.index') }}"
+                    class="text-sm font-semibold text-laras-700 hover:text-laras-900"
+                >
+                    Lihat semua
+                </a>
+            </header>
+
+            @if ($recentTransactions->isEmpty())
+                <div class="px-6 py-12 text-center">
+                    <span class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                        <i
+                            data-lucide="receipt-text"
+                            class="size-6"
+                        ></i>
+                    </span>
+
+                    <p class="mt-4 font-semibold text-slate-900">
+                        Belum ada transaksi
+                    </p>
+                </div>
+            @else
+                <div class="divide-y divide-slate-100">
+                    @foreach ($recentTransactions as $transaction)
+                        @php
+                            $amount = $transaction->displayAmount();
+
+                            $typeStyle = match (
+                                $transaction->type
+                            ) {
+                                \App\Enums\TransactionType::Income => [
+                                    'icon' => 'arrow-down-left',
+                                    'background' =>
+                                        'bg-emerald-100 text-emerald-700',
+                                    'amount' =>
+                                        'text-emerald-700',
+                                    'prefix' => '+',
+                                ],
+
+                                \App\Enums\TransactionType::Expense => [
+                                    'icon' => 'arrow-up-right',
+                                    'background' =>
+                                        'bg-rose-100 text-rose-700',
+                                    'amount' =>
+                                        'text-rose-700',
+                                    'prefix' => '-',
+                                ],
+
+                                default => [
+                                    'icon' => 'arrow-left-right',
+                                    'background' =>
+                                        'bg-blue-100 text-blue-700',
+                                    'amount' =>
+                                        'text-slate-900',
+                                    'prefix' => '',
+                                ],
+                            };
+                        @endphp
+
+                        <a
+                            href="{{ route(
+                                'transactions.show',
+                                $transaction->id
+                            ) }}"
+                            class="flex items-center gap-4 px-5 py-4 transition hover:bg-slate-50 sm:px-6"
+                        >
+                            <span
+                                class="flex size-11 shrink-0 items-center justify-center rounded-2xl {{ $typeStyle['background'] }}"
+                            >
+                                <i
+                                    data-lucide="{{ $typeStyle['icon'] }}"
+                                    class="size-5"
+                                ></i>
+                            </span>
+
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-semibold text-slate-900">
+                                    {{ $transaction->description
+                                        ?? $transaction->type->label() }}
+                                </p>
+
+                                <p class="mt-1 truncate text-xs text-slate-400">
+                                    {{ $transaction->occurred_at
+                                        ->timezone($timezone)
+                                        ->translatedFormat(
+                                            'd M Y, H:i'
+                                        ) }}
+
+                                    • {{ $transaction->status->label() }}
+                                </p>
+                            </div>
+
+                            <p
+                                class="shrink-0 text-sm font-semibold {{ $typeStyle['amount'] }}"
+                            >
+                                {{ $typeStyle['prefix'] }}
+                                {{ $currencyCode }}
+                                {{ $formatMoney($amount) }}
+                            </p>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+        </article>
+
         <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-laras">
             <header class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-5 sm:px-6">
                 <div>
@@ -156,117 +439,55 @@
                     </h2>
 
                     <p class="mt-1 text-sm text-slate-400">
-                        Saldo terkini dari akun yang aktif.
+                        Saldo rekening aktif.
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    disabled
-                    class="text-sm font-semibold text-slate-400"
+                <a
+                    href="{{ route('accounts.index') }}"
+                    class="text-sm font-semibold text-laras-700 hover:text-laras-900"
                 >
-                    Lihat semua
-                </button>
+                    Kelola
+                </a>
             </header>
 
-            @if ($accounts->isEmpty())
-                <div class="px-6 py-12 text-center">
-                    <span class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-                        <i data-lucide="wallet" class="size-6"></i>
-                    </span>
+            <div class="divide-y divide-slate-100">
+                @foreach ($accounts->take(6) as $account)
+                    <div class="flex items-center gap-4 px-5 py-4 sm:px-6">
+                        <span
+                            class="size-3 shrink-0 rounded-full"
+                            style="
+                                background-color:
+                                {{ $account->color ?? '#2563EB' }}
+                            "
+                        ></span>
 
-                    <h3 class="mt-4 font-semibold text-slate-900">
-                        Belum ada rekening
-                    </h3>
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                            <i
+                                data-lucide="{{ $account->icon ?? 'wallet' }}"
+                                class="size-5"
+                            ></i>
+                        </span>
 
-                    <p class="mt-2 text-sm text-slate-500">
-                        Tambahkan rekening agar saldo dapat ditampilkan.
-                    </p>
-                </div>
-            @else
-                <div class="divide-y divide-slate-100">
-                    @foreach ($accounts->take(6) as $account)
-                        @php
-                            $formattedAccountBalance = number_format(
-                                (float) $account->cached_balance,
-                                0,
-                                ',',
-                                '.'
-                            );
-                        @endphp
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-semibold text-slate-900">
+                                {{ $account->name }}
+                            </p>
 
-                        <div class="flex items-center gap-4 px-5 py-4 sm:px-6">
-                            <span
-                                class="size-3 shrink-0 rounded-full"
-                                style="background-color: {{ $account->color ?? '#2563EB' }}"
-                            ></span>
-
-                            <span class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
-                                <i
-                                    data-lucide="{{ $account->icon ?? 'wallet' }}"
-                                    class="size-5"
-                                ></i>
-                            </span>
-
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-semibold text-slate-900">
-                                    {{ $account->name }}
-                                </p>
-
-                                <p class="mt-1 truncate text-xs text-slate-400">
-                                    {{ $account->institution ?? $account->type->label() }}
-
-                                    @if ($account->account_number_last_four)
-                                        •••• {{ $account->account_number_last_four }}
-                                    @endif
-                                </p>
-                            </div>
-
-                            <div class="shrink-0 text-right">
-                                <p class="text-sm font-semibold text-slate-900">
-                                    {{ $account->currency_code }}
-                                    {{ $formattedAccountBalance }}
-                                </p>
-
-                                <p class="mt-1 text-xs text-emerald-600">
-                                    Aktif
-                                </p>
-                            </div>
+                            <p class="mt-1 truncate text-xs text-slate-400">
+                                {{ $account->institution
+                                    ?? $account->type->label() }}
+                            </p>
                         </div>
-                    @endforeach
-                </div>
-            @endif
-        </article>
 
-        <article class="rounded-2xl border border-slate-200 bg-laras-950 p-6 text-white shadow-laras">
-            <div class="flex items-center justify-between gap-4">
-                <span class="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-laras-200">
-                    <i data-lucide="lightbulb" class="size-5"></i>
-                </span>
-
-                <span class="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-laras-100">
-                    Insight
-                </span>
-            </div>
-
-            <h2 class="mt-8 text-2xl font-semibold tracking-tight">
-                Bangun ritme yang selaras.
-            </h2>
-
-            <p class="mt-4 leading-7 text-laras-100">
-                Laras akan menghubungkan jadwal, prioritas, dan kondisi
-                keuangan untuk membantumu menentukan langkah berikutnya.
-            </p>
-
-            <div class="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-laras-200">
-                    Tahap berikutnya
-                </p>
-
-                <p class="mt-2 text-sm leading-6 text-white">
-                    Mengaktifkan halaman rekening dan pengelolaan akun
-                    keuangan.
-                </p>
+                        <p class="shrink-0 text-sm font-semibold text-slate-900">
+                            {{ $account->currency_code }}
+                            {{ $formatMoney(
+                                $account->cached_balance
+                            ) }}
+                        </p>
+                    </div>
+                @endforeach
             </div>
         </article>
     </section>
