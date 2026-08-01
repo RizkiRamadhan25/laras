@@ -335,15 +335,19 @@
                 </div>
 
                 <div class="py-2">
-                    <button
-                        type="button"
-                        disabled
-                        class="flex w-full cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-400"
+                    <a
+                        href="{{ route('settings.index') }}"
+                        x-on:click="profileOpen = false"
+                        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
                         role="menuitem"
                     >
-                        <i data-lucide="circle-user-round" class="size-4"></i>
+                        <i
+                            data-lucide="circle-user-round"
+                            class="size-4"
+                        ></i>
+
                         Profil dan pengaturan
-                    </button>
+                    </a>
                 </div>
 
                 <div class="border-t border-slate-100 pt-2">
