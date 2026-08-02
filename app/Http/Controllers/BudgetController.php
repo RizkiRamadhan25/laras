@@ -8,6 +8,7 @@ use App\Http\Requests\StoreBudgetRequest;
 use App\Http\Requests\UpdateBudgetRequest;
 use App\Models\Budget;
 use App\Models\FinanceCategory;
+use App\Services\BudgetIndexQueryService;
 use App\Services\BudgetManagementService;
 use App\Services\BudgetPeriodService;
 use App\Services\BudgetService;
@@ -20,6 +21,7 @@ class BudgetController extends Controller
 {
     public function __construct(
         private readonly BudgetService $budgetService,
+        private readonly BudgetIndexQueryService $indexQueryService,
         private readonly BudgetManagementService $managementService,
         private readonly BudgetPeriodService $periodService,
         private readonly BudgetTransactionQueryService $transactionQueryService
@@ -31,74 +33,58 @@ class BudgetController extends Controller
     ): View {
         $user = $request->user();
 
-        $budgets = Budget::query()
-            ->where(
-                'user_id',
-                $user->id
-            )
-            ->with([
-                'financeCategory',
+        $filters = $this
+            ->indexQueryService
+            ->normalize(
+                $request->query()
+            );
 
-                'periods' =>
-                    function ($query): void {
-                        $query
-                            ->orderByDesc(
-                                'period_start'
-                            )
-                            ->orderByDesc('id');
-                    },
-            ])
-            ->orderByDesc('is_active')
-            ->orderByDesc('id')
-            ->paginate(9)
-            ->withQueryString();
+        $budgets = $this
+            ->indexQueryService
+            ->paginate(
+                $user,
+                $filters
+            );
 
         $alertLevels = [];
 
         foreach ($budgets as $budget) {
-            $period =
-                $budget->periods->first();
+            $period = $budget->activePeriod
+                ?? $budget->latestPeriod;
+
+            if ($period === null) {
+                $alertLevels[$budget->id] = null;
+
+                continue;
+            }
+
+            /*
+             * Hindari query tambahan dari
+             * BudgetPeriodService::alertLevel().
+             */
+            $period->setRelation(
+                'budget',
+                $budget
+            );
 
             $alertLevels[$budget->id] =
-                $period !== null
-                    ? $this
-                        ->periodService
-                        ->alertLevel(
-                            $period
-                        )
-                    : null;
+                $this
+                    ->periodService
+                    ->alertLevel(
+                        $period
+                    );
         }
 
-        $summary = [
-            'total' => Budget::query()
-                ->where(
-                    'user_id',
-                    $user->id
-                )
-                ->count(),
+        $summary = $this
+            ->indexQueryService
+            ->summary($user);
 
-            'active' => Budget::query()
-                ->where(
-                    'user_id',
-                    $user->id
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count(),
+        $hasFilters = $filters['q'] !== ''
+            || $filters['status'] !== 'all'
+            || $filters['condition'] !== 'all';
 
-            'active_limit' => Budget::query()
-                ->where(
-                    'user_id',
-                    $user->id
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->sum('amount'),
-        ];
+        $hasCustomControls = $hasFilters
+            || $filters['sort'] !== 'priority';
 
         return view(
             'budgets.index',
@@ -107,6 +93,11 @@ class BudgetController extends Controller
                 'alertLevels' =>
                     $alertLevels,
                 'summary' => $summary,
+                'filters' => $filters,
+                'hasFilters' =>
+                    $hasFilters,
+                'hasCustomControls' =>
+                    $hasCustomControls,
             ]
         );
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BudgetPeriodStatus;
 use App\Enums\BudgetPeriodType;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Budget extends Model
@@ -78,6 +80,29 @@ class Budget extends Model
         return $this->hasMany(
             BudgetPeriod::class
         );
+    }
+
+    public function activePeriod(): HasOne
+    {
+        return $this
+            ->hasOne(
+                BudgetPeriod::class
+            )
+            ->where(
+                'status',
+                BudgetPeriodStatus::Active
+                    ->value
+            )
+            ->latestOfMany();
+    }
+
+    public function latestPeriod(): HasOne
+    {
+        return $this
+            ->hasOne(
+                BudgetPeriod::class
+            )
+            ->latestOfMany();
     }
 
     public function scopeActive(
