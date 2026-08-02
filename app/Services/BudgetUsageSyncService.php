@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\DB;
 class BudgetUsageSyncService
 {
     public function __construct(
-        private readonly BudgetPeriodService $periodService
+        private readonly BudgetPeriodService $periodService,
+        private readonly BudgetAlertService $alertService
     ) {
     }
 
@@ -136,11 +137,16 @@ class BudgetUsageSyncService
             $periodEnd
         );
 
-        return $this->periodService->sync(
+        $period = $this->periodService->sync(
             $budget,
             $usedAmount,
             $date
         );
+
+        $this->alertService
+            ->notifyForPeriod($period);
+
+        return $period;
     }
 
     public function syncExistingPeriods(
@@ -170,11 +176,16 @@ class BudgetUsageSyncService
                 )
             );
 
-            $this->periodService->sync(
+            $syncedPeriod = $this->periodService->sync(
                 $budget,
                 $usedAmount,
                 $period->period_start
             );
+
+            $this->alertService
+                ->notifyForPeriod(
+                    $syncedPeriod
+                );
         }
     }
 

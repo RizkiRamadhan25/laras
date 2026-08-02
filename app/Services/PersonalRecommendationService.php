@@ -18,7 +18,8 @@ class PersonalRecommendationService
     public function __construct(
         private readonly ActivityRecommendationService $activityRecommendationService,
         private readonly ExpenseAnalysisService $expenseAnalysisService,
-        private readonly RecommendationInteractionService $interactionService
+        private readonly RecommendationInteractionService $interactionService,
+        private readonly BudgetDashboardService $budgetDashboardService
     ) {
     }
 
@@ -576,6 +577,143 @@ class PersonalRecommendationService
                     $now->format(
                         'Y-m-d H:i:s'
                     ),
+            ]);
+        }
+
+        $budgetOverview = $this
+            ->budgetDashboardService
+            ->build(
+                user: $user,
+                reference: $now
+            );
+
+        foreach (
+            $budgetOverview['attention_items']
+                ->take(5)
+            as $budgetItem
+        ) {
+            $budget = $budgetItem['budget'];
+            $period = $budgetItem['period'];
+            $alertLevel = $budgetItem[
+                'alert_level'
+            ];
+
+            if ($period === null) {
+                continue;
+            }
+
+            $exceeded = $alertLevel
+                === \App\Enums\BudgetAlertLevel::Exceeded;
+
+            $usagePercent = (float) $budgetItem[
+                'usage_percent'
+            ];
+
+            $score = $exceeded
+                ? 96
+                : min(
+                    90,
+                    78 + (int) floor(
+                        max(
+                            0,
+                            $usagePercent
+                            - (float) $budget
+                                ->warning_threshold_percent
+                        ) / 2
+                    )
+                );
+
+            $currencyCode = $budgetOverview[
+                'currency_code'
+            ];
+
+            $items->push([
+                'key' => sprintf(
+                    'budget-%d-period-%d-%s',
+                    $budget->id,
+                    $period->id,
+                    $alertLevel->value
+                ),
+
+                'kind' => $exceeded
+                    ? 'budget_exceeded'
+                    : 'budget_warning',
+
+                'severity' => $exceeded
+                    ? 'danger'
+                    : 'warning',
+
+                'score' => $score,
+
+                'icon' => $exceeded
+                    ? 'circle-alert'
+                    : 'triangle-alert',
+
+                'title' => $exceeded
+                    ? sprintf(
+                        'Anggaran %s telah terlampaui',
+                        $budget->name
+                    )
+                    : sprintf(
+                        '%s mendekati batas anggaran',
+                        $budget->name
+                    ),
+
+                'message' => sprintf(
+                    'Penggunaan mencapai %s%% atau %s %s dari batas %s %s.',
+                    number_format(
+                        $usagePercent,
+                        2,
+                        ',',
+                        '.'
+                    ),
+                    $currencyCode,
+                    number_format(
+                        (float) $budgetItem[
+                            'used_amount'
+                        ],
+                        0,
+                        ',',
+                        '.'
+                    ),
+                    $currencyCode,
+                    number_format(
+                        (float) $budgetItem[
+                            'budget_amount'
+                        ],
+                        0,
+                        ',',
+                        '.'
+                    )
+                ),
+
+                'meta' => sprintf(
+                    '%s · %s–%s',
+                    $budget->financeCategory?->name
+                        ?? 'Tanpa kategori',
+                    $period->period_start
+                        ->locale('id')
+                        ->translatedFormat('d M Y'),
+                    $period->period_end
+                        ->locale('id')
+                        ->translatedFormat('d M Y')
+                ),
+
+                'action_url' => route(
+                    'budgets.show',
+                    [
+                        'budget' => $budget->id,
+                        'period' => $period->id,
+                    ]
+                ),
+
+                'action_label' =>
+                    'Tinjau anggaran',
+
+                'order_at' => ($period->updated_at
+                    ?? $now)
+                    ->setTimezone($timezone)
+                    ->format('Y-m-d H:i:s'),
             ]);
         }
 

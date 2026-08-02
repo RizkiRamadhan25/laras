@@ -13,3 +13,9 @@ Schedule::command(
 )
     ->everyFifteenMinutes()
     ->withoutOverlapping(10);
+
+Schedule::command(
+    'budgets:sync-usage'
+)
+    ->dailyAt('00:10')
+    ->withoutOverlapping(30);

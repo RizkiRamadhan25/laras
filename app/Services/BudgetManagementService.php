@@ -16,7 +16,8 @@ class BudgetManagementService
 {
     public function __construct(
         private readonly BudgetPeriodService $periodService,
-        private readonly BudgetUsageSyncService $usageSyncService
+        private readonly BudgetUsageSyncService $usageSyncService,
+        private readonly BudgetAlertService $alertService
     ) {
     }
 
@@ -107,10 +108,15 @@ class BudgetManagementService
                     ->get();
 
                 foreach ($periods as $period) {
-                    $this
+                    $refreshedPeriod = $this
                         ->periodService
                         ->refreshExisting(
                             $period
+                        );
+
+                    $this->alertService
+                        ->notifyForPeriod(
+                            $refreshedPeriod
                         );
                 }
 

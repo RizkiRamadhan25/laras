@@ -106,6 +106,45 @@ class NotificationController extends Controller
 
         $ownedNotification->markAsRead();
 
+        $budgetId = $ownedNotification
+            ->data['budget_id']
+                ?? null;
+
+        $budgetPeriodId = $ownedNotification
+            ->data['budget_period_id']
+                ?? null;
+
+        if ($budgetId !== null) {
+            $budget = $request->user()
+                ->budgets()
+                ->find((int) $budgetId);
+
+            if ($budget !== null) {
+                $parameters = [
+                    'budget' => $budget->id,
+                ];
+
+                if ($budgetPeriodId !== null) {
+                    $periodExists = $budget
+                        ->periods()
+                        ->whereKey(
+                            (int) $budgetPeriodId
+                        )
+                        ->exists();
+
+                    if ($periodExists) {
+                        $parameters['period'] =
+                            (int) $budgetPeriodId;
+                    }
+                }
+
+                return redirect()->route(
+                    'budgets.show',
+                    $parameters
+                );
+            }
+        }
+
         $transactionId = $ownedNotification
             ->data['transaction_id']
                 ?? null;

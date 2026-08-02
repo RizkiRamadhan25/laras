@@ -15,6 +15,11 @@ use Illuminate\Support\Collection;
 
 class DashboardAnalyticsService
 {
+    public function __construct(
+        private readonly BudgetDashboardService $budgetDashboardService
+    ) {
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -101,6 +106,13 @@ class DashboardAnalyticsService
             ->limit(6)
             ->get();
 
+        $budgetOverview = $this
+            ->budgetDashboardService
+            ->build(
+                user: $user,
+                reference: $now
+            );
+
         $hour = (int) $now->format('G');
 
         $greeting = match (true) {
@@ -132,6 +144,9 @@ class DashboardAnalyticsService
 
             'categoryChart' =>
                 $summary['category_chart'],
+
+            'budgetOverview' =>
+                $budgetOverview,
 
             'recentTransactions' =>
                 $recentTransactions,

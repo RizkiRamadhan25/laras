@@ -201,6 +201,10 @@
         </div>
     </section>
 
+    @include(
+        'dashboard.partials.budget-overview'
+    )
+
     <section class="mt-6 grid gap-6 xl:grid-cols-[1.45fr_0.75fr]">
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras sm:p-6">
             <header>
