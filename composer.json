@@ -80,6 +80,27 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "format": [
+            "@php vendor/bin/pint"
+        ],
+        "format:dirty": [
+            "@php vendor/bin/pint --dirty"
+        ],
+        "format:check": [
+            "@php vendor/bin/pint --test"
+        ],
+        "quality:dirty": [
+            "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/quality-gate.ps1 -Mode Dirty"
+        ],
+        "quality:full": [
+            "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/quality-gate.ps1 -Mode Full"
+        ],
+        "release:check": [
+            "@php artisan laras:release-check --production"
+        ],
+        "release:smoke": [
+            "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/production-smoke.ps1"
         ]
     },
     "extra": {
