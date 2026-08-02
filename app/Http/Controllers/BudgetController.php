@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BudgetPeriodStatus;
+use App\Enums\FinanceFlowType;
 use App\Http\Requests\StoreBudgetRequest;
 use App\Http\Requests\UpdateBudgetRequest;
 use App\Models\Budget;
@@ -9,6 +11,7 @@ use App\Models\FinanceCategory;
 use App\Services\BudgetManagementService;
 use App\Services\BudgetPeriodService;
 use App\Services\BudgetService;
+use App\Services\BudgetTransactionQueryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +21,8 @@ class BudgetController extends Controller
     public function __construct(
         private readonly BudgetService $budgetService,
         private readonly BudgetManagementService $managementService,
-        private readonly BudgetPeriodService $periodService
+        private readonly BudgetPeriodService $periodService,
+        private readonly BudgetTransactionQueryService $transactionQueryService
     ) {
     }
 
@@ -135,9 +139,12 @@ class BudgetController extends Controller
                 'user_id',
                 $request->user()->id
             )
-            ->where(
+            ->whereIn(
                 'flow_type',
-                'expense'
+                [
+                    FinanceFlowType::Expense->value,
+                    FinanceFlowType::Both->value,
+                ]
             )
             ->where(
                 'is_active',
@@ -183,7 +190,14 @@ class BudgetController extends Controller
             $budget
         );
 
+        $user = $request
+            ->user()
+            ->loadMissing(
+                'preference'
+            );
+
         $budget->load([
+            'user.preference',
             'financeCategory',
 
             'periods' =>
@@ -210,12 +224,66 @@ class BudgetController extends Controller
                     );
         }
 
+        $requestedPeriodId = (int) $request
+            ->query(
+                'period',
+                0
+            );
+
+        $selectedPeriod = null;
+
+        if ($requestedPeriodId > 0) {
+            $selectedPeriod = $budget
+                ->periods
+                ->firstWhere(
+                    'id',
+                    $requestedPeriodId
+                );
+
+            abort_if(
+                $selectedPeriod === null,
+                404
+            );
+        }
+
+        if ($selectedPeriod === null) {
+            $selectedPeriod = $budget
+                ->periods
+                ->first(
+                    static fn ($period): bool =>
+                        $period->status
+                        === BudgetPeriodStatus::Active
+                )
+                ?? $budget->periods->first();
+        }
+
+        $usageEntries = $selectedPeriod !== null
+            ? $this
+                ->transactionQueryService
+                ->paginateForPeriod(
+                    $budget,
+                    $selectedPeriod
+                )
+            : null;
+
+        $timezone = $user
+            ->preference?->timezone
+            ?? config(
+                'laras.defaults.timezone',
+                'Asia/Jakarta'
+            );
+
         return view(
             'budgets.show',
             [
                 'budget' => $budget,
                 'periodAlerts' =>
                     $periodAlerts,
+                'selectedPeriod' =>
+                    $selectedPeriod,
+                'usageEntries' =>
+                    $usageEntries,
+                'timezone' => $timezone,
             ]
         );
     }
@@ -342,9 +410,12 @@ class BudgetController extends Controller
                 'user_id',
                 $request->user()->id
             )
-            ->where(
+            ->whereIn(
                 'flow_type',
-                'expense'
+                [
+                    FinanceFlowType::Expense->value,
+                    FinanceFlowType::Both->value,
+                ]
             )
             ->where(
                 'is_active',

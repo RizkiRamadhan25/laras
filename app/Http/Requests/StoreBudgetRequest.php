@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\BudgetPeriodType;
+use App\Enums\FinanceFlowType;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -66,13 +67,22 @@ class StoreBudgetRequest extends FormRequest
                                 'user_id',
                                 $userId
                             )
-                            ->where(
+                            ->whereIn(
                                 'flow_type',
-                                'expense'
+                                [
+                                    FinanceFlowType::Expense
+                                        ->value,
+
+                                    FinanceFlowType::Both
+                                        ->value,
+                                ]
                             )
                             ->where(
                                 'is_active',
                                 true
+                            )
+                            ->whereNull(
+                                'deleted_at'
                             );
                     }
                 ),

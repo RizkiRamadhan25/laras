@@ -178,6 +178,129 @@ class BudgetUsageSyncService
         }
     }
 
+    /**
+     * Menyinkronkan semua periode yang sudah ada, periode
+     * yang memiliki transaksi, dan periode saat ini.
+     *
+     * @return int jumlah periode unik yang disinkronkan
+     */
+    public function syncAllRelevantPeriods(
+        Budget $budget
+    ): int {
+        if (! $budget->is_active) {
+            return 0;
+        }
+
+        $budget->loadMissing([
+            'user.preference',
+            'periods',
+        ]);
+
+        $timezone = $this->userTimezone(
+            $budget->user
+        );
+
+        /** @var array<string, CarbonImmutable> $referenceDates */
+        $referenceDates = [];
+
+        $rememberDate = function (
+            CarbonImmutable $localDate
+        ) use (
+            $budget,
+            &$referenceDates
+        ): void {
+            if (! $budget->isActiveOn($localDate)) {
+                return;
+            }
+
+            [$periodStart, $periodEnd] =
+                $this->periodService->periodBounds(
+                    $budget,
+                    $localDate
+                );
+
+            $key = $periodStart->toDateString()
+                .'|'
+                .$periodEnd->toDateString();
+
+            $referenceDates[$key] = $localDate;
+        };
+
+        foreach ($budget->periods as $period) {
+            $rememberDate(
+                CarbonImmutable::parse(
+                    $period
+                        ->period_start
+                        ->toDateString()
+                )
+            );
+        }
+
+        Transaction::query()
+            ->where(
+                'user_id',
+                $budget->user_id
+            )
+            ->where(
+                'status',
+                TransactionStatus::Posted->value
+            )
+            ->whereHas(
+                'entries',
+                function ($query) use ($budget): void {
+                    $query
+                        ->where(
+                            'finance_category_id',
+                            $budget->finance_category_id
+                        )
+                        ->where(
+                            'amount',
+                            '<',
+                            0
+                        );
+                }
+            )
+            ->select([
+                'id',
+                'occurred_at',
+            ])
+            ->orderBy('id')
+            ->chunkById(
+                500,
+                function ($transactions) use (
+                    $timezone,
+                    $rememberDate
+                ): void {
+                    foreach ($transactions as $transaction) {
+                        $localDate = CarbonImmutable::instance(
+                            $transaction->occurred_at
+                        )
+                            ->setTimezone($timezone)
+                            ->startOfDay();
+
+                        $rememberDate($localDate);
+                    }
+                }
+            );
+
+        $today = CarbonImmutable::now(
+            $timezone
+        )->startOfDay();
+
+        $rememberDate($today);
+
+        ksort($referenceDates);
+
+        foreach ($referenceDates as $referenceDate) {
+            $this->syncBudgetForDate(
+                $budget,
+                $referenceDate
+            );
+        }
+
+        return count($referenceDates);
+    }
+
     private function usedAmount(
         Budget $budget,
         CarbonImmutable $periodStart,
