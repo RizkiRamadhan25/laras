@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Enums\BudgetPeriodStatus;
+use App\Enums\FinanceFlowType;
 use App\Models\Budget;
 use App\Models\FinanceCategory;
 use App\Models\User;
-use BackedEnum;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +15,8 @@ use Illuminate\Validation\ValidationException;
 class BudgetManagementService
 {
     public function __construct(
-        private readonly BudgetPeriodService $periodService
+        private readonly BudgetPeriodService $periodService,
+        private readonly BudgetUsageSyncService $usageSyncService
     ) {
     }
 
@@ -162,15 +163,22 @@ class BudgetManagementService
             $budget->financeCategory
         );
 
+        $user->loadMissing('preference');
+
+        $timezone = $user->preference?->timezone
+            ?? config(
+                'laras.defaults.timezone',
+                'Asia/Jakarta'
+            );
+
+        $today = CarbonImmutable::now(
+            $timezone
+        )->startOfDay();
+
         if (
             $budget->end_date !== null
             && $budget->end_date->lt(
-                CarbonImmutable::now(
-                    config(
-                        'app.timezone',
-                        'Asia/Jakarta'
-                    )
-                )->startOfDay()
+                $today
             )
         ) {
             throw ValidationException::withMessages([
@@ -208,6 +216,12 @@ class BudgetManagementService
             'is_active' => true,
         ])->save();
 
+        $this->usageSyncService
+            ->syncBudgetForDate(
+                $budget,
+                $today
+            );
+
         return $budget->refresh();
     }
 
@@ -242,15 +256,16 @@ class BudgetManagementService
             ]);
         }
 
-        $flowType =
-            $category->flow_type;
-
-        if ($flowType instanceof BackedEnum) {
-            $flowType =
-                $flowType->value;
-        }
-
-        if ((string) $flowType !== 'expense') {
+        if (
+            ! in_array(
+                $category->flow_type,
+                [
+                    FinanceFlowType::Expense,
+                    FinanceFlowType::Both,
+                ],
+                true
+            )
+        ) {
             throw ValidationException::withMessages([
                 'finance_category_id' =>
                     'Anggaran hanya dapat menggunakan kategori pengeluaran.',

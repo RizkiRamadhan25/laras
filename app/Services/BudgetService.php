@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\BudgetPeriodType;
+use App\Enums\FinanceFlowType;
 use App\Models\Budget;
 use App\Models\FinanceCategory;
 use App\Models\User;
@@ -11,12 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use BackedEnum;
 
 class BudgetService
 {
     public function __construct(
-        private readonly BudgetPeriodService $periodService
+        private readonly BudgetUsageSyncService $usageSyncService
     ) {
     }
 
@@ -190,10 +190,9 @@ class BudgetService
                     ]);
 
                 $this
-                    ->periodService
-                    ->sync(
+                    ->usageSyncService
+                    ->syncBudgetForDate(
                         $budget,
-                        '0.00',
                         CarbonImmutable::parse(
                             $validated[
                                 'start_date'
@@ -251,13 +250,16 @@ class BudgetService
     private function ensureExpenseCategory(
         FinanceCategory $category
     ): void {
-        $flowType = $category->flow_type;
-
-        if ($flowType instanceof BackedEnum) {
-            $flowType = $flowType->value;
-        }
-
-        if ((string) $flowType === 'expense') {
+        if (
+            in_array(
+                $category->flow_type,
+                [
+                    FinanceFlowType::Expense,
+                    FinanceFlowType::Both,
+                ],
+                true
+            )
+        ) {
             return;
         }
 
