@@ -101,7 +101,8 @@
         ],
         "release:smoke": [
             "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/production-smoke.ps1"
-        ]
+        ],
+        "release:final": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/final-release-review.ps1"
     },
     "extra": {
         "laravel": {
