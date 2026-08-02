@@ -24,18 +24,16 @@ class StoreBudgetRequest extends FormRequest
                 )
             ),
 
-            'warning_threshold_percent' =>
-                $this->input(
-                    'warning_threshold_percent',
-                    '80'
-                ),
+            'warning_threshold_percent' => $this->input(
+                'warning_threshold_percent',
+                '80'
+            ),
 
-            'end_date' =>
-                filled(
-                    $this->input(
-                        'end_date'
-                    )
+            'end_date' => filled(
+                $this->input(
+                    'end_date'
                 )
+            )
                     ? $this->input(
                         'end_date'
                     )
@@ -143,38 +141,27 @@ class StoreBudgetRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'finance_category_id.required' =>
-                'Kategori pengeluaran wajib dipilih.',
+            'finance_category_id.required' => 'Kategori pengeluaran wajib dipilih.',
 
-            'finance_category_id.exists' =>
-                'Kategori pengeluaran tidak tersedia atau bukan milikmu.',
+            'finance_category_id.exists' => 'Kategori pengeluaran tidak tersedia atau bukan milikmu.',
 
-            'name.required' =>
-                'Nama anggaran wajib diisi.',
+            'name.required' => 'Nama anggaran wajib diisi.',
 
-            'name.min' =>
-                'Nama anggaran minimal 2 karakter.',
+            'name.min' => 'Nama anggaran minimal 2 karakter.',
 
-            'amount.required' =>
-                'Batas anggaran wajib diisi.',
+            'amount.required' => 'Batas anggaran wajib diisi.',
 
-            'amount.gt' =>
-                'Batas anggaran harus lebih dari nol.',
+            'amount.gt' => 'Batas anggaran harus lebih dari nol.',
 
-            'period_type.required' =>
-                'Jenis periode wajib dipilih.',
+            'period_type.required' => 'Jenis periode wajib dipilih.',
 
-            'warning_threshold_percent.between' =>
-                'Ambang peringatan harus berada antara 1 sampai 100 persen.',
+            'warning_threshold_percent.between' => 'Ambang peringatan harus berada antara 1 sampai 100 persen.',
 
-            'start_date.required' =>
-                'Tanggal mulai wajib diisi.',
+            'start_date.required' => 'Tanggal mulai wajib diisi.',
 
-            'end_date.required' =>
-                'Tanggal selesai wajib diisi untuk periode khusus.',
+            'end_date.required' => 'Tanggal selesai wajib diisi untuk periode khusus.',
 
-            'end_date.after_or_equal' =>
-                'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+            'end_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
         ];
     }
 

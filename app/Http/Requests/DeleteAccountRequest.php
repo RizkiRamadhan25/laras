@@ -51,17 +51,13 @@ class DeleteAccountRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'delete_current_password.required' =>
-                'Kata sandi saat ini wajib diisi.',
+            'delete_current_password.required' => 'Kata sandi saat ini wajib diisi.',
 
-            'delete_current_password.current_password' =>
-                'Kata sandi saat ini tidak sesuai.',
+            'delete_current_password.current_password' => 'Kata sandi saat ini tidak sesuai.',
 
-            'confirmation.required' =>
-                'Konfirmasi penghapusan wajib diisi.',
+            'confirmation.required' => 'Konfirmasi penghapusan wajib diisi.',
 
-            'confirmation.in' =>
-                'Ketik HAPUS AKUN untuk mengonfirmasi penghapusan.',
+            'confirmation.in' => 'Ketik HAPUS AKUN untuk mengonfirmasi penghapusan.',
         ];
     }
 

@@ -126,8 +126,7 @@ class ProvisionLarasUserCommand extends Command
             $exitCode = $this->call(
                 'db:seed',
                 [
-                    '--class' =>
-                        FinanceCategorySeeder::class,
+                    '--class' => FinanceCategorySeeder::class,
                     '--force' => true,
                 ]
             );

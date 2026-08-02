@@ -10,8 +10,7 @@ class DashboardController extends Controller
 {
     public function __construct(
         private readonly DashboardAnalyticsService $analytics
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {

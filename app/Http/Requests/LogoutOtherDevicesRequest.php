@@ -31,11 +31,9 @@ class LogoutOtherDevicesRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'logout_current_password.required' =>
-                'Kata sandi saat ini wajib diisi.',
+            'logout_current_password.required' => 'Kata sandi saat ini wajib diisi.',
 
-            'logout_current_password.current_password' =>
-                'Kata sandi saat ini tidak sesuai.',
+            'logout_current_password.current_password' => 'Kata sandi saat ini tidak sesuai.',
         ];
     }
 

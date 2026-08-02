@@ -23,14 +23,11 @@ class RecommendationFeedbackRequest extends FormRequest
                 'required',
 
                 Rule::in([
-                    RecommendationInteractionType
-                        ::FollowedUp->value,
+                    RecommendationInteractionType::FollowedUp->value,
 
-                    RecommendationInteractionType
-                        ::Dismissed->value,
+                    RecommendationInteractionType::Dismissed->value,
 
-                    RecommendationInteractionType
-                        ::Irrelevant->value,
+                    RecommendationInteractionType::Irrelevant->value,
                 ]),
             ],
         ];
@@ -42,11 +39,9 @@ class RecommendationFeedbackRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'interaction_type.required' =>
-                'Jenis feedback wajib dipilih.',
+            'interaction_type.required' => 'Jenis feedback wajib dipilih.',
 
-            'interaction_type.in' =>
-                'Jenis feedback rekomendasi tidak valid.',
+            'interaction_type.in' => 'Jenis feedback rekomendasi tidak valid.',
         ];
     }
 }

@@ -1,7 +1,11 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\FortifyServiceProvider;
+use App\Providers\ObservabilityServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\FortifyServiceProvider::class,
-    App\Providers\ObservabilityServiceProvider::class,
+    AppServiceProvider::class,
+    FortifyServiceProvider::class,
+    ObservabilityServiceProvider::class,
 ];

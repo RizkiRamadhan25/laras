@@ -15,8 +15,7 @@ class DataPrivacyController extends Controller
     public function __construct(
         private readonly PersonalDataExportService $exportService,
         private readonly AccountDeletionService $deletionService
-    ) {
-    }
+    ) {}
 
     public function export(
         ExportPersonalDataRequest $request
@@ -32,21 +31,17 @@ class DataPrivacyController extends Controller
                 $archive['path'],
                 $archive['filename'],
                 [
-                    'Content-Type' =>
-                        'application/zip',
+                    'Content-Type' => 'application/zip',
 
-                    'Cache-Control' =>
-                        'no-store, private, max-age=0',
+                    'Cache-Control' => 'no-store, private, max-age=0',
 
                     'Pragma' => 'no-cache',
 
                     'Expires' => '0',
 
-                    'X-Content-Type-Options' =>
-                        'nosniff',
+                    'X-Content-Type-Options' => 'nosniff',
 
-                    'X-Robots-Tag' =>
-                        'noindex, nofollow, noarchive',
+                    'X-Robots-Tag' => 'noindex, nofollow, noarchive',
                 ]
             )
             ->deleteFileAfterSend(true);

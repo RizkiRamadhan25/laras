@@ -88,11 +88,10 @@ class SyncBudgetUsageCommand extends Command
                 ): void {
                     foreach ($budgets as $budget) {
                         $syncedPeriods += DB::transaction(
-                            fn (): int =>
-                                $syncService
-                                    ->syncAllRelevantPeriods(
-                                        $budget
-                                    ),
+                            fn (): int => $syncService
+                                ->syncAllRelevantPeriods(
+                                    $budget
+                                ),
                             3
                         );
 

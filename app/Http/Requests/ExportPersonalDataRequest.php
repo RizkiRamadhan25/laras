@@ -31,11 +31,9 @@ class ExportPersonalDataRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'export_current_password.required' =>
-                'Kata sandi saat ini wajib diisi sebelum mengunduh data.',
+            'export_current_password.required' => 'Kata sandi saat ini wajib diisi sebelum mengunduh data.',
 
-            'export_current_password.current_password' =>
-                'Kata sandi saat ini tidak sesuai.',
+            'export_current_password.current_password' => 'Kata sandi saat ini tidak sesuai.',
         ];
     }
 

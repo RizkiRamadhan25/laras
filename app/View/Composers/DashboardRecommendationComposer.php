@@ -11,8 +11,7 @@ class DashboardRecommendationComposer
 {
     public function __construct(
         private readonly PersonalRecommendationService $recommendationService
-    ) {
-    }
+    ) {}
 
     public function compose(View $view): void
     {
@@ -55,16 +54,13 @@ class DashboardRecommendationComposer
                     ->take(3)
                     ->values(),
 
-                'summary' =>
-                    $recommendations['summary'],
+                'summary' => $recommendations['summary'],
 
-                'generated_at' =>
-                    $recommendations[
+                'generated_at' => $recommendations[
                         'generated_at'
                     ],
 
-                'has_more' =>
-                    $items->count() > 3,
+                'has_more' => $items->count() > 3,
             ]
         );
     }

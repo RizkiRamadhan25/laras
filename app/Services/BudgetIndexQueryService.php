@@ -13,7 +13,7 @@ use Illuminate\Database\Query\JoinClause;
 class BudgetIndexQueryService
 {
     /**
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      * @return array{
      *     q: string,
      *     status: string,

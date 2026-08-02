@@ -93,7 +93,7 @@ class InitialUserProvisioningService
                 $email,
                 $password
             ): User {
-                $user = new User();
+                $user = new User;
 
                 $user->forceFill([
                     'name' => $name,

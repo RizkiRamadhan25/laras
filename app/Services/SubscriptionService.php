@@ -15,14 +15,14 @@ use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use DomainException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use ValueError;
 
 class SubscriptionService
 {
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function create(
         User $user,
@@ -56,8 +56,7 @@ class SubscriptionService
                 ->subscriptions()
                 ->create([
                     ...$payload,
-                    'status' =>
-                        SubscriptionStatus::Active,
+                    'status' => SubscriptionStatus::Active,
 
                     'last_billed_on' => null,
                     'paused_at' => null,
@@ -77,7 +76,7 @@ class SubscriptionService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(
         User $user,
@@ -148,18 +147,14 @@ class SubscriptionService
                 $subscription->billings()
                     ->where(
                         'status',
-                        SubscriptionBillingStatus
-                            ::Scheduled->value
+                        SubscriptionBillingStatus::Scheduled->value
                     )
                     ->whereNull('transaction_id')
                     ->update([
-                        'status' =>
-                            SubscriptionBillingStatus
-                                ::Cancelled,
+                        'status' => SubscriptionBillingStatus::Cancelled,
 
                         'metadata' => json_encode([
-                            'reason' =>
-                                'Jadwal langganan diperbarui.',
+                            'reason' => 'Jadwal langganan diperbarui.',
                         ]),
                     ]);
             }
@@ -209,8 +204,7 @@ class SubscriptionService
             }
 
             $subscription->forceFill([
-                'status' =>
-                    SubscriptionStatus::Paused,
+                'status' => SubscriptionStatus::Paused,
 
                 'paused_at' => now(),
             ])->save();
@@ -252,8 +246,7 @@ class SubscriptionService
                     )
             ) {
                 $subscription->forceFill([
-                    'status' =>
-                        SubscriptionStatus::Expired,
+                    'status' => SubscriptionStatus::Expired,
 
                     'next_billing_on' => null,
                     'paused_at' => null,
@@ -263,8 +256,7 @@ class SubscriptionService
             }
 
             $subscription->forceFill([
-                'status' =>
-                    SubscriptionStatus::Active,
+                'status' => SubscriptionStatus::Active,
 
                 'paused_at' => null,
                 'cancelled_at' => null,
@@ -300,8 +292,7 @@ class SubscriptionService
             }
 
             $subscription->forceFill([
-                'status' =>
-                    SubscriptionStatus::Cancelled,
+                'status' => SubscriptionStatus::Cancelled,
 
                 'next_billing_on' => null,
                 'paused_at' => null,
@@ -311,18 +302,14 @@ class SubscriptionService
             $subscription->billings()
                 ->where(
                     'status',
-                    SubscriptionBillingStatus
-                        ::Scheduled->value
+                    SubscriptionBillingStatus::Scheduled->value
                 )
                 ->whereNull('transaction_id')
                 ->update([
-                    'status' =>
-                        SubscriptionBillingStatus
-                            ::Cancelled,
+                    'status' => SubscriptionBillingStatus::Cancelled,
 
                     'metadata' => json_encode([
-                        'reason' =>
-                            'Langganan dihentikan.',
+                        'reason' => 'Langganan dihentikan.',
                     ]),
                 ]);
 
@@ -393,26 +380,19 @@ class SubscriptionService
             try {
                 return SubscriptionBilling::query()
                     ->create([
-                        'subscription_id' =>
-                            $subscription->id,
+                        'subscription_id' => $subscription->id,
 
-                        'user_id' =>
-                            $subscription->user_id,
+                        'user_id' => $subscription->user_id,
 
                         'transaction_id' => null,
 
-                        'scheduled_for' =>
-                            $scheduledFor,
+                        'scheduled_for' => $scheduledFor,
 
-                        'amount' =>
-                            $subscription->amount,
+                        'amount' => $subscription->amount,
 
-                        'currency_code' =>
-                            $subscription->currency_code,
+                        'currency_code' => $subscription->currency_code,
 
-                        'status' =>
-                            SubscriptionBillingStatus
-                                ::Scheduled,
+                        'status' => SubscriptionBillingStatus::Scheduled,
 
                         'attempted_at' => null,
                         'processed_at' => null,
@@ -456,15 +436,13 @@ class SubscriptionService
             'user_id' => $subscription->user_id,
             'amount' => $subscription->amount,
 
-            'currency_code' =>
-                $subscription->currency_code,
+            'currency_code' => $subscription->currency_code,
 
             /*
             * Billing failed boleh dicoba kembali pada
             * pemeriksaan scheduler berikutnya.
             */
-            'status' =>
-                SubscriptionBillingStatus::Scheduled,
+            'status' => SubscriptionBillingStatus::Scheduled,
 
             'attempted_at' => null,
             'processed_at' => null,
@@ -567,30 +545,26 @@ class SubscriptionService
         return match (
             $subscription->interval_unit
         ) {
-            SubscriptionIntervalUnit::Day =>
-                $current->addDays($count),
+            SubscriptionIntervalUnit::Day => $current->addDays($count),
 
-            SubscriptionIntervalUnit::Week =>
-                $current->addWeeks($count),
+            SubscriptionIntervalUnit::Week => $current->addWeeks($count),
 
-            SubscriptionIntervalUnit::Month =>
-                $this->nextMonthlyDate(
-                    subscription: $subscription,
-                    current: $current,
-                    count: $count
-                ),
+            SubscriptionIntervalUnit::Month => $this->nextMonthlyDate(
+                subscription: $subscription,
+                current: $current,
+                count: $count
+            ),
 
-            SubscriptionIntervalUnit::Year =>
-                $this->nextYearlyDate(
-                    subscription: $subscription,
-                    current: $current,
-                    count: $count
-                ),
+            SubscriptionIntervalUnit::Year => $this->nextYearlyDate(
+                subscription: $subscription,
+                current: $current,
+                count: $count
+            ),
         };
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     private function normalizePayload(
@@ -701,8 +675,7 @@ class SubscriptionService
         return [
             'account_id' => $account->id,
 
-            'finance_category_id' =>
-                $category->id,
+            'finance_category_id' => $category->id,
 
             'name' => $name,
 
@@ -712,8 +685,7 @@ class SubscriptionService
 
             'amount' => $amount,
 
-            'currency_code' =>
-                $account->currency_code,
+            'currency_code' => $account->currency_code,
 
             'interval_unit' => $intervalUnit,
             'interval_count' => $intervalCount,
@@ -727,14 +699,13 @@ class SubscriptionService
                 $data['auto_post'] ?? true
             ),
 
-            'reminder_days' =>
-                $this->normalizeReminderDays(
-                    $data['reminder_days']
-                        ?? [
-                            3,
-                            1,
-                        ]
-                ),
+            'reminder_days' => $this->normalizeReminderDays(
+                $data['reminder_days']
+                    ?? [
+                        3,
+                        1,
+                    ]
+            ),
 
             'metadata' => is_array(
                 $data['metadata'] ?? null
@@ -754,7 +725,7 @@ class SubscriptionService
             ->find($accountId);
 
         if ($account === null) {
-            throw (new ModelNotFoundException())
+            throw (new ModelNotFoundException)
                 ->setModel(
                     Account::class,
                     [$accountId]
@@ -774,7 +745,7 @@ class SubscriptionService
             ->find($categoryId);
 
         if ($category === null) {
-            throw (new ModelNotFoundException())
+            throw (new ModelNotFoundException)
                 ->setModel(
                     FinanceCategory::class,
                     [$categoryId]

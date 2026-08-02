@@ -20,16 +20,14 @@ class SecurityEventService
 
                 'type' => $type,
 
-                'ip_address' =>
-                    $request->ip(),
+                'ip_address' => $request->ip(),
 
-                'user_agent' =>
-                    mb_substr(
-                        (string) $request
-                            ->userAgent(),
-                        0,
-                        1000
-                    ),
+                'user_agent' => mb_substr(
+                    (string) $request
+                        ->userAgent(),
+                    0,
+                    1000
+                ),
 
                 'occurred_at' => now(),
             ]);

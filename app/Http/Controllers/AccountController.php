@@ -16,8 +16,7 @@ class AccountController extends Controller
 {
     public function __construct(
         private readonly AccountService $accountService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {

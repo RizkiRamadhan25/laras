@@ -47,17 +47,13 @@ class UpdateProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' =>
-                'Nama wajib diisi.',
+            'name.required' => 'Nama wajib diisi.',
 
-            'name.string' =>
-                'Nama harus berupa teks.',
+            'name.string' => 'Nama harus berupa teks.',
 
-            'name.min' =>
-                'Nama minimal terdiri dari 2 karakter.',
+            'name.min' => 'Nama minimal terdiri dari 2 karakter.',
 
-            'name.max' =>
-                'Nama maksimal terdiri dari 120 karakter.',
+            'name.max' => 'Nama maksimal terdiri dari 120 karakter.',
         ];
     }
 }

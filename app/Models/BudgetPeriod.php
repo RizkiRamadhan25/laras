@@ -28,26 +28,19 @@ class BudgetPeriod extends Model
     protected function casts(): array
     {
         return [
-            'period_start' =>
-                'immutable_date',
+            'period_start' => 'immutable_date',
 
-            'period_end' =>
-                'immutable_date',
+            'period_end' => 'immutable_date',
 
-            'budget_amount' =>
-                'decimal:2',
+            'budget_amount' => 'decimal:2',
 
-            'used_amount' =>
-                'decimal:2',
+            'used_amount' => 'decimal:2',
 
-            'remaining_amount' =>
-                'decimal:2',
+            'remaining_amount' => 'decimal:2',
 
-            'usage_percent' =>
-                'decimal:2',
+            'usage_percent' => 'decimal:2',
 
-            'status' =>
-                BudgetPeriodStatus::class,
+            'status' => BudgetPeriodStatus::class,
         ];
     }
 

@@ -34,23 +34,17 @@ class UpdateProfilePhotoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'photo.required' =>
-                'Pilih foto yang akan digunakan.',
+            'photo.required' => 'Pilih foto yang akan digunakan.',
 
-            'photo.image' =>
-                'File yang dipilih harus berupa gambar.',
+            'photo.image' => 'File yang dipilih harus berupa gambar.',
 
-            'photo.mimes' =>
-                'Foto harus berformat JPG, JPEG, PNG, atau WebP.',
+            'photo.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau WebP.',
 
-            'photo.extensions' =>
-                'Ekstensi nama file foto tidak sesuai.',
+            'photo.extensions' => 'Ekstensi nama file foto tidak sesuai.',
 
-            'photo.max' =>
-                'Ukuran foto maksimal 4 MB.',
+            'photo.max' => 'Ukuran foto maksimal 4 MB.',
 
-            'photo.dimensions' =>
-                'Resolusi foto minimal 128 × 128 dan maksimal 4096 × 4096 piksel.',
+            'photo.dimensions' => 'Resolusi foto minimal 128 × 128 dan maksimal 4096 × 4096 piksel.',
         ];
     }
 

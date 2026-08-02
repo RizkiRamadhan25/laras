@@ -40,28 +40,21 @@ class Budget extends Model
     protected function casts(): array
     {
         return [
-            'active_finance_category_id' =>
-                'integer',
+            'active_finance_category_id' => 'integer',
 
             'amount' => 'decimal:2',
 
-            'warning_threshold_percent' =>
-                'decimal:2',
+            'warning_threshold_percent' => 'decimal:2',
 
-            'period_type' =>
-                BudgetPeriodType::class,
+            'period_type' => BudgetPeriodType::class,
 
-            'start_date' =>
-                'immutable_date',
+            'start_date' => 'immutable_date',
 
-            'end_date' =>
-                'immutable_date',
+            'end_date' => 'immutable_date',
 
-            'is_recurring' =>
-                'boolean',
+            'is_recurring' => 'boolean',
 
-            'is_active' =>
-                'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

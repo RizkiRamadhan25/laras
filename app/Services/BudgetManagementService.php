@@ -19,11 +19,10 @@ class BudgetManagementService
         private readonly BudgetPeriodService $periodService,
         private readonly BudgetUsageSyncService $usageSyncService,
         private readonly BudgetAlertService $alertService
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function update(
         User $user,
@@ -60,17 +59,13 @@ class BudgetManagementService
                 ],
             ],
             [
-                'name.required' =>
-                    'Nama anggaran wajib diisi.',
+                'name.required' => 'Nama anggaran wajib diisi.',
 
-                'amount.required' =>
-                    'Batas anggaran wajib diisi.',
+                'amount.required' => 'Batas anggaran wajib diisi.',
 
-                'amount.gt' =>
-                    'Batas anggaran harus lebih dari nol.',
+                'amount.gt' => 'Batas anggaran harus lebih dari nol.',
 
-                'warning_threshold_percent.between' =>
-                    'Ambang peringatan harus berada antara 1 sampai 100 persen.',
+                'warning_threshold_percent.between' => 'Ambang peringatan harus berada antara 1 sampai 100 persen.',
             ]
         )->validate();
 
@@ -85,14 +80,11 @@ class BudgetManagementService
                     ->firstOrFail();
 
                 $lockedBudget->forceFill([
-                    'name' =>
-                        $validated['name'],
+                    'name' => $validated['name'],
 
-                    'amount' =>
-                        $validated['amount'],
+                    'amount' => $validated['amount'],
 
-                    'warning_threshold_percent' =>
-                        $validated[
+                    'warning_threshold_percent' => $validated[
                             'warning_threshold_percent'
                         ],
                 ])->save();
@@ -219,8 +211,7 @@ class BudgetManagementService
                             ->lt($today)
                     ) {
                         throw ValidationException::withMessages([
-                            'is_active' =>
-                                'Anggaran yang sudah berakhir tidak dapat diaktifkan kembali.',
+                            'is_active' => 'Anggaran yang sudah berakhir tidak dapat diaktifkan kembali.',
                         ]);
                     }
 
@@ -241,16 +232,14 @@ class BudgetManagementService
 
                     if ($duplicateExists) {
                         throw ValidationException::withMessages([
-                            'finance_category_id' =>
-                                'Kategori ini sudah memiliki anggaran aktif.',
+                            'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
                         ]);
                     }
 
                     $lockedBudget->forceFill([
                         'is_active' => true,
-                        'active_finance_category_id' =>
-                            $lockedBudget
-                                ->finance_category_id,
+                        'active_finance_category_id' => $lockedBudget
+                            ->finance_category_id,
                     ])->save();
 
                     $this->usageSyncService
@@ -278,8 +267,7 @@ class BudgetManagementService
                     ->exists()
             ) {
                 throw ValidationException::withMessages([
-                    'finance_category_id' =>
-                        'Kategori ini sudah memiliki anggaran aktif.',
+                    'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
                 ]);
             }
 
@@ -299,8 +287,7 @@ class BudgetManagementService
         }
 
         throw ValidationException::withMessages([
-            'budget' =>
-                'Anggaran tidak dimiliki oleh pengguna ini.',
+            'budget' => 'Anggaran tidak dimiliki oleh pengguna ini.',
         ]);
     }
 
@@ -313,8 +300,7 @@ class BudgetManagementService
             !== (int) $user->id
         ) {
             throw ValidationException::withMessages([
-                'finance_category_id' =>
-                    'Kategori tidak dimiliki oleh pengguna ini.',
+                'finance_category_id' => 'Kategori tidak dimiliki oleh pengguna ini.',
             ]);
         }
 
@@ -329,8 +315,7 @@ class BudgetManagementService
             )
         ) {
             throw ValidationException::withMessages([
-                'finance_category_id' =>
-                    'Anggaran hanya dapat menggunakan kategori pengeluaran.',
+                'finance_category_id' => 'Anggaran hanya dapat menggunakan kategori pengeluaran.',
             ]);
         }
 
@@ -344,8 +329,7 @@ class BudgetManagementService
             || $isDeleted
         ) {
             throw ValidationException::withMessages([
-                'finance_category_id' =>
-                    'Kategori anggaran sudah tidak aktif.',
+                'finance_category_id' => 'Kategori anggaran sudah tidak aktif.',
             ]);
         }
     }

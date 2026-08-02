@@ -44,20 +44,15 @@ class UpdatePasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'current_password.required' =>
-                'Kata sandi saat ini wajib diisi.',
+            'current_password.required' => 'Kata sandi saat ini wajib diisi.',
 
-            'current_password.current_password' =>
-                'Kata sandi saat ini tidak sesuai.',
+            'current_password.current_password' => 'Kata sandi saat ini tidak sesuai.',
 
-            'password.required' =>
-                'Kata sandi baru wajib diisi.',
+            'password.required' => 'Kata sandi baru wajib diisi.',
 
-            'password.different' =>
-                'Kata sandi baru harus berbeda dari kata sandi saat ini.',
+            'password.different' => 'Kata sandi baru harus berbeda dari kata sandi saat ini.',
 
-            'password.confirmed' =>
-                'Konfirmasi kata sandi baru tidak cocok.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
         ];
     }
 
@@ -67,11 +62,9 @@ class UpdatePasswordRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'current_password' =>
-                'kata sandi saat ini',
+            'current_password' => 'kata sandi saat ini',
 
-            'password' =>
-                'kata sandi baru',
+            'password' => 'kata sandi baru',
         ];
     }
 

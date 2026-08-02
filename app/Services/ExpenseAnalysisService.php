@@ -96,8 +96,7 @@ class ExpenseAnalysisService
                 'id' => $category->id,
                 'name' => $category->name,
 
-                'archived' =>
-                    $category->trashed(),
+                'archived' => $category->trashed(),
 
                 'week' => '0.00',
                 'month' => '0.00',
@@ -256,8 +255,7 @@ class ExpenseAnalysisService
             $totals[$selectedPeriod];
 
         foreach (
-            $categoryData
-            as $categoryId => $category
+            $categoryData as $categoryId => $category
         ) {
             $selectedAmount =
                 $category[$selectedPeriod];
@@ -278,8 +276,7 @@ class ExpenseAnalysisService
 
             $change = $this->percentageChange(
                 current: $selectedAmount,
-                previous:
-                    $category[
+                previous: $category[
                         'previous_selected'
                     ]
             );
@@ -330,12 +327,11 @@ class ExpenseAnalysisService
         $topCategory = collect(
             $categoryData
         )->first(
-            fn (array $category): bool =>
-                bccomp(
-                    $category['selected'],
-                    '0.00',
-                    2
-                ) > 0
+            fn (array $category): bool => bccomp(
+                $category['selected'],
+                '0.00',
+                2
+            ) > 0
         );
 
         $currentRange =
@@ -361,61 +357,47 @@ class ExpenseAnalysisService
         $overallChange =
             $this->percentageChange(
                 current: $selectedTotal,
-                previous:
-                    $totals[
+                previous: $totals[
                         'previous_selected'
                     ]
             );
 
         return [
-            'selected_period' =>
-                $selectedPeriod,
+            'selected_period' => $selectedPeriod,
 
             'periods' => $periods,
 
             'generated_at' => $now,
 
             'summary' => [
-                'selected_total' =>
-                    $selectedTotal,
+                'selected_total' => $selectedTotal,
 
-                'previous_total' =>
-                    $totals[
+                'previous_total' => $totals[
                         'previous_selected'
                     ],
 
-                'week_total' =>
-                    $totals['week'],
+                'week_total' => $totals['week'],
 
-                'month_total' =>
-                    $totals['month'],
+                'month_total' => $totals['month'],
 
-                'year_total' =>
-                    $totals['year'],
+                'year_total' => $totals['year'],
 
-                'average_daily' =>
-                    $averageDaily,
+                'average_daily' => $averageDaily,
 
-                'days_count' =>
-                    $daysInSelectedPeriod,
+                'days_count' => $daysInSelectedPeriod,
 
-                'change_percent' =>
-                    $overallChange[
+                'change_percent' => $overallChange[
                         'percentage'
                     ],
 
-                'trend' =>
-                    $overallChange['trend'],
+                'trend' => $overallChange['trend'],
 
-                'top_category' =>
-                    $topCategory,
+                'top_category' => $topCategory,
             ],
 
-            'categories' =>
-                $categoryData,
+            'categories' => $categoryData,
 
-            'monthly_trend' =>
-                array_values($monthlyTrend),
+            'monthly_trend' => array_values($monthlyTrend),
 
             'chart_data' => [
                 'categories' => [
@@ -425,14 +407,13 @@ class ExpenseAnalysisService
                         ->filter(
                             fn (
                                 array $category
-                            ): bool =>
-                                bccomp(
-                                    $category[
-                                        'selected'
-                                    ],
-                                    '0.00',
-                                    2
-                                ) > 0
+                            ): bool => bccomp(
+                                $category[
+                                    'selected'
+                                ],
+                                '0.00',
+                                2
+                            ) > 0
                         )
                         ->pluck('name')
                         ->values()
@@ -444,20 +425,18 @@ class ExpenseAnalysisService
                         ->filter(
                             fn (
                                 array $category
-                            ): bool =>
-                                bccomp(
-                                    $category[
-                                        'selected'
-                                    ],
-                                    '0.00',
-                                    2
-                                ) > 0
+                            ): bool => bccomp(
+                                $category[
+                                    'selected'
+                                ],
+                                '0.00',
+                                2
+                            ) > 0
                         )
                         ->map(
                             fn (
                                 array $category
-                            ): float =>
-                                (float) $category[
+                            ): float => (float) $category[
                                     'selected'
                                 ]
                         )
@@ -479,8 +458,7 @@ class ExpenseAnalysisService
                         ->map(
                             fn (
                                 array $month
-                            ): float =>
-                                (float) $month[
+                            ): float => (float) $month[
                                     'total'
                                 ]
                         )
@@ -560,72 +538,51 @@ class ExpenseAnalysisService
 
         return [
             'week' => [
-                'label' =>
-                    '7 hari terakhir',
+                'label' => '7 hari terakhir',
 
-                'short_label' =>
-                    '7 Hari',
+                'short_label' => '7 Hari',
 
-                'previous_label' =>
-                    '7 hari sebelumnya',
+                'previous_label' => '7 hari sebelumnya',
 
-                'current_start' =>
-                    $weekStart,
+                'current_start' => $weekStart,
 
-                'current_end' =>
-                    $weekEnd,
+                'current_end' => $weekEnd,
 
-                'previous_start' =>
-                    $previousWeekStart,
+                'previous_start' => $previousWeekStart,
 
-                'previous_end' =>
-                    $previousWeekEnd,
+                'previous_end' => $previousWeekEnd,
             ],
 
             'month' => [
-                'label' =>
-                    'Bulan berjalan',
+                'label' => 'Bulan berjalan',
 
-                'short_label' =>
-                    'Bulan',
+                'short_label' => 'Bulan',
 
-                'previous_label' =>
-                    'Periode setara bulan lalu',
+                'previous_label' => 'Periode setara bulan lalu',
 
-                'current_start' =>
-                    $monthStart,
+                'current_start' => $monthStart,
 
-                'current_end' =>
-                    $monthEnd,
+                'current_end' => $monthEnd,
 
-                'previous_start' =>
-                    $previousMonthStart,
+                'previous_start' => $previousMonthStart,
 
-                'previous_end' =>
-                    $previousMonthEnd,
+                'previous_end' => $previousMonthEnd,
             ],
 
             'year' => [
-                'label' =>
-                    'Tahun berjalan',
+                'label' => 'Tahun berjalan',
 
-                'short_label' =>
-                    'Tahun',
+                'short_label' => 'Tahun',
 
-                'previous_label' =>
-                    'Periode setara tahun lalu',
+                'previous_label' => 'Periode setara tahun lalu',
 
-                'current_start' =>
-                    $yearStart,
+                'current_start' => $yearStart,
 
-                'current_end' =>
-                    $yearEnd,
+                'current_end' => $yearEnd,
 
-                'previous_start' =>
-                    $previousYearStart,
+                'previous_start' => $previousYearStart,
 
-                'previous_end' =>
-                    $previousYearEnd,
+                'previous_end' => $previousYearEnd,
             ],
         ];
     }

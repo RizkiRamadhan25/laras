@@ -14,8 +14,7 @@ class SubscriptionAutomationService
         private readonly SubscriptionService $subscriptionService,
         private readonly SubscriptionReminderService $reminderService,
         private readonly SubscriptionBillingProcessorService $billingProcessor
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -57,8 +56,7 @@ class SubscriptionAutomationService
                     $force
                 ): void {
                     foreach (
-                        $subscriptions
-                        as $subscription
+                        $subscriptions as $subscription
                     ) {
                         $summary[
                             'subscriptions_checked'
@@ -67,8 +65,7 @@ class SubscriptionAutomationService
                         try {
                             $reference =
                                 $this->referenceFor(
-                                    user:
-                                        $subscription->user,
+                                    user: $subscription->user,
 
                                     date: $date,
                                     force: $force
@@ -86,11 +83,9 @@ class SubscriptionAutomationService
                             ] += $this
                                 ->reminderService
                                 ->sendDueReminder(
-                                    subscription:
-                                        $subscription,
+                                    subscription: $subscription,
 
-                                    reference:
-                                        $reference
+                                    reference: $reference
                                 );
 
                             if ($billing === null) {
@@ -124,31 +119,25 @@ class SubscriptionAutomationService
                                 $this
                                     ->billingProcessor
                                     ->process(
-                                        billing:
-                                            $billing,
+                                        billing: $billing,
 
-                                        reference:
-                                            $reference,
+                                        reference: $reference,
 
-                                        force:
-                                            $force
+                                        force: $force
                                     );
 
                             if (
                                 $processed->status
-                                    === SubscriptionBillingStatus
-                                        ::Posted
+                                    === SubscriptionBillingStatus::Posted
                                 && $previousStatus
-                                    !== SubscriptionBillingStatus
-                                        ::Posted
+                                    !== SubscriptionBillingStatus::Posted
                             ) {
                                 $summary[
                                     'billings_posted'
                                 ]++;
                             } elseif (
                                 $processed->status
-                                    === SubscriptionBillingStatus
-                                        ::Failed
+                                    === SubscriptionBillingStatus::Failed
                             ) {
                                 $summary[
                                     'billings_failed'

@@ -28,11 +28,9 @@ return Application::configure(
             ]);
 
             $middleware->alias([
-                'onboarding.completed' =>
-                    EnsureOnboardingIsComplete::class,
+                'onboarding.completed' => EnsureOnboardingIsComplete::class,
 
-                'onboarding.pending' =>
-                    RedirectIfOnboardingIsComplete::class,
+                'onboarding.pending' => RedirectIfOnboardingIsComplete::class,
             ]);
         }
     )
@@ -41,8 +39,7 @@ return Application::configure(
             $exceptions->dontReportDuplicates();
 
             $exceptions->shouldRenderJsonWhen(
-                fn (Request $request): bool =>
-                    $request->is('api/*'),
+                fn (Request $request): bool => $request->is('api/*'),
             );
 
             $exceptions->respond(

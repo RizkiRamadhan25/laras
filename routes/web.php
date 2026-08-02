@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountSecurityController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataPrivacyController;
 use App\Http\Controllers\ExpenseAnalysisController;
@@ -14,7 +15,6 @@ use App\Http\Controllers\SubscriptionBillingController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BudgetController;
 
 Route::get('/', function () {
     return auth()->check()

@@ -18,11 +18,10 @@ class BudgetService
 {
     public function __construct(
         private readonly BudgetUsageSyncService $usageSyncService
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function create(
         User $user,
@@ -57,8 +56,7 @@ class BudgetService
         $payload = array_merge(
             $attributes,
             [
-                'period_type' =>
-                    $periodTypeValue,
+                'period_type' => $periodTypeValue,
             ]
         );
 
@@ -110,23 +108,17 @@ class BudgetService
                 ],
             ],
             [
-                'name.required' =>
-                    'Nama anggaran wajib diisi.',
+                'name.required' => 'Nama anggaran wajib diisi.',
 
-                'amount.required' =>
-                    'Batas anggaran wajib diisi.',
+                'amount.required' => 'Batas anggaran wajib diisi.',
 
-                'amount.gt' =>
-                    'Batas anggaran harus lebih dari nol.',
+                'amount.gt' => 'Batas anggaran harus lebih dari nol.',
 
-                'warning_threshold_percent.between' =>
-                    'Ambang peringatan harus berada antara 1 sampai 100 persen.',
+                'warning_threshold_percent.between' => 'Ambang peringatan harus berada antara 1 sampai 100 persen.',
 
-                'end_date.required' =>
-                    'Tanggal selesai wajib diisi untuk periode khusus.',
+                'end_date.required' => 'Tanggal selesai wajib diisi untuk periode khusus.',
 
-                'end_date.after_or_equal' =>
-                    'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+                'end_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
             ]
         )->validate();
 
@@ -149,39 +141,29 @@ class BudgetService
                 ): Budget {
                     $budget = Budget::query()
                         ->create([
-                            'user_id' =>
-                                $user->id,
+                            'user_id' => $user->id,
 
-                            'finance_category_id' =>
-                                $category->id,
+                            'finance_category_id' => $category->id,
 
-                            'active_finance_category_id' =>
-                                $category->id,
+                            'active_finance_category_id' => $category->id,
 
-                            'name' =>
-                                $validated['name'],
+                            'name' => $validated['name'],
 
-                            'amount' =>
-                                $validated['amount'],
+                            'amount' => $validated['amount'],
 
-                            'period_type' =>
-                                $periodType,
+                            'period_type' => $periodType,
 
-                            'warning_threshold_percent' =>
-                                $validated[
+                            'warning_threshold_percent' => $validated[
                                     'warning_threshold_percent'
                                 ],
 
-                            'start_date' =>
-                                $validated['start_date'],
+                            'start_date' => $validated['start_date'],
 
-                            'end_date' =>
-                                $validated['end_date']
+                            'end_date' => $validated['end_date']
                                 ?? null,
 
-                            'is_recurring' =>
-                                $periodType
-                                    ->isRecurring(),
+                            'is_recurring' => $periodType
+                                ->isRecurring(),
 
                             'is_active' => true,
                         ]);
@@ -217,8 +199,7 @@ class BudgetService
                     ->exists()
             ) {
                 throw ValidationException::withMessages([
-                    'finance_category_id' =>
-                        'Kategori ini sudah memiliki anggaran aktif.',
+                    'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
                 ]);
             }
 
@@ -238,8 +219,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Kategori tidak dimiliki oleh pengguna ini.',
+            'finance_category_id' => 'Kategori tidak dimiliki oleh pengguna ini.',
         ]);
     }
 
@@ -258,8 +238,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Anggaran hanya dapat menggunakan kategori yang masih aktif.',
+            'finance_category_id' => 'Anggaran hanya dapat menggunakan kategori yang masih aktif.',
         ]);
     }
 
@@ -280,8 +259,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Anggaran hanya dapat menggunakan kategori pengeluaran.',
+            'finance_category_id' => 'Anggaran hanya dapat menggunakan kategori pengeluaran.',
         ]);
     }
 
@@ -302,8 +280,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Kategori ini sudah memiliki anggaran aktif.',
+            'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
         ]);
     }
 }

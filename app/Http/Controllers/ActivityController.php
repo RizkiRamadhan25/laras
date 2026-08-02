@@ -22,8 +22,7 @@ class ActivityController extends Controller
     public function __construct(
         private readonly ActivityService $activityService,
         private readonly ActivityRecommendationService $recommendationService
-    ) {
-    }
+    ) {}
 
     public function index(
         FilterActivitiesRequest $request
@@ -161,14 +160,12 @@ class ActivityController extends Controller
         int $activity
     ): RedirectResponse {
         return $this->runStatusAction(
-            callback: fn (): Activity =>
-                $this->activityService->start(
-                    $request->user(),
-                    $activity
-                ),
+            callback: fn (): Activity => $this->activityService->start(
+                $request->user(),
+                $activity
+            ),
 
-            successMessage:
-                'Aktivitas mulai dikerjakan.'
+            successMessage: 'Aktivitas mulai dikerjakan.'
         );
     }
 
@@ -177,14 +174,12 @@ class ActivityController extends Controller
         int $activity
     ): RedirectResponse {
         return $this->runStatusAction(
-            callback: fn (): Activity =>
-                $this->activityService->complete(
-                    $request->user(),
-                    $activity
-                ),
+            callback: fn (): Activity => $this->activityService->complete(
+                $request->user(),
+                $activity
+            ),
 
-            successMessage:
-                'Aktivitas berhasil diselesaikan.'
+            successMessage: 'Aktivitas berhasil diselesaikan.'
         );
     }
 
@@ -193,14 +188,12 @@ class ActivityController extends Controller
         int $activity
     ): RedirectResponse {
         return $this->runStatusAction(
-            callback: fn (): Activity =>
-                $this->activityService->cancel(
-                    $request->user(),
-                    $activity
-                ),
+            callback: fn (): Activity => $this->activityService->cancel(
+                $request->user(),
+                $activity
+            ),
 
-            successMessage:
-                'Aktivitas berhasil dibatalkan.'
+            successMessage: 'Aktivitas berhasil dibatalkan.'
         );
     }
 
@@ -209,14 +202,12 @@ class ActivityController extends Controller
         int $activity
     ): RedirectResponse {
         return $this->runStatusAction(
-            callback: fn (): Activity =>
-                $this->activityService->reopen(
-                    $request->user(),
-                    $activity
-                ),
+            callback: fn (): Activity => $this->activityService->reopen(
+                $request->user(),
+                $activity
+            ),
 
-            successMessage:
-                'Aktivitas dibuka kembali.'
+            successMessage: 'Aktivitas dibuka kembali.'
         );
     }
 
@@ -251,7 +242,7 @@ class ActivityController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     private function renderIndex(
         FilterActivitiesRequest $request,
@@ -538,30 +529,29 @@ class ActivityController extends Controller
                 )
                 ->count(),
 
-            'completed_month' =>
-                $user->activities()
-                    ->completed()
-                    ->whereBetween(
-                        'completed_at',
-                        [
-                            $now
-                                ->startOfMonth()
-                                ->setTimezone(
-                                    config(
-                                        'app.timezone'
-                                    )
-                                ),
+            'completed_month' => $user->activities()
+                ->completed()
+                ->whereBetween(
+                    'completed_at',
+                    [
+                        $now
+                            ->startOfMonth()
+                            ->setTimezone(
+                                config(
+                                    'app.timezone'
+                                )
+                            ),
 
-                            $now
-                                ->endOfMonth()
-                                ->setTimezone(
-                                    config(
-                                        'app.timezone'
-                                    )
-                                ),
-                        ]
-                    )
-                    ->count(),
+                        $now
+                            ->endOfMonth()
+                            ->setTimezone(
+                                config(
+                                    'app.timezone'
+                                )
+                            ),
+                    ]
+                )
+                ->count(),
         ];
 
         return view('activities.index', [
@@ -575,20 +565,16 @@ class ActivityController extends Controller
             'selectedView' => $selectedView,
             'priorityPage' => $priorityPage,
 
-            'activityTypes' =>
-                ActivityType::cases(),
+            'activityTypes' => ActivityType::cases(),
 
-            'priorities' =>
-                ActivityPriority::cases(),
+            'priorities' => ActivityPriority::cases(),
 
-            'statuses' =>
-                ActivityStatus::cases(),
+            'statuses' => ActivityStatus::cases(),
 
             'timezone' => $timezone,
-            'currentDate' =>
-                $now->translatedFormat(
-                    'l, d F Y'
-                ),
+            'currentDate' => $now->translatedFormat(
+                'l, d F Y'
+            ),
         ]);
     }
 
@@ -718,7 +704,7 @@ class ActivityController extends Controller
     }
 
     /**
-     * @param callable(): Activity $callback
+     * @param  callable(): Activity  $callback
      */
     private function runStatusAction(
         callable $callback,

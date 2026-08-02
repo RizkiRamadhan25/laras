@@ -10,8 +10,7 @@ class ExpenseAnalysisController extends Controller
 {
     public function __construct(
         private readonly ExpenseAnalysisService $expenseAnalysisService
-    ) {
-    }
+    ) {}
 
     public function index(
         ExpenseAnalysisRequest $request

@@ -61,17 +61,13 @@ class FilterSubscriptionsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'search.max' =>
-                'Pencarian maksimal 100 karakter.',
+            'search.max' => 'Pencarian maksimal 100 karakter.',
 
-            'status.enum' =>
-                'Status langganan tidak valid.',
+            'status.enum' => 'Status langganan tidak valid.',
 
-            'account_id.integer' =>
-                'Filter rekening tidak valid.',
+            'account_id.integer' => 'Filter rekening tidak valid.',
 
-            'finance_category_id.integer' =>
-                'Filter kategori tidak valid.',
+            'finance_category_id.integer' => 'Filter kategori tidak valid.',
         ];
     }
 

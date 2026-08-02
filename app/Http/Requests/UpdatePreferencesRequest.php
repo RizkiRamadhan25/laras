@@ -79,38 +79,27 @@ class UpdatePreferencesRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'timezone.required' =>
-                'Zona waktu wajib dipilih.',
+            'timezone.required' => 'Zona waktu wajib dipilih.',
 
-            'timezone.in' =>
-                'Zona waktu yang dipilih tidak tersedia.',
+            'timezone.in' => 'Zona waktu yang dipilih tidak tersedia.',
 
-            'date_format.required' =>
-                'Format tanggal wajib dipilih.',
+            'date_format.required' => 'Format tanggal wajib dipilih.',
 
-            'date_format.in' =>
-                'Format tanggal yang dipilih tidak valid.',
+            'date_format.in' => 'Format tanggal yang dipilih tidak valid.',
 
-            'time_format.required' =>
-                'Format waktu wajib dipilih.',
+            'time_format.required' => 'Format waktu wajib dipilih.',
 
-            'time_format.in' =>
-                'Format waktu yang dipilih tidak valid.',
+            'time_format.in' => 'Format waktu yang dipilih tidak valid.',
 
-            'currency_code.required' =>
-                'Mata uang utama wajib dipilih.',
+            'currency_code.required' => 'Mata uang utama wajib dipilih.',
 
-            'currency_code.in' =>
-                'Mata uang yang dipilih tidak tersedia.',
+            'currency_code.in' => 'Mata uang yang dipilih tidak tersedia.',
 
-            'week_starts_on.required' =>
-                'Awal minggu wajib dipilih.',
+            'week_starts_on.required' => 'Awal minggu wajib dipilih.',
 
-            'week_starts_on.integer' =>
-                'Awal minggu tidak valid.',
+            'week_starts_on.integer' => 'Awal minggu tidak valid.',
 
-            'week_starts_on.in' =>
-                'Awal minggu yang dipilih tidak tersedia.',
+            'week_starts_on.in' => 'Awal minggu yang dipilih tidak tersedia.',
         ];
     }
 }

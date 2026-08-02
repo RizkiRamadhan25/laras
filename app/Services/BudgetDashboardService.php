@@ -13,8 +13,7 @@ class BudgetDashboardService
 {
     public function __construct(
         private readonly BudgetPeriodService $periodService
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -79,24 +78,23 @@ class BudgetDashboardService
             ->with([
                 'financeCategory',
 
-                'periods' =>
-                    function ($query) use ($today): void {
-                        $query
-                            ->whereDate(
-                                'period_start',
-                                '<=',
-                                $today
-                            )
-                            ->whereDate(
-                                'period_end',
-                                '>=',
-                                $today
-                            )
-                            ->orderByDesc(
-                                'period_start'
-                            )
-                            ->orderByDesc('id');
-                    },
+                'periods' => function ($query) use ($today): void {
+                    $query
+                        ->whereDate(
+                            'period_start',
+                            '<=',
+                            $today
+                        )
+                        ->whereDate(
+                            'period_end',
+                            '>=',
+                            $today
+                        )
+                        ->orderByDesc(
+                            'period_start'
+                        )
+                        ->orderByDesc('id');
+                },
             ])
             ->orderBy('id')
             ->get();
@@ -155,20 +153,15 @@ class BudgetDashboardService
                     'budget' => $budget,
                     'period' => $period,
 
-                    'alert_level' =>
-                        $alertLevel,
+                    'alert_level' => $alertLevel,
 
-                    'budget_amount' =>
-                        $budgetAmount,
+                    'budget_amount' => $budgetAmount,
 
-                    'used_amount' =>
-                        $usedAmount,
+                    'used_amount' => $usedAmount,
 
-                    'remaining_amount' =>
-                        $remainingAmount,
+                    'remaining_amount' => $remainingAmount,
 
-                    'usage_percent' =>
-                        $usagePercent,
+                    'usage_percent' => $usagePercent,
 
                     'progress_width' => min(
                         100,
@@ -183,8 +176,7 @@ class BudgetDashboardService
 
         $attentionItems = $items
             ->filter(
-                static fn (array $item): bool =>
-                    $item['alert_level']
+                static fn (array $item): bool => $item['alert_level']
                     !== BudgetAlertLevel::Safe
             )
             ->sort(
@@ -232,8 +224,7 @@ class BudgetDashboardService
 
             'items' => $items,
 
-            'attention_items' =>
-                $attentionItems,
+            'attention_items' => $attentionItems,
 
             'summary' => [
                 'active' => $items->count(),
@@ -262,8 +253,7 @@ class BudgetDashboardService
                 'total_limit' => $totalLimit,
                 'total_used' => $totalUsed,
 
-                'total_remaining' =>
-                    $totalRemaining,
+                'total_remaining' => $totalRemaining,
             ],
         ];
     }

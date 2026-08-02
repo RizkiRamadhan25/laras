@@ -15,8 +15,7 @@ class SubscriptionBillingFailed extends Notification
         public readonly string $scheduledFor,
         public readonly string $accountName,
         public readonly string $failureReason
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>
@@ -50,8 +49,7 @@ class SubscriptionBillingFailed extends Notification
         return [
             'kind' => 'subscription_billing_failed',
 
-            'title' =>
-                'Tagihan langganan gagal dicatat',
+            'title' => 'Tagihan langganan gagal dicatat',
 
             'message' => sprintf(
                 '%s sebesar %s %s gagal dicatat dari rekening %s. %s',
@@ -62,28 +60,21 @@ class SubscriptionBillingFailed extends Notification
                 $this->failureReason
             ),
 
-            'subscription_id' =>
-                $this->subscriptionId,
+            'subscription_id' => $this->subscriptionId,
 
-            'subscription_billing_id' =>
-                $this->billingId,
+            'subscription_billing_id' => $this->billingId,
 
-            'subscription_name' =>
-                $this->subscriptionName,
+            'subscription_name' => $this->subscriptionName,
 
             'amount' => $this->amount,
 
-            'currency_code' =>
-                $this->currencyCode,
+            'currency_code' => $this->currencyCode,
 
-            'scheduled_for' =>
-                $this->scheduledFor,
+            'scheduled_for' => $this->scheduledFor,
 
-            'account_name' =>
-                $this->accountName,
+            'account_name' => $this->accountName,
 
-            'failure_reason' =>
-                $this->failureReason,
+            'failure_reason' => $this->failureReason,
 
             'severity' => 'danger',
             'icon' => 'circle-alert',

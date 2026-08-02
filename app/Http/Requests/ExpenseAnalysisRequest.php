@@ -35,8 +35,7 @@ class ExpenseAnalysisRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'period.in' =>
-                'Periode analisis yang dipilih tidak valid.',
+            'period.in' => 'Periode analisis yang dipilih tidak valid.',
         ];
     }
 }

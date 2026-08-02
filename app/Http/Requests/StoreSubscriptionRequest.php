@@ -174,83 +174,57 @@ class StoreSubscriptionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'account_id.required' =>
-                'Rekening pembayaran wajib dipilih.',
+            'account_id.required' => 'Rekening pembayaran wajib dipilih.',
 
-            'account_id.integer' =>
-                'Rekening pembayaran tidak valid.',
+            'account_id.integer' => 'Rekening pembayaran tidak valid.',
 
-            'finance_category_id.required' =>
-                'Kategori pengeluaran wajib dipilih.',
+            'finance_category_id.required' => 'Kategori pengeluaran wajib dipilih.',
 
-            'finance_category_id.integer' =>
-                'Kategori pengeluaran tidak valid.',
+            'finance_category_id.integer' => 'Kategori pengeluaran tidak valid.',
 
-            'name.required' =>
-                'Nama langganan wajib diisi.',
+            'name.required' => 'Nama langganan wajib diisi.',
 
-            'name.max' =>
-                'Nama langganan maksimal 160 karakter.',
+            'name.max' => 'Nama langganan maksimal 160 karakter.',
 
-            'provider.max' =>
-                'Nama penyedia maksimal 120 karakter.',
+            'provider.max' => 'Nama penyedia maksimal 120 karakter.',
 
-            'amount.required' =>
-                'Nominal langganan wajib diisi.',
+            'amount.required' => 'Nominal langganan wajib diisi.',
 
-            'amount.decimal' =>
-                'Nominal langganan tidak valid.',
+            'amount.decimal' => 'Nominal langganan tidak valid.',
 
-            'amount.gt' =>
-                'Nominal harus lebih besar dari nol.',
+            'amount.gt' => 'Nominal harus lebih besar dari nol.',
 
-            'interval_unit.required' =>
-                'Satuan siklus wajib dipilih.',
+            'interval_unit.required' => 'Satuan siklus wajib dipilih.',
 
-            'interval_unit.enum' =>
-                'Satuan siklus tidak tersedia.',
+            'interval_unit.enum' => 'Satuan siklus tidak tersedia.',
 
-            'interval_count.required' =>
-                'Interval langganan wajib diisi.',
+            'interval_count.required' => 'Interval langganan wajib diisi.',
 
-            'interval_count.integer' =>
-                'Interval langganan harus berupa angka bulat.',
+            'interval_count.integer' => 'Interval langganan harus berupa angka bulat.',
 
-            'interval_count.min' =>
-                'Interval langganan minimal satu.',
+            'interval_count.min' => 'Interval langganan minimal satu.',
 
-            'interval_count.max' =>
-                'Interval langganan maksimal 365.',
+            'interval_count.max' => 'Interval langganan maksimal 365.',
 
-            'started_on.required' =>
-                'Tanggal mulai wajib diisi.',
+            'started_on.required' => 'Tanggal mulai wajib diisi.',
 
-            'started_on.date_format' =>
-                'Tanggal mulai tidak valid.',
+            'started_on.date_format' => 'Tanggal mulai tidak valid.',
 
-            'next_billing_on.required' =>
-                'Tanggal tagihan berikutnya wajib diisi.',
+            'next_billing_on.required' => 'Tanggal tagihan berikutnya wajib diisi.',
 
-            'next_billing_on.after_or_equal' =>
-                'Tanggal tagihan tidak boleh mendahului tanggal mulai.',
+            'next_billing_on.after_or_equal' => 'Tanggal tagihan tidak boleh mendahului tanggal mulai.',
 
-            'end_on.after_or_equal' =>
-                'Tanggal berakhir tidak boleh mendahului jadwal langganan.',
+            'end_on.after_or_equal' => 'Tanggal berakhir tidak boleh mendahului jadwal langganan.',
 
-            'billing_time.required' =>
-                'Waktu penagihan wajib diisi.',
+            'billing_time.required' => 'Waktu penagihan wajib diisi.',
 
-            'billing_time.date_format' =>
-                'Waktu penagihan tidak valid.',
+            'billing_time.date_format' => 'Waktu penagihan tidak valid.',
 
-            'reminder_days.required' =>
-                'Pilih setidaknya satu waktu pengingat.',
+            'reminder_days.required' => 'Pilih setidaknya satu waktu pengingat.',
 
-            'reminder_days.min' =>
-                'Pilih setidaknya satu waktu pengingat.',
+            'reminder_days.min' => 'Pilih setidaknya satu waktu pengingat.',
 
-            'reminder_days.*.in' =>
-                'Pilihan waktu pengingat tidak valid.',
+            'reminder_days.*.in' => 'Pilihan waktu pengingat tidak valid.',
         ];
     }
 

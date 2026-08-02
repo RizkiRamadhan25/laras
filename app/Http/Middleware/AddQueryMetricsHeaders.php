@@ -12,8 +12,7 @@ class AddQueryMetricsHeaders
 {
     public function __construct(
         private readonly QueryMetrics $metrics
-    ) {
-    }
+    ) {}
 
     public function handle(
         Request $request,
@@ -49,8 +48,7 @@ class AddQueryMetricsHeaders
                     'query_count' => $summary['count'],
                     'total_ms' => $summary['total_ms'],
                     'slowest_ms' => $summary['slowest_ms'],
-                    'slowest_fingerprint' =>
-                        $summary['slowest_fingerprint'],
+                    'slowest_fingerprint' => $summary['slowest_fingerprint'],
                 ]
             );
         }

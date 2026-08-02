@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class AccountService
 {
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function create(User $user, array $data): Account
     {
@@ -39,8 +39,7 @@ class AccountService
                     ->value('currency_code') ?? 'IDR',
                 'initial_balance' => $initialBalance,
                 'cached_balance' => $initialBalance,
-                'account_number_last_four' =>
-                    $data['account_number_last_four'] ?? null,
+                'account_number_last_four' => $data['account_number_last_four'] ?? null,
                 'color' => $data['color'],
                 'icon' => $this->accountIcon($type),
                 'is_active' => true,
@@ -50,7 +49,7 @@ class AccountService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(
         User $user,
@@ -95,8 +94,7 @@ class AccountService
                 'institution' => $data['institution'] ?? null,
                 'initial_balance' => $newInitialBalance,
                 'cached_balance' => $newCachedBalance,
-                'account_number_last_four' =>
-                    $data['account_number_last_four'] ?? null,
+                'account_number_last_four' => $data['account_number_last_four'] ?? null,
                 'color' => $data['color'],
                 'icon' => $this->accountIcon($type),
             ]);
@@ -180,8 +178,7 @@ class AccountService
                 ->get();
 
             $currentIndex = $accounts->search(
-                fn (Account $account): bool =>
-                    $account->id === $accountId
+                fn (Account $account): bool => $account->id === $accountId
             );
 
             if ($currentIndex === false) {
@@ -223,8 +220,7 @@ class AccountService
             AccountType::Bank => 'landmark',
             AccountType::EWallet => 'smartphone',
             AccountType::Cash => 'wallet',
-            AccountType::Investment =>
-                'chart-no-axes-combined',
+            AccountType::Investment => 'chart-no-axes-combined',
             AccountType::Other => 'circle-dollar-sign',
         };
     }

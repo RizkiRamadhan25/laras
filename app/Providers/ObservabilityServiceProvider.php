@@ -14,7 +14,7 @@ class ObservabilityServiceProvider extends ServiceProvider
     {
         $this->app->scoped(
             QueryMetrics::class,
-            fn (): QueryMetrics => new QueryMetrics()
+            fn (): QueryMetrics => new QueryMetrics
         );
     }
 

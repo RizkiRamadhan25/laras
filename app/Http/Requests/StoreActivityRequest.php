@@ -140,65 +140,45 @@ class StoreActivityRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' =>
-                'Judul aktivitas wajib diisi.',
+            'title.required' => 'Judul aktivitas wajib diisi.',
 
-            'title.max' =>
-                'Judul aktivitas maksimal 160 karakter.',
+            'title.max' => 'Judul aktivitas maksimal 160 karakter.',
 
-            'description.max' =>
-                'Deskripsi maksimal 5.000 karakter.',
+            'description.max' => 'Deskripsi maksimal 5.000 karakter.',
 
-            'type.required' =>
-                'Jenis aktivitas wajib dipilih.',
+            'type.required' => 'Jenis aktivitas wajib dipilih.',
 
-            'type.enum' =>
-                'Jenis aktivitas tidak tersedia.',
+            'type.enum' => 'Jenis aktivitas tidak tersedia.',
 
-            'priority.required' =>
-                'Prioritas wajib dipilih.',
+            'priority.required' => 'Prioritas wajib dipilih.',
 
-            'priority.enum' =>
-                'Prioritas yang dipilih tidak tersedia.',
+            'priority.enum' => 'Prioritas yang dipilih tidak tersedia.',
 
-            'starts_at.required_if' =>
-                'Acara wajib memiliki waktu mulai.',
+            'starts_at.required_if' => 'Acara wajib memiliki waktu mulai.',
 
-            'starts_at.date_format' =>
-                'Format waktu mulai tidak valid.',
+            'starts_at.date_format' => 'Format waktu mulai tidak valid.',
 
-            'ends_at.date_format' =>
-                'Format waktu selesai tidak valid.',
+            'ends_at.date_format' => 'Format waktu selesai tidak valid.',
 
-            'ends_at.after_or_equal' =>
-                'Waktu selesai tidak boleh mendahului waktu mulai.',
+            'ends_at.after_or_equal' => 'Waktu selesai tidak boleh mendahului waktu mulai.',
 
-            'due_at.required_if' =>
-                'Aktivitas deadline wajib memiliki tenggat.',
+            'due_at.required_if' => 'Aktivitas deadline wajib memiliki tenggat.',
 
-            'due_at.date_format' =>
-                'Format tenggat tidak valid.',
+            'due_at.date_format' => 'Format tenggat tidak valid.',
 
-            'due_at.after_or_equal' =>
-                'Tenggat tidak boleh mendahului waktu mulai.',
+            'due_at.after_or_equal' => 'Tenggat tidak boleh mendahului waktu mulai.',
 
-            'estimated_minutes.integer' =>
-                'Estimasi durasi harus berupa angka bulat.',
+            'estimated_minutes.integer' => 'Estimasi durasi harus berupa angka bulat.',
 
-            'estimated_minutes.min' =>
-                'Estimasi durasi minimal lima menit.',
+            'estimated_minutes.min' => 'Estimasi durasi minimal lima menit.',
 
-            'estimated_minutes.max' =>
-                'Estimasi durasi maksimal 1.440 menit.',
+            'estimated_minutes.max' => 'Estimasi durasi maksimal 1.440 menit.',
 
-            'location.max' =>
-                'Lokasi maksimal 160 karakter.',
+            'location.max' => 'Lokasi maksimal 160 karakter.',
 
-            'color.required' =>
-                'Warna aktivitas wajib dipilih.',
+            'color.required' => 'Warna aktivitas wajib dipilih.',
 
-            'color.regex' =>
-                'Format warna aktivitas tidak valid.',
+            'color.regex' => 'Format warna aktivitas tidak valid.',
         ];
     }
 

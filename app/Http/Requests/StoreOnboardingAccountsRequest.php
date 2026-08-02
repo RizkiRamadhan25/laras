@@ -124,48 +124,30 @@ class StoreOnboardingAccountsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'accounts.required' =>
-                'Tambahkan minimal satu rekening.',
-            'accounts.array' =>
-                'Format data rekening tidak valid.',
-            'accounts.min' =>
-                'Tambahkan minimal satu rekening.',
-            'accounts.max' =>
-                'Maksimal 12 rekening dapat ditambahkan saat onboarding.',
+            'accounts.required' => 'Tambahkan minimal satu rekening.',
+            'accounts.array' => 'Format data rekening tidak valid.',
+            'accounts.min' => 'Tambahkan minimal satu rekening.',
+            'accounts.max' => 'Maksimal 12 rekening dapat ditambahkan saat onboarding.',
 
-            'accounts.*.name.required' =>
-                'Nama rekening wajib diisi.',
-            'accounts.*.name.max' =>
-                'Nama rekening maksimal 100 karakter.',
-            'accounts.*.name.distinct' =>
-                'Nama setiap rekening harus berbeda.',
+            'accounts.*.name.required' => 'Nama rekening wajib diisi.',
+            'accounts.*.name.max' => 'Nama rekening maksimal 100 karakter.',
+            'accounts.*.name.distinct' => 'Nama setiap rekening harus berbeda.',
 
-            'accounts.*.type.required' =>
-                'Tipe rekening wajib dipilih.',
-            'accounts.*.type.in' =>
-                'Tipe rekening yang dipilih tidak tersedia.',
+            'accounts.*.type.required' => 'Tipe rekening wajib dipilih.',
+            'accounts.*.type.in' => 'Tipe rekening yang dipilih tidak tersedia.',
 
-            'accounts.*.institution.max' =>
-                'Nama institusi maksimal 100 karakter.',
+            'accounts.*.institution.max' => 'Nama institusi maksimal 100 karakter.',
 
-            'accounts.*.initial_balance.required' =>
-                'Saldo awal wajib diisi.',
-            'accounts.*.initial_balance.numeric' =>
-                'Saldo awal harus berupa angka.',
-            'accounts.*.initial_balance.decimal' =>
-                'Saldo awal maksimal memiliki dua angka desimal.',
-            'accounts.*.initial_balance.min' =>
-                'Saldo awal tidak boleh kurang dari nol.',
-            'accounts.*.initial_balance.max' =>
-                'Saldo awal melebihi batas yang diperbolehkan.',
+            'accounts.*.initial_balance.required' => 'Saldo awal wajib diisi.',
+            'accounts.*.initial_balance.numeric' => 'Saldo awal harus berupa angka.',
+            'accounts.*.initial_balance.decimal' => 'Saldo awal maksimal memiliki dua angka desimal.',
+            'accounts.*.initial_balance.min' => 'Saldo awal tidak boleh kurang dari nol.',
+            'accounts.*.initial_balance.max' => 'Saldo awal melebihi batas yang diperbolehkan.',
 
-            'accounts.*.account_number_last_four.regex' =>
-                'Empat digit rekening harus berisi tepat empat angka.',
+            'accounts.*.account_number_last_four.regex' => 'Empat digit rekening harus berisi tepat empat angka.',
 
-            'accounts.*.color.required' =>
-                'Warna rekening wajib dipilih.',
-            'accounts.*.color.regex' =>
-                'Format warna rekening tidak valid.',
+            'accounts.*.color.required' => 'Warna rekening wajib dipilih.',
+            'accounts.*.color.regex' => 'Format warna rekening tidak valid.',
         ];
     }
 

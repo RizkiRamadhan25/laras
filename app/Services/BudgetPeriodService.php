@@ -9,9 +9,9 @@ use App\Models\Budget;
 use App\Models\BudgetPeriod;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
-use Illuminate\Database\UniqueConstraintViolationException;
 
 class BudgetPeriodService
 {
@@ -69,34 +69,29 @@ class BudgetPeriodService
             );
 
         $values = [
-            'budget_amount' =>
-                $this->formatHundredths(
-                    $budgetAmount
-                ),
+            'budget_amount' => $this->formatHundredths(
+                $budgetAmount
+            ),
 
-            'used_amount' =>
-                $this->formatHundredths(
-                    $used
-                ),
+            'used_amount' => $this->formatHundredths(
+                $used
+            ),
 
-            'remaining_amount' =>
-                $this->formatHundredths(
-                    $remaining
-                ),
+            'remaining_amount' => $this->formatHundredths(
+                $remaining
+            ),
 
-            'usage_percent' =>
-                $this->formatHundredths(
-                    $usageBasisPoints
-                ),
+            'usage_percent' => $this->formatHundredths(
+                $usageBasisPoints
+            ),
 
-            'status' =>
-                $this->periodStatus(
-                    $periodStart,
-                    $periodEnd,
-                    $this->budgetTimezone(
-                        $budget
-                    )
-                ),
+            'status' => $this->periodStatus(
+                $periodStart,
+                $periodEnd,
+                $this->budgetTimezone(
+                    $budget
+                )
+            ),
         ];
 
         return DB::transaction(
@@ -130,14 +125,11 @@ class BudgetPeriodService
                     try {
                         $period = BudgetPeriod::query()
                             ->create([
-                                'budget_id' =>
-                                    $budget->id,
+                                'budget_id' => $budget->id,
 
-                                'period_start' =>
-                                    $periodStart,
+                                'period_start' => $periodStart,
 
-                                'period_end' =>
-                                    $periodEnd,
+                                'period_end' => $periodEnd,
 
                                 ...$values,
                             ]);
@@ -244,29 +236,25 @@ class BudgetPeriodService
                 );
 
                 $lockedPeriod->forceFill([
-                    'budget_amount' =>
-                        $this->formatHundredths(
-                            $budgetAmount
-                        ),
+                    'budget_amount' => $this->formatHundredths(
+                        $budgetAmount
+                    ),
 
-                    'remaining_amount' =>
-                        $this->formatHundredths(
-                            $remainingAmount
-                        ),
+                    'remaining_amount' => $this->formatHundredths(
+                        $remainingAmount
+                    ),
 
-                    'usage_percent' =>
-                        $this->formatHundredths(
-                            $usageBasisPoints
-                        ),
+                    'usage_percent' => $this->formatHundredths(
+                        $usageBasisPoints
+                    ),
 
-                    'status' =>
-                        $this->periodStatus(
-                            $periodStart,
-                            $periodEnd,
-                            $this->budgetTimezone(
-                                $lockedPeriod->budget
-                            )
-                        ),
+                    'status' => $this->periodStatus(
+                        $periodStart,
+                        $periodEnd,
+                        $this->budgetTimezone(
+                            $lockedPeriod->budget
+                        )
+                    ),
                 ])->save();
 
                 return $lockedPeriod->refresh();
@@ -415,7 +403,6 @@ class BudgetPeriodService
 
         return BudgetPeriodStatus::Active;
     }
-
 
     private function budgetTimezone(
         Budget $budget

@@ -54,8 +54,7 @@ class ProfilePhotoService
                         ->profile_photo_path;
 
                     $lockedUser->forceFill([
-                        'profile_photo_path' =>
-                            $newPath,
+                        'profile_photo_path' => $newPath,
                     ])->save();
                 },
                 3

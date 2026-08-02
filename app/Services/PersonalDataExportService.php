@@ -46,8 +46,7 @@ class PersonalDataExportService
             $datasetCounts = [];
 
             foreach (
-                $this->datasets($user)
-                as $relativePath => $query
+                $this->datasets($user) as $relativePath => $query
             ) {
                 $absolutePath = $workingDirectory
                     .DIRECTORY_SEPARATOR
@@ -82,20 +81,17 @@ class PersonalDataExportService
                 $manifestPath,
                 json_encode(
                     [
-                        'application' =>
-                            config(
-                                'app.name',
-                                'Laras'
-                            ),
+                        'application' => config(
+                            'app.name',
+                            'Laras'
+                        ),
 
                         'archive_version' => 2,
 
-                        'generated_at' =>
-                            now()->toIso8601String(),
+                        'generated_at' => now()->toIso8601String(),
 
-                        'timezone' =>
-                            $user->preference
-                                ?->timezone
+                        'timezone' => $user->preference
+                            ?->timezone
                             ?? config(
                                 'laras.defaults.timezone',
                                 'Asia/Jakarta'
@@ -106,35 +102,28 @@ class PersonalDataExportService
                             'name' => $user->name,
                             'email' => $user->email,
 
-                            'email_verified_at' =>
-                                $user->getRawOriginal(
-                                    'email_verified_at'
-                                ),
+                            'email_verified_at' => $user->getRawOriginal(
+                                'email_verified_at'
+                            ),
 
-                            'onboarding_completed_at' =>
-                                $user->getRawOriginal(
-                                    'onboarding_completed_at'
-                                ),
+                            'onboarding_completed_at' => $user->getRawOriginal(
+                                'onboarding_completed_at'
+                            ),
 
-                            'is_active' =>
-                                (bool) $user->is_active,
+                            'is_active' => (bool) $user->is_active,
 
-                            'profile_photo_file' =>
-                                $profilePhotoEntry,
+                            'profile_photo_file' => $profilePhotoEntry,
 
-                            'created_at' =>
-                                $user->getRawOriginal(
-                                    'created_at'
-                                ),
+                            'created_at' => $user->getRawOriginal(
+                                'created_at'
+                            ),
 
-                            'updated_at' =>
-                                $user->getRawOriginal(
-                                    'updated_at'
-                                ),
+                            'updated_at' => $user->getRawOriginal(
+                                'updated_at'
+                            ),
                         ],
 
-                        'datasets' =>
-                            $datasetCounts,
+                        'datasets' => $datasetCounts,
 
                         'excluded_fields' => [
                             'password',
@@ -193,146 +182,125 @@ class PersonalDataExportService
         $userId = (int) $user->id;
 
         return [
-            'preferences/preferences.json' =>
-                $this->queryByUser(
-                    'user_preferences',
-                    $userId
-                ),
+            'preferences/preferences.json' => $this->queryByUser(
+                'user_preferences',
+                $userId
+            ),
 
-            'onboarding/progress.json' =>
-                $this->firstAvailableUserQuery(
-                    [
-                        'onboarding_progress',
-                        'onboarding_progresses',
-                    ],
-                    $userId
-                ),
+            'onboarding/progress.json' => $this->firstAvailableUserQuery(
+                [
+                    'onboarding_progress',
+                    'onboarding_progresses',
+                ],
+                $userId
+            ),
 
-            'finance/categories.json' =>
-                $this->queryByUser(
-                    'finance_categories',
-                    $userId
-                ),
+            'finance/categories.json' => $this->queryByUser(
+                'finance_categories',
+                $userId
+            ),
 
-            'finance/accounts.json' =>
-                $this->queryByUser(
-                    'accounts',
-                    $userId
-                ),
+            'finance/accounts.json' => $this->queryByUser(
+                'accounts',
+                $userId
+            ),
 
-            'finance/account-balance-snapshots.json' =>
-                $this->queryWhereParentBelongsToUser(
-                    table: 'account_balance_snapshots',
-                    foreignKey: 'account_id',
-                    parentTable: 'accounts',
-                    userId: $userId
-                ),
+            'finance/account-balance-snapshots.json' => $this->queryWhereParentBelongsToUser(
+                table: 'account_balance_snapshots',
+                foreignKey: 'account_id',
+                parentTable: 'accounts',
+                userId: $userId
+            ),
 
-            'finance/transactions.json' =>
-                $this->queryByUser(
-                    'transactions',
-                    $userId
-                ),
+            'finance/transactions.json' => $this->queryByUser(
+                'transactions',
+                $userId
+            ),
 
-            'finance/transaction-entries.json' =>
-                $this->queryWhereParentBelongsToUser(
-                    table: 'transaction_entries',
-                    foreignKey: 'transaction_id',
-                    parentTable: 'transactions',
-                    userId: $userId
-                ),
+            'finance/transaction-entries.json' => $this->queryWhereParentBelongsToUser(
+                table: 'transaction_entries',
+                foreignKey: 'transaction_id',
+                parentTable: 'transactions',
+                userId: $userId
+            ),
 
-            'finance/transaction-attachments.json' =>
-                $this->queryByUser(
-                    'transaction_attachments',
-                    $userId
-                ),
+            'finance/transaction-attachments.json' => $this->queryByUser(
+                'transaction_attachments',
+                $userId
+            ),
 
-            'finance/budgets.json' =>
-                $this->queryByUser(
-                    'budgets',
-                    $userId
-                ),
+            'finance/budgets.json' => $this->queryByUser(
+                'budgets',
+                $userId
+            ),
 
-            'finance/budget-periods.json' =>
-                $this->queryWhereParentBelongsToUser(
-                    table: 'budget_periods',
-                    foreignKey: 'budget_id',
-                    parentTable: 'budgets',
-                    userId: $userId
-                ),
+            'finance/budget-periods.json' => $this->queryWhereParentBelongsToUser(
+                table: 'budget_periods',
+                foreignKey: 'budget_id',
+                parentTable: 'budgets',
+                userId: $userId
+            ),
 
-            'finance/budget-alert-events.json' =>
-                $this->budgetAlertEventsQuery(
-                    $userId
-                ),
+            'finance/budget-alert-events.json' => $this->budgetAlertEventsQuery(
+                $userId
+            ),
 
-            'finance/scan-documents.json' =>
-                $this->queryByUser(
-                    'scan_documents',
-                    $userId
-                ),
+            'finance/scan-documents.json' => $this->queryByUser(
+                'scan_documents',
+                $userId
+            ),
 
-            'finance/scan-extractions.json' =>
-                $this->queryWhereParentBelongsToUser(
-                    table: 'scan_extractions',
-                    foreignKey: 'scan_document_id',
-                    parentTable: 'scan_documents',
-                    userId: $userId
-                ),
+            'finance/scan-extractions.json' => $this->queryWhereParentBelongsToUser(
+                table: 'scan_extractions',
+                foreignKey: 'scan_document_id',
+                parentTable: 'scan_documents',
+                userId: $userId
+            ),
 
-            'activities/items.json' =>
-                $this->queryByUser(
-                    'activities',
-                    $userId
-                ),
+            'activities/items.json' => $this->queryByUser(
+                'activities',
+                $userId
+            ),
 
-            'activities/status-histories.json' =>
-                $this->queryWhereParentBelongsToUser(
-                    table: 'activity_status_histories',
-                    foreignKey: 'activity_id',
-                    parentTable: 'activities',
-                    userId: $userId
-                ),
+            'activities/status-histories.json' => $this->queryWhereParentBelongsToUser(
+                table: 'activity_status_histories',
+                foreignKey: 'activity_id',
+                parentTable: 'activities',
+                userId: $userId
+            ),
 
-            'activities/priority-histories.json' =>
-                $this->queryWhereParentBelongsToUser(
-                    table: 'activity_priority_histories',
-                    foreignKey: 'activity_id',
-                    parentTable: 'activities',
-                    userId: $userId
-                ),
+            'activities/priority-histories.json' => $this->queryWhereParentBelongsToUser(
+                table: 'activity_priority_histories',
+                foreignKey: 'activity_id',
+                parentTable: 'activities',
+                userId: $userId
+            ),
 
-            'subscriptions/items.json' =>
-                $this->queryByUser(
-                    'subscriptions',
-                    $userId
-                ),
+            'subscriptions/items.json' => $this->queryByUser(
+                'subscriptions',
+                $userId
+            ),
 
-            'subscriptions/billings.json' =>
-                $this->queryWhereParentBelongsToUser(
-                    table: 'subscription_billings',
-                    foreignKey: 'subscription_id',
-                    parentTable: 'subscriptions',
-                    userId: $userId
-                ),
+            'subscriptions/billings.json' => $this->queryWhereParentBelongsToUser(
+                table: 'subscription_billings',
+                foreignKey: 'subscription_id',
+                parentTable: 'subscriptions',
+                userId: $userId
+            ),
 
-            'recommendations/interactions.json' =>
-                $this->queryByUser(
-                    'recommendation_interactions',
-                    $userId
-                ),
+            'recommendations/interactions.json' => $this->queryByUser(
+                'recommendation_interactions',
+                $userId
+            ),
 
-            'security/events.json' =>
-                $this->queryByUser(
-                    'security_events',
-                    $userId
-                ),
+            'security/events.json' => $this->queryByUser(
+                'security_events',
+                $userId
+            ),
 
-            'notifications/items.json' =>
-                $this->notificationsQuery(
-                    $user
-                ),
+            'notifications/items.json' => $this->notificationsQuery(
+                $user
+            ),
         ];
     }
 
@@ -469,7 +437,7 @@ class PersonalDataExportService
     }
 
     /**
-     * @param array<int, string> $tables
+     * @param  array<int, string>  $tables
      */
     private function firstAvailableUserQuery(
         array $tables,
@@ -610,7 +578,7 @@ class PersonalDataExportService
             dirname($zipPath)
         );
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
 
         $opened = $zip->open(
             $zipPath,

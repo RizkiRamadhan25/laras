@@ -64,20 +64,15 @@ class UpdateBudgetRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' =>
-                'Nama anggaran wajib diisi.',
+            'name.required' => 'Nama anggaran wajib diisi.',
 
-            'name.min' =>
-                'Nama anggaran minimal 2 karakter.',
+            'name.min' => 'Nama anggaran minimal 2 karakter.',
 
-            'amount.required' =>
-                'Batas anggaran wajib diisi.',
+            'amount.required' => 'Batas anggaran wajib diisi.',
 
-            'amount.gt' =>
-                'Batas anggaran harus lebih dari nol.',
+            'amount.gt' => 'Batas anggaran harus lebih dari nol.',
 
-            'warning_threshold_percent.between' =>
-                'Ambang peringatan harus berada antara 1 sampai 100 persen.',
+            'warning_threshold_percent.between' => 'Ambang peringatan harus berada antara 1 sampai 100 persen.',
         ];
     }
 

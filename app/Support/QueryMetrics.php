@@ -55,8 +55,7 @@ class QueryMetrics
         Log::warning(
             'Slow database query detected.',
             [
-                'request_id' =>
-                    $requestContext['request_id'],
+                'request_id' => $requestContext['request_id'],
                 'route' => $requestContext['route'],
                 'method' => $requestContext['method'],
                 'connection' => $event->connectionName,
@@ -87,8 +86,7 @@ class QueryMetrics
                 $this->slowestMilliseconds,
                 2
             ),
-            'slowest_fingerprint' =>
-                $this->slowestFingerprint,
+            'slowest_fingerprint' => $this->slowestFingerprint,
         ];
     }
 

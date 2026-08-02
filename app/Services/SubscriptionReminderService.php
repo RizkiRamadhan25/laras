@@ -13,8 +13,7 @@ class SubscriptionReminderService
 {
     public function __construct(
         private readonly SubscriptionService $subscriptionService
-    ) {
-    }
+    ) {}
 
     public function sendDueReminder(
         Subscription $subscription,
@@ -132,32 +131,24 @@ class SubscriptionReminderService
 
             $lockedSubscription->user->notify(
                 new SubscriptionRenewalReminder(
-                    subscriptionId:
-                        $lockedSubscription->id,
+                    subscriptionId: $lockedSubscription->id,
 
-                    billingId:
-                        $lockedBilling->id,
+                    billingId: $lockedBilling->id,
 
-                    subscriptionName:
-                        $lockedSubscription->name,
+                    subscriptionName: $lockedSubscription->name,
 
-                    amount:
-                        $lockedBilling->amount,
+                    amount: $lockedBilling->amount,
 
-                    currencyCode:
-                        $lockedBilling->currency_code,
+                    currencyCode: $lockedBilling->currency_code,
 
-                    scheduledFor:
-                        $lockedBilling
-                            ->scheduled_for
-                            ->toDateString(),
+                    scheduledFor: $lockedBilling
+                        ->scheduled_for
+                        ->toDateString(),
 
-                    daysBefore:
-                        $daysBefore,
+                    daysBefore: $daysBefore,
 
-                    accountName:
-                        $lockedSubscription
-                            ->account?->name
+                    accountName: $lockedSubscription
+                        ->account?->name
                             ?? 'Rekening'
                 )
             );
