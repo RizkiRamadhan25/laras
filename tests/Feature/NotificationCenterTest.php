@@ -171,12 +171,11 @@ class NotificationCenterTest extends TestCase
             ->unreadNotifications()
             ->get()
             ->first(
-                fn ($notification): bool =>
-                    (
-                        $notification->data[
-                            'subscription_name'
-                        ] ?? null
-                    ) === 'Netflix'
+                fn ($notification): bool => (
+                    $notification->data[
+                        'subscription_name'
+                    ] ?? null
+                ) === 'Netflix'
             );
 
         $this->assertNotNull(
@@ -205,8 +204,7 @@ class NotificationCenterTest extends TestCase
                         $notifications
                             ->getCollection()
                             ->map(
-                                fn ($notification) =>
-                                    $notification->data[
+                                fn ($notification) => $notification->data[
                                         'subscription_name'
                                     ] ?? null
                             )
@@ -241,8 +239,7 @@ class NotificationCenterTest extends TestCase
                         $notifications
                             ->getCollection()
                             ->map(
-                                fn ($notification) =>
-                                    $notification->data[
+                                fn ($notification) => $notification->data[
                                         'subscription_name'
                                     ] ?? null
                             )
@@ -297,8 +294,7 @@ class NotificationCenterTest extends TestCase
             new SubscriptionRenewalReminder(
                 subscriptionId: 1,
                 billingId: 1,
-                subscriptionName:
-                    $subscriptionName,
+                subscriptionName: $subscriptionName,
                 amount: '59000.00',
                 currencyCode: 'IDR',
                 scheduledFor: '2026-08-10',

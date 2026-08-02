@@ -80,8 +80,7 @@ class ExpenseAnalysisTest extends TestCase
                     'user_id' => $user->id,
                     'name' => 'Transportasi',
 
-                    'flow_type' =>
-                        FinanceFlowType::Expense,
+                    'flow_type' => FinanceFlowType::Expense,
 
                     'is_active' => true,
                 ]);
@@ -335,11 +334,9 @@ class ExpenseAnalysisTest extends TestCase
             'user_id' => $user->id,
             'name' => 'BCA Utama',
             'currency_code' => 'IDR',
-            'initial_balance' =>
-                '5000000.00',
+            'initial_balance' => '5000000.00',
 
-            'cached_balance' =>
-                '5000000.00',
+            'cached_balance' => '5000000.00',
 
             'is_active' => true,
         ]);
@@ -351,8 +348,7 @@ class ExpenseAnalysisTest extends TestCase
                     'user_id' => $user->id,
                     'name' => 'Makanan',
 
-                    'flow_type' =>
-                        FinanceFlowType::Expense,
+                    'flow_type' => FinanceFlowType::Expense,
 
                     'is_active' => true,
                 ]);
@@ -380,17 +376,14 @@ class ExpenseAnalysisTest extends TestCase
             amount: $amount,
 
             data: [
-                'source' =>
-                    TransactionSource::System,
+                'source' => TransactionSource::System,
 
-                'occurred_at' =>
-                    CarbonImmutable::parse(
-                        $occurredAt,
-                        'Asia/Jakarta'
-                    ),
+                'occurred_at' => CarbonImmutable::parse(
+                    $occurredAt,
+                    'Asia/Jakarta'
+                ),
 
-                'description' =>
-                    'Pengeluaran pengujian',
+                'description' => 'Pengeluaran pengujian',
 
                 'counterparty' => null,
                 'reference_number' => null,

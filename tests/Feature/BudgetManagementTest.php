@@ -43,26 +43,20 @@ class BudgetManagementTest extends TestCase
             ->post(
                 route('budgets.store'),
                 [
-                    'finance_category_id' =>
-                        $category->id,
+                    'finance_category_id' => $category->id,
 
-                    'name' =>
-                        'Anggaran Makanan',
+                    'name' => 'Anggaran Makanan',
 
-                    'amount' =>
-                        '1200000.00',
+                    'amount' => '1200000.00',
 
-                    'period_type' =>
-                        BudgetPeriodType::Monthly
-                            ->value,
+                    'period_type' => BudgetPeriodType::Monthly
+                        ->value,
 
-                    'warning_threshold_percent' =>
-                        '80.00',
+                    'warning_threshold_percent' => '80.00',
 
-                    'start_date' =>
-                        now()
-                            ->startOfMonth()
-                            ->toDateString(),
+                    'start_date' => now()
+                        ->startOfMonth()
+                        ->toDateString(),
                 ]
             );
 
@@ -115,25 +109,19 @@ class BudgetManagementTest extends TestCase
             ->post(
                 route('budgets.store'),
                 [
-                    'finance_category_id' =>
-                        $category->id,
+                    'finance_category_id' => $category->id,
 
-                    'name' =>
-                        'Anggaran Transportasi',
+                    'name' => 'Anggaran Transportasi',
 
-                    'amount' =>
-                        '500000.00',
+                    'amount' => '500000.00',
 
-                    'period_type' =>
-                        'monthly',
+                    'period_type' => 'monthly',
 
-                    'warning_threshold_percent' =>
-                        '80.00',
+                    'warning_threshold_percent' => '80.00',
 
-                    'start_date' =>
-                        now()
-                            ->startOfMonth()
-                            ->toDateString(),
+                    'start_date' => now()
+                        ->startOfMonth()
+                        ->toDateString(),
                 ]
             )
             ->assertRedirect(
@@ -172,14 +160,11 @@ class BudgetManagementTest extends TestCase
                     $budget
                 ),
                 [
-                    'name' =>
-                        'Anggaran Hiburan Baru',
+                    'name' => 'Anggaran Hiburan Baru',
 
-                    'amount' =>
-                        '1500000.00',
+                    'amount' => '1500000.00',
 
-                    'warning_threshold_percent' =>
-                        '75.00',
+                    'warning_threshold_percent' => '75.00',
                 ]
             )
             ->assertRedirect(
@@ -252,14 +237,11 @@ class BudgetManagementTest extends TestCase
                     $budget
                 ),
                 [
-                    'name' =>
-                        'Diubah pengguna lain',
+                    'name' => 'Diubah pengguna lain',
 
-                    'amount' =>
-                        '100000.00',
+                    'amount' => '100000.00',
 
-                    'warning_threshold_percent' =>
-                        '80.00',
+                    'warning_threshold_percent' => '80.00',
                 ]
             )
             ->assertForbidden();
@@ -353,8 +335,7 @@ class BudgetManagementTest extends TestCase
             array_merge(
                 $this->payload(),
                 [
-                    'name' =>
-                        'Anggaran Teknologi Aktif',
+                    'name' => 'Anggaran Teknologi Aktif',
                 ]
             )
         );
@@ -430,8 +411,7 @@ class BudgetManagementTest extends TestCase
     private function user(): User
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -439,8 +419,7 @@ class BudgetManagementTest extends TestCase
         UserPreference::query()
             ->updateOrCreate(
                 [
-                    'user_id' =>
-                        $user->id,
+                    'user_id' => $user->id,
                 ],
                 [
                     'locale' => 'id',
@@ -461,32 +440,24 @@ class BudgetManagementTest extends TestCase
         string $name
     ): FinanceCategory {
         $category =
-            new FinanceCategory();
+            new FinanceCategory;
 
         $category->forceFill([
-            'user_id' =>
-                $user->id,
+            'user_id' => $user->id,
 
-            'flow_type' =>
-                $flowType,
+            'flow_type' => $flowType,
 
-            'name' =>
-                $name,
+            'name' => $name,
 
-            'icon' =>
-                'wallet-cards',
+            'icon' => 'wallet-cards',
 
-            'color' =>
-                '#2563EB',
+            'color' => '#2563EB',
 
-            'is_system' =>
-                false,
+            'is_system' => false,
 
-            'is_active' =>
-                true,
+            'is_active' => true,
 
-            'sort_order' =>
-                0,
+            'sort_order' => 0,
         ]);
 
         $category->save();
@@ -513,23 +484,18 @@ class BudgetManagementTest extends TestCase
     private function payload(): array
     {
         return [
-            'name' =>
-                'Anggaran Bulanan',
+            'name' => 'Anggaran Bulanan',
 
-            'amount' =>
-                '1000000.00',
+            'amount' => '1000000.00',
 
-            'period_type' =>
-                BudgetPeriodType::Monthly
-                    ->value,
+            'period_type' => BudgetPeriodType::Monthly
+                ->value,
 
-            'warning_threshold_percent' =>
-                '80.00',
+            'warning_threshold_percent' => '80.00',
 
-            'start_date' =>
-                now()
-                    ->startOfMonth()
-                    ->toDateString(),
+            'start_date' => now()
+                ->startOfMonth()
+                ->toDateString(),
         ];
     }
 }

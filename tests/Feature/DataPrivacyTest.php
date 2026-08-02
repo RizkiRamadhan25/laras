@@ -44,8 +44,7 @@ class DataPrivacyTest extends TestCase
         );
 
         $user->forceFill([
-            'profile_photo_path' =>
-                $photoPath,
+            'profile_photo_path' => $photoPath,
         ])->save();
 
         Account::factory()->create([
@@ -69,8 +68,7 @@ class DataPrivacyTest extends TestCase
                     'settings.data.export'
                 ),
                 [
-                    'export_current_password' =>
-                        self::PASSWORD,
+                    'export_current_password' => self::PASSWORD,
                 ]
             );
 
@@ -82,7 +80,7 @@ class DataPrivacyTest extends TestCase
             ->getFile()
             ->getPathname();
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
 
         $this->assertTrue(
             $zip->open($archivePath) === true
@@ -159,8 +157,7 @@ class DataPrivacyTest extends TestCase
                     'settings.data.export'
                 ),
                 [
-                    'export_current_password' =>
-                        'Wrong#Password123',
+                    'export_current_password' => 'Wrong#Password123',
                 ]
             )
             ->assertRedirect(
@@ -184,19 +181,14 @@ class DataPrivacyTest extends TestCase
                 $user,
                 $category,
                 [
-                    'name' =>
-                        'Anggaran Ekspor',
-                    'amount' =>
-                        '1000000.00',
-                    'period_type' =>
-                        BudgetPeriodType::Monthly
-                            ->value,
-                    'warning_threshold_percent' =>
-                        '80.00',
-                    'start_date' =>
-                        now()
-                            ->startOfMonth()
-                            ->toDateString(),
+                    'name' => 'Anggaran Ekspor',
+                    'amount' => '1000000.00',
+                    'period_type' => BudgetPeriodType::Monthly
+                        ->value,
+                    'warning_threshold_percent' => '80.00',
+                    'start_date' => now()
+                        ->startOfMonth()
+                        ->toDateString(),
                 ]
             );
 
@@ -207,8 +199,7 @@ class DataPrivacyTest extends TestCase
         DB::table(
             'budget_alert_events'
         )->insert([
-            'budget_period_id' =>
-                $period->id,
+            'budget_period_id' => $period->id,
             'alert_level' => 'warning',
             'notified_at' => now(),
             'created_at' => now(),
@@ -222,8 +213,7 @@ class DataPrivacyTest extends TestCase
                     'settings.data.export'
                 ),
                 [
-                    'export_current_password' =>
-                        self::PASSWORD,
+                    'export_current_password' => self::PASSWORD,
                 ]
             );
 
@@ -231,7 +221,7 @@ class DataPrivacyTest extends TestCase
             ->getFile()
             ->getPathname();
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $zip->open($archivePath);
 
         try {
@@ -262,11 +252,9 @@ class DataPrivacyTest extends TestCase
                     'settings.account.destroy'
                 ),
                 [
-                    'delete_current_password' =>
-                        'Wrong#Password123',
+                    'delete_current_password' => 'Wrong#Password123',
 
-                    'confirmation' =>
-                        'HAPUS AKUN',
+                    'confirmation' => 'HAPUS AKUN',
                 ]
             )
             ->assertRedirect(
@@ -297,11 +285,9 @@ class DataPrivacyTest extends TestCase
                     'settings.account.destroy'
                 ),
                 [
-                    'delete_current_password' =>
-                        self::PASSWORD,
+                    'delete_current_password' => self::PASSWORD,
 
-                    'confirmation' =>
-                        'hapus',
+                    'confirmation' => 'hapus',
                 ]
             )
             ->assertRedirect(
@@ -337,8 +323,7 @@ class DataPrivacyTest extends TestCase
         );
 
         $user->forceFill([
-            'profile_photo_path' =>
-                $photoPath,
+            'profile_photo_path' => $photoPath,
         ])->save();
 
         $account = Account::factory()
@@ -366,11 +351,9 @@ class DataPrivacyTest extends TestCase
                     'settings.account.destroy'
                 ),
                 [
-                    'delete_current_password' =>
-                        self::PASSWORD,
+                    'delete_current_password' => self::PASSWORD,
 
-                    'confirmation' =>
-                        'HAPUS AKUN',
+                    'confirmation' => 'HAPUS AKUN',
                 ]
             )
             ->assertRedirectToRoute(
@@ -463,8 +446,7 @@ class DataPrivacyTest extends TestCase
             [
                 'id' => $userNotificationId,
                 'type' => 'Tests\\Notification',
-                'notifiable_type' =>
-                    $user->getMorphClass(),
+                'notifiable_type' => $user->getMorphClass(),
                 'notifiable_id' => $user->id,
                 'data' => '{}',
                 'read_at' => null,
@@ -474,8 +456,7 @@ class DataPrivacyTest extends TestCase
             [
                 'id' => $otherNotificationId,
                 'type' => 'Tests\\Notification',
-                'notifiable_type' =>
-                    $otherUser->getMorphClass(),
+                'notifiable_type' => $otherUser->getMorphClass(),
                 'notifiable_id' => $otherUser->id,
                 'data' => '{}',
                 'read_at' => null,
@@ -506,11 +487,9 @@ class DataPrivacyTest extends TestCase
                     'settings.account.destroy'
                 ),
                 [
-                    'delete_current_password' =>
-                        self::PASSWORD,
+                    'delete_current_password' => self::PASSWORD,
 
-                    'confirmation' =>
-                        'HAPUS AKUN',
+                    'confirmation' => 'HAPUS AKUN',
                 ]
             )
             ->assertRedirectToRoute(
@@ -574,8 +553,7 @@ class DataPrivacyTest extends TestCase
 
         $otherAccount = Account::factory()
             ->create([
-                'user_id' =>
-                    $otherUser->id,
+                'user_id' => $otherUser->id,
             ]);
 
         $this
@@ -585,11 +563,9 @@ class DataPrivacyTest extends TestCase
                     'settings.account.destroy'
                 ),
                 [
-                    'delete_current_password' =>
-                        self::PASSWORD,
+                    'delete_current_password' => self::PASSWORD,
 
-                    'confirmation' =>
-                        'HAPUS AKUN',
+                    'confirmation' => 'HAPUS AKUN',
                 ]
             );
 
@@ -604,8 +580,7 @@ class DataPrivacyTest extends TestCase
             'accounts',
             [
                 'id' => $otherAccount->id,
-                'user_id' =>
-                    $otherUser->id,
+                'user_id' => $otherUser->id,
             ]
         );
     }
@@ -618,16 +593,14 @@ class DataPrivacyTest extends TestCase
             'password' => Hash::make(
                 self::PASSWORD
             ),
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
             'is_active' => true,
         ]);
 
         UserPreference::query()
             ->updateOrCreate(
                 [
-                    'user_id' =>
-                        $user->id,
+                    'user_id' => $user->id,
                 ],
                 [
                     'locale' => 'id',
@@ -645,7 +618,7 @@ class DataPrivacyTest extends TestCase
     private function category(
         User $user
     ): FinanceCategory {
-        $category = new FinanceCategory();
+        $category = new FinanceCategory;
 
         $category->forceFill([
             'user_id' => $user->id,

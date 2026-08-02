@@ -6,11 +6,12 @@ use App\Enums\SubscriptionIntervalUnit;
 use App\Enums\SubscriptionStatus;
 use App\Models\Account;
 use App\Models\FinanceCategory;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Subscription>
+ * @extends Factory<Subscription>
  */
 class SubscriptionFactory extends Factory
 {
@@ -23,9 +24,8 @@ class SubscriptionFactory extends Factory
             'user_id' => User::factory(),
             'account_id' => Account::factory(),
 
-            'finance_category_id' =>
-                FinanceCategory::factory()
-                    ->expense(),
+            'finance_category_id' => FinanceCategory::factory()
+                ->expense(),
 
             'name' => fake()->randomElement([
                 'Netflix',
@@ -38,15 +38,13 @@ class SubscriptionFactory extends Factory
             'amount' => '59000.00',
             'currency_code' => 'IDR',
 
-            'interval_unit' =>
-                SubscriptionIntervalUnit::Month,
+            'interval_unit' => SubscriptionIntervalUnit::Month,
 
             'interval_count' => 1,
 
             'started_on' => now()->toDateString(),
 
-            'next_billing_on' =>
-                now()->addMonth()->toDateString(),
+            'next_billing_on' => now()->addMonth()->toDateString(),
 
             'end_on' => null,
             'billing_time' => '08:00:00',
@@ -84,8 +82,7 @@ class SubscriptionFactory extends Factory
     public function yearly(): static
     {
         return $this->state(fn (): array => [
-            'interval_unit' =>
-                SubscriptionIntervalUnit::Year,
+            'interval_unit' => SubscriptionIntervalUnit::Year,
 
             'interval_count' => 1,
         ]);

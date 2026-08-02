@@ -21,8 +21,19 @@ return Application::configure(
     )
     ->withMiddleware(
         function (Middleware $middleware): void {
+            /*
+            * Request ID harus tersedia untuk seluruh request,
+            * termasuk 404 yang terjadi sebelum route ditemukan.
+            */
+            $middleware->prepend(
+                AssignRequestId::class
+            );
+
+            /*
+            * Query metrics dan security headers tetap diterapkan
+            * pada halaman web Laras.
+            */
             $middleware->web(append: [
-                AssignRequestId::class,
                 AddQueryMetricsHeaders::class,
                 AddSecurityHeaders::class,
             ]);

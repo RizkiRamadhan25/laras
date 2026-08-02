@@ -33,11 +33,9 @@ class RecommendationInteractionTest extends TestCase
                 'user_id' => $user->id,
                 'title' => 'Menyelesaikan tugas',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addHour(),
+                'due_at' => $reference->addHour(),
             ]);
 
         $item = app(
@@ -65,12 +63,9 @@ class RecommendationInteractionTest extends TestCase
             [
                 'user_id' => $user->id,
 
-                'recommendation_key' =>
-                    $item['key'],
+                'recommendation_key' => $item['key'],
 
-                'interaction_type' =>
-                    RecommendationInteractionType
-                        ::Opened->value,
+                'interaction_type' => RecommendationInteractionType::Opened->value,
             ]
         );
     }
@@ -92,11 +87,9 @@ class RecommendationInteractionTest extends TestCase
                 'user_id' => $user->id,
                 'title' => 'Tugas penting',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addHour(),
+                'due_at' => $reference->addHour(),
             ]);
 
         $item = app(
@@ -114,9 +107,7 @@ class RecommendationInteractionTest extends TestCase
                     $item['key']
                 ),
                 [
-                    'interaction_type' =>
-                        RecommendationInteractionType
-                            ::FollowedUp->value,
+                    'interaction_type' => RecommendationInteractionType::FollowedUp->value,
                 ]
             )
             ->assertRedirectToRoute(
@@ -164,11 +155,9 @@ class RecommendationInteractionTest extends TestCase
                 'user_id' => $user->id,
                 'title' => 'Tugas mendatang',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addDays(3),
+                'due_at' => $reference->addDays(3),
             ]);
 
         $item = app(
@@ -186,9 +175,7 @@ class RecommendationInteractionTest extends TestCase
                     $item['key']
                 ),
                 [
-                    'interaction_type' =>
-                        RecommendationInteractionType
-                            ::Dismissed->value,
+                    'interaction_type' => RecommendationInteractionType::Dismissed->value,
                 ]
             )
             ->assertRedirect();
@@ -239,17 +226,13 @@ class RecommendationInteractionTest extends TestCase
         Activity::factory()
             ->urgent()
             ->create([
-                'user_id' =>
-                    $otherUser->id,
+                'user_id' => $otherUser->id,
 
-                'title' =>
-                    'Data pengguna lain',
+                'title' => 'Data pengguna lain',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addHour(),
+                'due_at' => $reference->addHour(),
             ]);
 
         $otherItem = app(
@@ -267,9 +250,7 @@ class RecommendationInteractionTest extends TestCase
                     $otherItem['key']
                 ),
                 [
-                    'interaction_type' =>
-                        RecommendationInteractionType
-                            ::Irrelevant->value,
+                    'interaction_type' => RecommendationInteractionType::Irrelevant->value,
                 ]
             )
             ->assertNotFound();
@@ -298,27 +279,21 @@ class RecommendationInteractionTest extends TestCase
                 'user_id' => $user->id,
                 'title' => 'Rekomendasi sendiri',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addHour(),
+                'due_at' => $reference->addHour(),
             ]);
 
         Activity::factory()
             ->urgent()
             ->create([
-                'user_id' =>
-                    $otherUser->id,
+                'user_id' => $otherUser->id,
 
-                'title' =>
-                    'Rekomendasi orang lain',
+                'title' => 'Rekomendasi orang lain',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addHour(),
+                'due_at' => $reference->addHour(),
             ]);
 
         $ownItem = app(
@@ -377,8 +352,7 @@ class RecommendationInteractionTest extends TestCase
     private function user(): User
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);

@@ -29,8 +29,7 @@ class SubscriptionManagementTest extends TestCase
             'user_id' => $user->id,
             'account_id' => $account->id,
 
-            'finance_category_id' =>
-                $category->id,
+            'finance_category_id' => $category->id,
 
             'name' => 'Netflix',
         ]);
@@ -102,8 +101,7 @@ class SubscriptionManagementTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'name' => 'Nama lama',
             ]);
@@ -147,11 +145,9 @@ class SubscriptionManagementTest extends TestCase
         $subscription = Subscription::factory()
             ->create([
                 'user_id' => $otherUser->id,
-                'account_id' =>
-                    $otherAccount->id,
+                'account_id' => $otherAccount->id,
 
-                'finance_category_id' =>
-                    $otherCategory->id,
+                'finance_category_id' => $otherCategory->id,
             ]);
 
         $this
@@ -178,11 +174,9 @@ class SubscriptionManagementTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
-                'status' =>
-                    SubscriptionStatus::Active,
+                'status' => SubscriptionStatus::Active,
             ]);
 
         $this
@@ -229,8 +223,7 @@ class SubscriptionManagementTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
             ]);
 
         $this
@@ -262,18 +255,15 @@ class SubscriptionManagementTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
             ]);
 
         $user->notify(
             new SubscriptionRenewalReminder(
-                subscriptionId:
-                    $subscription->id,
+                subscriptionId: $subscription->id,
 
                 billingId: 1,
-                subscriptionName:
-                    $subscription->name,
+                subscriptionName: $subscription->name,
 
                 amount: $subscription->amount,
                 currencyCode: 'IDR',
@@ -339,8 +329,7 @@ class SubscriptionManagementTest extends TestCase
             ->create([
                 'user_id' => $user->id,
 
-                'flow_type' =>
-                    FinanceFlowType::Expense,
+                'flow_type' => FinanceFlowType::Expense,
 
                 'is_active' => true,
             ]);
@@ -353,7 +342,7 @@ class SubscriptionManagementTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     private function payload(
@@ -365,8 +354,7 @@ class SubscriptionManagementTest extends TestCase
             [
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'name' => 'Spotify',
                 'provider' => 'Spotify',
@@ -377,8 +365,7 @@ class SubscriptionManagementTest extends TestCase
 
                 'started_on' => '2026-08-01',
 
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
 
                 'end_on' => null,
                 'billing_time' => '08:00',

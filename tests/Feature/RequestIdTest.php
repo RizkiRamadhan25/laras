@@ -59,4 +59,36 @@ class RequestIdTest extends TestCase
             )
         );
     }
+
+    public function test_unmatched_route_receives_request_id(): void
+    {
+        config()->set(
+            'app.debug',
+            false
+        );
+
+        $response = $this->get(
+            '/__laras_route_that_does_not_exist__'
+        );
+
+        $response
+            ->assertNotFound()
+            ->assertHeader('X-Request-ID')
+            ->assertSee('Halaman tidak ditemukan')
+            ->assertSee('Kode referensi:');
+
+        $requestId = (string) $response
+            ->headers
+            ->get('X-Request-ID');
+
+        $this->assertNotSame(
+            '',
+            $requestId
+        );
+
+        $this->assertStringContainsString(
+            $requestId,
+            $response->getContent()
+        );
+    }
 }

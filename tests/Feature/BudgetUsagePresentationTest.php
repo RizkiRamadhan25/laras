@@ -49,24 +49,18 @@ class BudgetUsagePresentationTest extends TestCase
             ->post(
                 route('budgets.store'),
                 [
-                    'finance_category_id' =>
-                        $category->id,
+                    'finance_category_id' => $category->id,
 
-                    'name' =>
-                        'Anggaran Fleksibel',
+                    'name' => 'Anggaran Fleksibel',
 
-                    'amount' =>
-                        '750000.00',
+                    'amount' => '750000.00',
 
-                    'period_type' =>
-                        BudgetPeriodType::Monthly
-                            ->value,
+                    'period_type' => BudgetPeriodType::Monthly
+                        ->value,
 
-                    'warning_threshold_percent' =>
-                        '80.00',
+                    'warning_threshold_percent' => '80.00',
 
-                    'start_date' =>
-                        '2026-08-01',
+                    'start_date' => '2026-08-01',
                 ]
             );
 
@@ -124,10 +118,8 @@ class BudgetUsagePresentationTest extends TestCase
             categoryId: $budgetCategory->id,
             amount: '100000.00',
             data: [
-                'occurred_at' =>
-                    '2026-08-10T12:00',
-                'description' =>
-                    'Makan valid anggaran',
+                'occurred_at' => '2026-08-10T12:00',
+                'description' => 'Makan valid anggaran',
             ]
         );
 
@@ -137,10 +129,8 @@ class BudgetUsagePresentationTest extends TestCase
             categoryId: $otherCategory->id,
             amount: '50000.00',
             data: [
-                'occurred_at' =>
-                    '2026-08-11T12:00',
-                'description' =>
-                    'Transportasi kategori lain',
+                'occurred_at' => '2026-08-11T12:00',
+                'description' => 'Transportasi kategori lain',
             ]
         );
 
@@ -151,17 +141,14 @@ class BudgetUsagePresentationTest extends TestCase
                 categoryId: $budgetCategory->id,
                 amount: '25000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-12T12:00',
-                    'description' =>
-                        'Pengeluaran dibatalkan',
+                    'occurred_at' => '2026-08-12T12:00',
+                    'description' => 'Pengeluaran dibatalkan',
                 ]
             );
 
         $postingService->cancel(
             user: $user,
-            transactionId:
-                $cancelledTransaction->id,
+            transactionId: $cancelledTransaction->id,
             reason: 'Salah input'
         );
 
@@ -229,10 +216,8 @@ class BudgetUsagePresentationTest extends TestCase
             categoryId: $category->id,
             amount: '100000.00',
             data: [
-                'occurred_at' =>
-                    '2026-08-20T10:00',
-                'description' =>
-                    'Belanja khusus Agustus',
+                'occurred_at' => '2026-08-20T10:00',
+                'description' => 'Belanja khusus Agustus',
             ]
         );
 
@@ -242,10 +227,8 @@ class BudgetUsagePresentationTest extends TestCase
             categoryId: $category->id,
             amount: '200000.00',
             data: [
-                'occurred_at' =>
-                    '2026-09-05T10:00',
-                'description' =>
-                    'Belanja khusus September',
+                'occurred_at' => '2026-09-05T10:00',
+                'description' => 'Belanja khusus September',
             ]
         );
 
@@ -264,8 +247,7 @@ class BudgetUsagePresentationTest extends TestCase
                     'budgets.show',
                     [
                         'budget' => $budget,
-                        'period' =>
-                            $augustPeriod->id,
+                        'period' => $augustPeriod->id,
                     ]
                 )
             )
@@ -305,10 +287,8 @@ class BudgetUsagePresentationTest extends TestCase
                 categoryId: $category->id,
                 amount: '175000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-09-08T08:00',
-                    'description' =>
-                        'Internet September',
+                    'occurred_at' => '2026-09-08T08:00',
+                    'description' => 'Internet September',
                 ]
             );
 
@@ -329,8 +309,7 @@ class BudgetUsagePresentationTest extends TestCase
             ->artisan(
                 'budgets:sync-usage',
                 [
-                    '--budget' =>
-                        $budget->id,
+                    '--budget' => $budget->id,
                 ]
             )
             ->assertSuccessful();
@@ -359,8 +338,7 @@ class BudgetUsagePresentationTest extends TestCase
     private function user(): User
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
             'is_active' => true,
         ]);
 
@@ -383,10 +361,8 @@ class BudgetUsagePresentationTest extends TestCase
         return Account::factory()->create([
             'user_id' => $user->id,
             'name' => 'Rekening Utama',
-            'initial_balance' =>
-                '5000000.00',
-            'cached_balance' =>
-                '5000000.00',
+            'initial_balance' => '5000000.00',
+            'cached_balance' => '5000000.00',
             'is_active' => true,
         ]);
     }
@@ -396,7 +372,7 @@ class BudgetUsagePresentationTest extends TestCase
         string $flowType,
         string $name
     ): FinanceCategory {
-        $category = new FinanceCategory();
+        $category = new FinanceCategory;
 
         $category->forceFill([
             'user_id' => $user->id,
@@ -423,17 +399,12 @@ class BudgetUsagePresentationTest extends TestCase
                 $user,
                 $category,
                 [
-                    'name' =>
-                        'Anggaran '.$category->name,
-                    'amount' =>
-                        '1000000.00',
-                    'period_type' =>
-                        BudgetPeriodType::Monthly
-                            ->value,
-                    'warning_threshold_percent' =>
-                        '80.00',
-                    'start_date' =>
-                        '2026-08-01',
+                    'name' => 'Anggaran '.$category->name,
+                    'amount' => '1000000.00',
+                    'period_type' => BudgetPeriodType::Monthly
+                        ->value,
+                    'warning_threshold_percent' => '80.00',
+                    'start_date' => '2026-08-01',
                 ]
             );
     }

@@ -8,7 +8,6 @@ use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Models\Account;
 use App\Models\FinanceCategory;
-use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserPreference;
 use App\Services\TransactionPostingService;

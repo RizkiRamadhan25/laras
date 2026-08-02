@@ -75,8 +75,7 @@ class ActivityFoundationTest extends TestCase
             user: $user,
             data: [
                 'title' => 'Pertemuan kelompok',
-                'description' =>
-                    'Membahas pembagian tugas proyek.',
+                'description' => 'Membahas pembagian tugas proyek.',
                 'type' => 'event',
                 'priority' => 'high',
                 'starts_at' => '2026-08-03 10:00',
@@ -388,8 +387,7 @@ class ActivityFoundationTest extends TestCase
             $recommendations
                 ->pluck('activity')
                 ->contains(
-                    fn (Activity $activity): bool =>
-                        $activity->is($completed)
+                    fn (Activity $activity): bool => $activity->is($completed)
                 )
         );
 

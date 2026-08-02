@@ -133,8 +133,7 @@ class ProfilePhotoTest extends TestCase
         );
 
         $user->forceFill([
-            'profile_photo_path' =>
-                $oldPath,
+            'profile_photo_path' => $oldPath,
         ])->save();
 
         $this
@@ -144,13 +143,12 @@ class ProfilePhotoTest extends TestCase
                     'settings.photo.update'
                 ),
                 [
-                    'photo' =>
-                        UploadedFile::fake()
-                            ->image(
-                                'new-profile.png',
-                                800,
-                                800
-                            ),
+                    'photo' => UploadedFile::fake()
+                        ->image(
+                            'new-profile.png',
+                            800,
+                            800
+                        ),
                 ]
             )
             ->assertRedirect(
@@ -226,13 +224,12 @@ class ProfilePhotoTest extends TestCase
                     'settings.photo.update'
                 ),
                 [
-                    'photo' =>
-                        UploadedFile::fake()
-                            ->create(
-                                'document.pdf',
-                                500,
-                                'application/pdf'
-                            ),
+                    'photo' => UploadedFile::fake()
+                        ->create(
+                            'document.pdf',
+                            500,
+                            'application/pdf'
+                        ),
                 ]
             )
             ->assertRedirect(
@@ -253,8 +250,7 @@ class ProfilePhotoTest extends TestCase
     private function user(): User
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -262,8 +258,7 @@ class ProfilePhotoTest extends TestCase
         UserPreference::query()
             ->updateOrCreate(
                 [
-                    'user_id' =>
-                        $user->id,
+                    'user_id' => $user->id,
                 ],
                 [
                     'locale' => 'id',

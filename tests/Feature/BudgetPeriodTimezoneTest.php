@@ -79,8 +79,7 @@ class BudgetPeriodTimezoneTest extends TestCase
         string $timezone
     ): BudgetPeriod {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
             'is_active' => true,
         ]);
 
@@ -97,8 +96,7 @@ class BudgetPeriodTimezoneTest extends TestCase
         $category = FinanceCategory::query()
             ->create([
                 'user_id' => $user->id,
-                'flow_type' =>
-                    FinanceFlowType::Expense,
+                'flow_type' => FinanceFlowType::Expense,
                 'name' => 'Makanan',
                 'icon' => 'utensils',
                 'color' => '#F97316',
@@ -113,17 +111,12 @@ class BudgetPeriodTimezoneTest extends TestCase
             $user,
             $category,
             [
-                'name' =>
-                    'Anggaran Oktober',
-                'amount' =>
-                    '1000000.00',
-                'period_type' =>
-                    BudgetPeriodType::Monthly
-                        ->value,
-                'warning_threshold_percent' =>
-                    '80.00',
-                'start_date' =>
-                    '2026-10-01',
+                'name' => 'Anggaran Oktober',
+                'amount' => '1000000.00',
+                'period_type' => BudgetPeriodType::Monthly
+                    ->value,
+                'warning_threshold_percent' => '80.00',
+                'start_date' => '2026-10-01',
             ]
         );
 

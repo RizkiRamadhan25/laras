@@ -5,11 +5,12 @@ namespace Database\Factories;
 use App\Enums\ActivityPriority;
 use App\Enums\ActivityStatus;
 use App\Enums\ActivityType;
+use App\Models\Activity;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Activity>
+ * @extends Factory<Activity>
  */
 class ActivityFactory extends Factory
 {

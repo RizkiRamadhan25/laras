@@ -18,6 +18,7 @@ use App\Models\TransactionEntry;
 use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class MainPageQueryBudgetTest extends TestCase
@@ -191,8 +192,7 @@ class MainPageQueryBudgetTest extends TestCase
                 ->create([
                     'user_id' => $user->id,
                     'name' => 'Kategori '.$number,
-                    'flow_type' =>
-                        FinanceFlowType::Expense,
+                    'flow_type' => FinanceFlowType::Expense,
                     'icon' => 'wallet-cards',
                     'color' => '#2563EB',
                     'is_system' => false,
@@ -202,16 +202,12 @@ class MainPageQueryBudgetTest extends TestCase
 
             $budget = Budget::query()->create([
                 'user_id' => $user->id,
-                'finance_category_id' =>
-                    $category->id,
-                'active_finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
+                'active_finance_category_id' => $category->id,
                 'name' => 'Anggaran '.$number,
                 'amount' => '1000000.00',
-                'period_type' =>
-                    BudgetPeriodType::Monthly,
-                'warning_threshold_percent' =>
-                    '80.00',
+                'period_type' => BudgetPeriodType::Monthly,
+                'warning_threshold_percent' => '80.00',
                 'start_date' => now()
                     ->startOfMonth()
                     ->toDateString(),
@@ -232,8 +228,7 @@ class MainPageQueryBudgetTest extends TestCase
                 'used_amount' => '250000.00',
                 'remaining_amount' => '750000.00',
                 'usage_percent' => '25.00',
-                'status' =>
-                    BudgetPeriodStatus::Active,
+                'status' => BudgetPeriodStatus::Active,
             ]);
         }
     }
@@ -252,8 +247,7 @@ class MainPageQueryBudgetTest extends TestCase
             ->create([
                 'user_id' => $user->id,
                 'name' => 'Pengeluaran Umum',
-                'flow_type' =>
-                    FinanceFlowType::Expense,
+                'flow_type' => FinanceFlowType::Expense,
                 'icon' => 'receipt-text',
                 'color' => '#DC2626',
                 'is_system' => false,
@@ -277,35 +271,28 @@ class MainPageQueryBudgetTest extends TestCase
             $transaction = Transaction::query()
                 ->create([
                     'user_id' => $user->id,
-                    'type' =>
-                        TransactionType::Expense,
-                    'status' =>
-                        TransactionStatus::Posted,
-                    'source' =>
-                        TransactionSource::Manual,
+                    'type' => TransactionType::Expense,
+                    'status' => TransactionStatus::Posted,
+                    'source' => TransactionSource::Manual,
                     'occurred_at' => now()
                         ->subMinutes($index),
-                    'description' =>
-                        'Transaksi '.$index,
+                    'description' => 'Transaksi '.$index,
                     'posted_at' => now(),
                 ]);
 
             TransactionEntry::query()->create([
-                'transaction_id' =>
-                    $transaction->id,
+                'transaction_id' => $transaction->id,
                 'account_id' => $account->id,
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
                 'amount' => '-10000.00',
-                'role' =>
-                    TransactionEntryRole::Principal,
+                'role' => TransactionEntryRole::Principal,
                 'memo' => null,
             ]);
         }
     }
 
     private function queryCount(
-        \Illuminate\Testing\TestResponse $response
+        TestResponse $response
     ): int {
         $value = $response->headers->get(
             'X-DB-Query-Count'

@@ -53,14 +53,11 @@ class AccountSecurityTest extends TestCase
                     'settings.security.password.update'
                 ),
                 [
-                    'current_password' =>
-                        self::CURRENT_PASSWORD,
+                    'current_password' => self::CURRENT_PASSWORD,
 
-                    'password' =>
-                        self::NEW_PASSWORD,
+                    'password' => self::NEW_PASSWORD,
 
-                    'password_confirmation' =>
-                        self::NEW_PASSWORD,
+                    'password_confirmation' => self::NEW_PASSWORD,
                 ]
             )
             ->assertRedirect(
@@ -90,10 +87,8 @@ class AccountSecurityTest extends TestCase
             [
                 'user_id' => $user->id,
 
-                'type' =>
-                    SecurityEventType
-                        ::PasswordChanged
-                        ->value,
+                'type' => SecurityEventType::PasswordChanged
+                    ->value,
             ]
         );
 
@@ -118,14 +113,11 @@ class AccountSecurityTest extends TestCase
                     'settings.security.password.update'
                 ),
                 [
-                    'current_password' =>
-                        'Wrong#Password123',
+                    'current_password' => 'Wrong#Password123',
 
-                    'password' =>
-                        self::NEW_PASSWORD,
+                    'password' => self::NEW_PASSWORD,
 
-                    'password_confirmation' =>
-                        self::NEW_PASSWORD,
+                    'password_confirmation' => self::NEW_PASSWORD,
                 ]
             )
             ->assertRedirect(
@@ -161,14 +153,11 @@ class AccountSecurityTest extends TestCase
                     'settings.security.password.update'
                 ),
                 [
-                    'current_password' =>
-                        self::CURRENT_PASSWORD,
+                    'current_password' => self::CURRENT_PASSWORD,
 
-                    'password' =>
-                        self::NEW_PASSWORD,
+                    'password' => self::NEW_PASSWORD,
 
-                    'password_confirmation' =>
-                        'Different#Password789',
+                    'password_confirmation' => 'Different#Password789',
                 ]
             )
             ->assertRedirect(
@@ -199,13 +188,11 @@ class AccountSecurityTest extends TestCase
                     'settings.security.password.update'
                 ),
                 [
-                    'current_password' =>
-                        self::CURRENT_PASSWORD,
+                    'current_password' => self::CURRENT_PASSWORD,
 
                     'password' => 'password',
 
-                    'password_confirmation' =>
-                        'password',
+                    'password_confirmation' => 'password',
                 ]
             )
             ->assertRedirect(
@@ -237,8 +224,7 @@ class AccountSecurityTest extends TestCase
                     'settings.security.sessions.logout-others'
                 ),
                 [
-                    'logout_current_password' =>
-                        self::CURRENT_PASSWORD,
+                    'logout_current_password' => self::CURRENT_PASSWORD,
                 ]
             )
             ->assertRedirect(
@@ -270,10 +256,8 @@ class AccountSecurityTest extends TestCase
             [
                 'user_id' => $user->id,
 
-                'type' =>
-                    SecurityEventType
-                        ::OtherSessionsLoggedOut
-                        ->value,
+                'type' => SecurityEventType::OtherSessionsLoggedOut
+                    ->value,
             ]
         );
 
@@ -290,15 +274,11 @@ class AccountSecurityTest extends TestCase
         SecurityEvent::query()->create([
             'user_id' => $user->id,
 
-            'type' =>
-                SecurityEventType
-                    ::PasswordChanged,
+            'type' => SecurityEventType::PasswordChanged,
 
-            'ip_address' =>
-                '192.168.1.10',
+            'ip_address' => '192.168.1.10',
 
-            'user_agent' =>
-                'Browser milik pengguna utama',
+            'user_agent' => 'Browser milik pengguna utama',
 
             'occurred_at' => now(),
         ]);
@@ -306,15 +286,11 @@ class AccountSecurityTest extends TestCase
         SecurityEvent::query()->create([
             'user_id' => $otherUser->id,
 
-            'type' =>
-                SecurityEventType
-                    ::PasswordChanged,
+            'type' => SecurityEventType::PasswordChanged,
 
-            'ip_address' =>
-                '192.168.1.20',
+            'ip_address' => '192.168.1.20',
 
-            'user_agent' =>
-                'Browser milik pengguna lain',
+            'user_agent' => 'Browser milik pengguna lain',
 
             'occurred_at' => now(),
         ]);
@@ -344,8 +320,7 @@ class AccountSecurityTest extends TestCase
                 self::CURRENT_PASSWORD
             ),
 
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);

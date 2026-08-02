@@ -96,14 +96,11 @@ class SettingsInterfaceTest extends TestCase
                     'settings.security.password.update'
                 ),
                 [
-                    'current_password' =>
-                        'Wrong#Password123',
+                    'current_password' => 'Wrong#Password123',
 
-                    'password' =>
-                        'NewSecure#456',
+                    'password' => 'NewSecure#456',
 
-                    'password_confirmation' =>
-                        'NewSecure#456',
+                    'password_confirmation' => 'NewSecure#456',
                 ]
             )
             ->assertOk()
@@ -131,11 +128,9 @@ class SettingsInterfaceTest extends TestCase
                     'settings.account.destroy'
                 ),
                 [
-                    'delete_current_password' =>
-                        self::PASSWORD,
+                    'delete_current_password' => self::PASSWORD,
 
-                    'confirmation' =>
-                        'SALAH',
+                    'confirmation' => 'SALAH',
                 ]
             )
             ->assertOk()
@@ -154,8 +149,7 @@ class SettingsInterfaceTest extends TestCase
                 self::PASSWORD
             ),
 
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -163,8 +157,7 @@ class SettingsInterfaceTest extends TestCase
         UserPreference::query()
             ->updateOrCreate(
                 [
-                    'user_id' =>
-                        $user->id,
+                    'user_id' => $user->id,
                 ],
                 [
                     'locale' => 'id',

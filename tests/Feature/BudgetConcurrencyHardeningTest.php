@@ -35,15 +35,12 @@ class BudgetConcurrencyHardeningTest extends TestCase
 
         Budget::query()->create([
             'user_id' => $user->id,
-            'finance_category_id' =>
-                $category->id,
-            'active_finance_category_id' =>
-                $category->id,
+            'finance_category_id' => $category->id,
+            'active_finance_category_id' => $category->id,
             'name' => 'Duplikat langsung',
             'amount' => '500000.00',
             'period_type' => 'monthly',
-            'warning_threshold_percent' =>
-                '80.00',
+            'warning_threshold_percent' => '80.00',
             'start_date' => '2026-08-01',
             'end_date' => null,
             'is_recurring' => true,
@@ -195,8 +192,7 @@ class BudgetConcurrencyHardeningTest extends TestCase
     private function user(): User
     {
         return User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
             'is_active' => true,
         ]);
     }
@@ -204,7 +200,7 @@ class BudgetConcurrencyHardeningTest extends TestCase
     private function category(
         User $user
     ): FinanceCategory {
-        $category = new FinanceCategory();
+        $category = new FinanceCategory;
 
         $category->forceFill([
             'user_id' => $user->id,
@@ -234,13 +230,10 @@ class BudgetConcurrencyHardeningTest extends TestCase
                 [
                     'name' => $name,
                     'amount' => '1000000.00',
-                    'period_type' =>
-                        BudgetPeriodType::Monthly
-                            ->value,
-                    'warning_threshold_percent' =>
-                        '80.00',
-                    'start_date' =>
-                        '2026-08-01',
+                    'period_type' => BudgetPeriodType::Monthly
+                        ->value,
+                    'warning_threshold_percent' => '80.00',
+                    'start_date' => '2026-08-01',
                 ]
             );
     }

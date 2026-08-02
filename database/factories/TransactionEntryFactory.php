@@ -5,10 +5,11 @@ namespace Database\Factories;
 use App\Enums\TransactionEntryRole;
 use App\Models\Account;
 use App\Models\Transaction;
+use App\Models\TransactionEntry;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\TransactionEntry>
+ * @extends Factory<TransactionEntry>
  */
 class TransactionEntryFactory extends Factory
 {

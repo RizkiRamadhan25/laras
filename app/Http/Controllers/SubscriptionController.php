@@ -182,37 +182,37 @@ class SubscriptionController extends Controller
             'statuses' => SubscriptionStatus::cases(),
 
             'summary' => [
-            'active' => $activeSubscriptions->count(),
+                'active' => $activeSubscriptions->count(),
 
-            'paused' => $user
-                ->subscriptions()
-                ->where(
-                    'status',
-                    SubscriptionStatus::Paused->value
-                )
-                ->count(),
+                'paused' => $user
+                    ->subscriptions()
+                    ->where(
+                        'status',
+                        SubscriptionStatus::Paused->value
+                    )
+                    ->count(),
 
-            'monthly' => $monthlyEquivalent,
+                'monthly' => $monthlyEquivalent,
 
-            'yearly' => bcmul(
-                $monthlyEquivalent,
-                '12',
-                2
-            ),
+                'yearly' => bcmul(
+                    $monthlyEquivalent,
+                    '12',
+                    2
+                ),
 
-            'due_soon' => $user
-                ->subscriptions()
-                ->active()
-                ->whereBetween(
-                    'next_billing_on',
-                    [
-                        $today->toDateString(),
-                        $today
-                            ->addDays(7)
-                            ->toDateString(),
-                    ]
-                )
-                ->count(),
+                'due_soon' => $user
+                    ->subscriptions()
+                    ->active()
+                    ->whereBetween(
+                        'next_billing_on',
+                        [
+                            $today->toDateString(),
+                            $today
+                                ->addDays(7)
+                                ->toDateString(),
+                        ]
+                    )
+                    ->count(),
             ],
 
             'timezone' => $timezone,

@@ -24,7 +24,7 @@ return new class extends Migration
             ->exists();
 
         if ($hasDuplicate) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'Terdapat lebih dari satu anggaran aktif pada kategori yang sama. Rapikan data sebelum menjalankan migration.'
             );
         }
@@ -47,10 +47,9 @@ return new class extends Migration
             ->where('is_active', true)
             ->whereNull('deleted_at')
             ->update([
-                'active_finance_category_id' =>
-                    DB::raw(
-                        'finance_category_id'
-                    ),
+                'active_finance_category_id' => DB::raw(
+                    'finance_category_id'
+                ),
             ]);
 
         Schema::table(

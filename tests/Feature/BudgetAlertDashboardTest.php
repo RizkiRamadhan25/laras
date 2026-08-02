@@ -44,8 +44,7 @@ class BudgetAlertDashboardTest extends TestCase
                 categoryId: $category->id,
                 amount: '800000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T12:00',
+                    'occurred_at' => '2026-08-15T12:00',
                 ]
             );
 
@@ -105,8 +104,7 @@ class BudgetAlertDashboardTest extends TestCase
             categoryId: $category->id,
             amount: '800000.00',
             data: [
-                'occurred_at' =>
-                    '2026-08-15T12:00',
+                'occurred_at' => '2026-08-15T12:00',
             ]
         );
 
@@ -116,8 +114,7 @@ class BudgetAlertDashboardTest extends TestCase
             categoryId: $category->id,
             amount: '250000.00',
             data: [
-                'occurred_at' =>
-                    '2026-08-15T13:00',
+                'occurred_at' => '2026-08-15T13:00',
             ]
         );
 
@@ -125,8 +122,7 @@ class BudgetAlertDashboardTest extends TestCase
             ->get()
             ->pluck('data')
             ->map(
-                static fn (array $data): ?string =>
-                    $data['kind'] ?? null
+                static fn (array $data): ?string => $data['kind'] ?? null
             )
             ->sort()
             ->values()
@@ -177,8 +173,7 @@ class BudgetAlertDashboardTest extends TestCase
                 categoryId: $category->id,
                 amount: '800000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T12:00',
+                    'occurred_at' => '2026-08-15T12:00',
                 ]
             );
 
@@ -238,8 +233,7 @@ class BudgetAlertDashboardTest extends TestCase
                 categoryId: $category->id,
                 amount: '850000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T12:00',
+                    'occurred_at' => '2026-08-15T12:00',
                 ]
             );
 
@@ -296,8 +290,7 @@ class BudgetAlertDashboardTest extends TestCase
                 categoryId: $category->id,
                 amount: '800000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T12:00',
+                    'occurred_at' => '2026-08-15T12:00',
                 ]
             );
 
@@ -353,8 +346,7 @@ class BudgetAlertDashboardTest extends TestCase
                 categoryId: $category->id,
                 amount: '500000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T12:00',
+                    'occurred_at' => '2026-08-15T12:00',
                 ]
             );
 
@@ -371,8 +363,7 @@ class BudgetAlertDashboardTest extends TestCase
                     'name' => $budget->name,
                     'amount' => '400000.00',
 
-                    'warning_threshold_percent' =>
-                        '80.00',
+                    'warning_threshold_percent' => '80.00',
                 ]
             );
 
@@ -397,8 +388,7 @@ class BudgetAlertDashboardTest extends TestCase
     private function context(): array
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -418,16 +408,14 @@ class BudgetAlertDashboardTest extends TestCase
             'name' => 'BCA Utama',
             'currency_code' => 'IDR',
 
-            'initial_balance' =>
-                '5000000.00',
+            'initial_balance' => '5000000.00',
 
-            'cached_balance' =>
-                '5000000.00',
+            'cached_balance' => '5000000.00',
 
             'is_active' => true,
         ]);
 
-        $category = new FinanceCategory();
+        $category = new FinanceCategory;
 
         $category->forceFill([
             'user_id' => $user->id,
@@ -445,21 +433,16 @@ class BudgetAlertDashboardTest extends TestCase
                 $user,
                 $category,
                 [
-                    'name' =>
-                        'Anggaran Makanan',
+                    'name' => 'Anggaran Makanan',
 
-                    'amount' =>
-                        '1000000.00',
+                    'amount' => '1000000.00',
 
-                    'period_type' =>
-                        BudgetPeriodType::Monthly
-                            ->value,
+                    'period_type' => BudgetPeriodType::Monthly
+                        ->value,
 
-                    'warning_threshold_percent' =>
-                        '80.00',
+                    'warning_threshold_percent' => '80.00',
 
-                    'start_date' =>
-                        '2026-08-01',
+                    'start_date' => '2026-08-01',
                 ]
             );
 
