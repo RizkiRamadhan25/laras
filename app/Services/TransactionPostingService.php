@@ -21,6 +21,11 @@ use ValueError;
 
 class TransactionPostingService
 {
+    public function __construct(
+        private readonly BudgetUsageSyncService $budgetUsageSyncService
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $data
      */
@@ -142,6 +147,11 @@ class TransactionPostingService
                 $account,
                 $negativeAmount
             );
+
+            $this->budgetUsageSyncService
+                ->syncForTransaction(
+                    $transaction
+                );
 
             return $transaction->load([
                 'entries.account',
@@ -286,6 +296,11 @@ class TransactionPostingService
                 $normalizedAmount
             );
 
+            $this->budgetUsageSyncService
+                ->syncForTransaction(
+                    $transaction
+                );
+
             return $transaction->load([
                 'entries.account',
                 'entries.financeCategory',
@@ -382,6 +397,11 @@ class TransactionPostingService
                     allowNegative: true
                 );
             }
+
+            $this->budgetUsageSyncService
+                ->syncForTransaction(
+                    $transaction
+                );
 
             return $transaction->refresh()->load([
                 'entries.account',

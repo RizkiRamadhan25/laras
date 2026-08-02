@@ -14,6 +14,7 @@ use App\Http\Controllers\SubscriptionBillingController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BudgetController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -427,6 +428,87 @@ Route::middleware('auth')->group(function (): void {
                         'destroy',
                     ]
                 )->name('account.destroy');
+            });
+
+        Route::middleware(
+            'onboarding.completed'
+        )
+            ->prefix('budgets')
+            ->name('budgets.')
+            ->group(function (): void {
+                Route::get(
+                    '/',
+                    [
+                        BudgetController::class,
+                        'index',
+                    ]
+                )->name('index');
+
+                Route::get(
+                    '/create',
+                    [
+                        BudgetController::class,
+                        'create',
+                    ]
+                )->name('create');
+
+                Route::post(
+                    '/',
+                    [
+                        BudgetController::class,
+                        'store',
+                    ]
+                )->name('store');
+
+                Route::get(
+                    '/{budget}',
+                    [
+                        BudgetController::class,
+                        'show',
+                    ]
+                )
+                    ->whereNumber('budget')
+                    ->name('show');
+
+                Route::get(
+                    '/{budget}/edit',
+                    [
+                        BudgetController::class,
+                        'edit',
+                    ]
+                )
+                    ->whereNumber('budget')
+                    ->name('edit');
+
+                Route::put(
+                    '/{budget}',
+                    [
+                        BudgetController::class,
+                        'update',
+                    ]
+                )
+                    ->whereNumber('budget')
+                    ->name('update');
+
+                Route::patch(
+                    '/{budget}/deactivate',
+                    [
+                        BudgetController::class,
+                        'deactivate',
+                    ]
+                )
+                    ->whereNumber('budget')
+                    ->name('deactivate');
+
+                Route::patch(
+                    '/{budget}/activate',
+                    [
+                        BudgetController::class,
+                        'activate',
+                    ]
+                )
+                    ->whereNumber('budget')
+                    ->name('activate');
             });
     });
 });
