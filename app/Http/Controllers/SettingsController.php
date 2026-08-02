@@ -10,11 +10,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use App\Http\Requests\UpdateProfilePhotoRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Enums\SecurityEventType;
+use App\Services\ProfilePhotoService;
 
 class SettingsController extends Controller
 {
+    public function __construct(
+        private readonly ProfilePhotoService $photoService
+    ) {
+    }
+
     public function index(): View
     {
         $user = request()
@@ -232,28 +237,10 @@ class SettingsController extends Controller
     public function updatePhoto(
         UpdateProfilePhotoRequest $request
     ): RedirectResponse {
-        $user = $request->user();
-
-        $oldPhotoPath =
-            $user->profile_photo_path;
-
-        $newPhotoPath = $request
-            ->file('photo')
-            ->store(
-                'profile-photos/'.$user->id,
-                'public'
-            );
-
-        $user->forceFill([
-            'profile_photo_path' =>
-                $newPhotoPath,
-        ])->save();
-
-        if ($oldPhotoPath !== null) {
-            Storage::disk('public')->delete(
-                $oldPhotoPath
-            );
-        }
+        $this->photoService->replace(
+            $request->user(),
+            $request->file('photo')
+        );
 
         return redirect(
             route('settings.index')
@@ -268,20 +255,9 @@ class SettingsController extends Controller
     public function destroyPhoto(
         Request $request
     ): RedirectResponse {
-        $user = $request->user();
-
-        $photoPath =
-            $user->profile_photo_path;
-
-        $user->forceFill([
-            'profile_photo_path' => null,
-        ])->save();
-
-        if ($photoPath !== null) {
-            Storage::disk('public')->delete(
-                $photoPath
-            );
-        }
+        $this->photoService->delete(
+            $request->user()
+        );
 
         return redirect(
             route('settings.index')

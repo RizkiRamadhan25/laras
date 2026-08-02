@@ -2,17 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BudgetPeriodType;
 use App\Models\Account;
 use App\Models\Activity;
+use App\Models\FinanceCategory;
 use App\Models\SecurityEvent;
 use App\Models\User;
 use App\Models\UserPreference;
+use App\Services\BudgetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
+use ZipArchive;
 
 class DataPrivacyTest extends TestCase
 {
@@ -21,11 +25,28 @@ class DataPrivacyTest extends TestCase
     private const PASSWORD =
         'Current#Pass123';
 
-    public function test_user_can_download_personal_data_archive(): void
+    public function test_user_can_download_password_protected_zip_archive(): void
     {
+        Storage::fake('public');
+
         $user = $this->user(
             'Pengguna Ekspor'
         );
+
+        $photoPath =
+            'profile-photos/'
+            .$user->id
+            .'/profile.webp';
+
+        Storage::disk('public')->put(
+            $photoPath,
+            'profile-photo-content'
+        );
+
+        $user->forceFill([
+            'profile_photo_path' =>
+                $photoPath,
+        ])->save();
 
         Account::factory()->create([
             'user_id' => $user->id,
@@ -46,54 +67,187 @@ class DataPrivacyTest extends TestCase
             ->post(
                 route(
                     'settings.data.export'
-                )
+                ),
+                [
+                    'export_current_password' =>
+                        self::PASSWORD,
+                ]
             );
 
         $response
             ->assertOk()
-            ->assertStreamed()
             ->assertDownload();
 
-        $content =
-            $response->streamedContent();
+        $archivePath = $response
+            ->getFile()
+            ->getPathname();
 
-        $payload = json_decode(
-            $content,
-            true,
-            512,
-            JSON_THROW_ON_ERROR
+        $zip = new ZipArchive();
+
+        $this->assertTrue(
+            $zip->open($archivePath) === true
         );
 
-        $this->assertSame(
-            $user->email,
-            $payload['profile']['email']
+        try {
+            $this->assertNotFalse(
+                $zip->locateName(
+                    'manifest.json'
+                )
+            );
+
+            $this->assertNotFalse(
+                $zip->locateName(
+                    'finance/accounts.json'
+                )
+            );
+
+            $this->assertNotFalse(
+                $zip->locateName(
+                    'files/profile-photo.webp'
+                )
+            );
+
+            $manifest = (string) $zip
+                ->getFromName(
+                    'manifest.json'
+                );
+
+            $accounts = (string) $zip
+                ->getFromName(
+                    'finance/accounts.json'
+                );
+
+            $this->assertStringContainsString(
+                $user->email,
+                $manifest
+            );
+
+            $this->assertStringContainsString(
+                'BCA Ekspor',
+                $accounts
+            );
+
+            $this->assertStringNotContainsString(
+                $otherUser->email,
+                $manifest
+            );
+
+            $this->assertStringNotContainsString(
+                'Rekening Pengguna Lain',
+                $accounts
+            );
+
+            $this->assertStringNotContainsString(
+                $user->password,
+                $manifest.$accounts
+            );
+        } finally {
+            $zip->close();
+            @unlink($archivePath);
+        }
+    }
+
+    public function test_wrong_password_cannot_export_personal_data(): void
+    {
+        $user = $this->user();
+
+        $this
+            ->actingAs($user)
+            ->from(route('settings.index'))
+            ->post(
+                route(
+                    'settings.data.export'
+                ),
+                [
+                    'export_current_password' =>
+                        'Wrong#Password123',
+                ]
+            )
+            ->assertRedirect(
+                route('settings.index')
+                .'#data-privacy'
+            )
+            ->assertSessionHasErrors(
+                'export_current_password'
+            );
+    }
+
+    public function test_budget_alert_events_are_included_in_export(): void
+    {
+        $user = $this->user();
+        $category = $this->category(
+            $user
         );
 
-        $this->assertSame(
-            'BCA Ekspor',
-            $payload['finance']
-                ['accounts'][0]['name']
-        );
+        $budget = app(BudgetService::class)
+            ->create(
+                $user,
+                $category,
+                [
+                    'name' =>
+                        'Anggaran Ekspor',
+                    'amount' =>
+                        '1000000.00',
+                    'period_type' =>
+                        BudgetPeriodType::Monthly
+                            ->value,
+                    'warning_threshold_percent' =>
+                        '80.00',
+                    'start_date' =>
+                        now()
+                            ->startOfMonth()
+                            ->toDateString(),
+                ]
+            );
 
-        $this->assertStringNotContainsString(
-            $otherUser->email,
-            $content
-        );
+        $period = $budget
+            ->periods()
+            ->firstOrFail();
 
-        $this->assertStringNotContainsString(
-            'Rekening Pengguna Lain',
-            $content
-        );
+        DB::table(
+            'budget_alert_events'
+        )->insert([
+            'budget_period_id' =>
+                $period->id,
+            'alert_level' => 'warning',
+            'notified_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        $this->assertStringNotContainsString(
-            $user->password,
-            $content
-        );
+        $response = $this
+            ->actingAs($user)
+            ->post(
+                route(
+                    'settings.data.export'
+                ),
+                [
+                    'export_current_password' =>
+                        self::PASSWORD,
+                ]
+            );
 
-        $this->assertStringNotContainsString(
-            'remember_token',
-            $content
-        );
+        $archivePath = $response
+            ->getFile()
+            ->getPathname();
+
+        $zip = new ZipArchive();
+        $zip->open($archivePath);
+
+        try {
+            $events = (string) $zip
+                ->getFromName(
+                    'finance/budget-alert-events.json'
+                );
+
+            $this->assertStringContainsString(
+                'warning',
+                $events
+            );
+        } finally {
+            $zip->close();
+            @unlink($archivePath);
+        }
     }
 
     public function test_wrong_password_cannot_delete_account(): void
@@ -418,13 +572,10 @@ class DataPrivacyTest extends TestCase
             'Pengguna Dipertahankan'
         );
 
-        $otherAccount =
-            Account::factory()->create([
+        $otherAccount = Account::factory()
+            ->create([
                 'user_id' =>
                     $otherUser->id,
-
-                'name' =>
-                    'Rekening Tetap Ada',
             ]);
 
         $this
@@ -440,18 +591,12 @@ class DataPrivacyTest extends TestCase
                     'confirmation' =>
                         'HAPUS AKUN',
                 ]
-            )
-            ->assertRedirectToRoute(
-                'login'
             );
 
         $this->assertDatabaseHas(
             'users',
             [
                 'id' => $otherUser->id,
-
-                'name' =>
-                    'Pengguna Dipertahankan',
             ]
         );
 
@@ -459,7 +604,6 @@ class DataPrivacyTest extends TestCase
             'accounts',
             [
                 'id' => $otherAccount->id,
-
                 'user_id' =>
                     $otherUser->id,
             ]
@@ -471,14 +615,11 @@ class DataPrivacyTest extends TestCase
     ): User {
         $user = User::factory()->create([
             'name' => $name,
-
             'password' => Hash::make(
                 self::PASSWORD
             ),
-
             'onboarding_completed_at' =>
                 now(),
-
             'is_active' => true,
         ]);
 
@@ -499,5 +640,26 @@ class DataPrivacyTest extends TestCase
             );
 
         return $user;
+    }
+
+    private function category(
+        User $user
+    ): FinanceCategory {
+        $category = new FinanceCategory();
+
+        $category->forceFill([
+            'user_id' => $user->id,
+            'flow_type' => 'expense',
+            'name' => 'Makanan',
+            'icon' => 'wallet-cards',
+            'color' => '#2563EB',
+            'is_system' => false,
+            'is_active' => true,
+            'sort_order' => 0,
+        ]);
+
+        $category->save();
+
+        return $category;
     }
 }

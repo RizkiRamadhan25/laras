@@ -23,6 +23,7 @@ class Budget extends Model
     protected $fillable = [
         'user_id',
         'finance_category_id',
+        'active_finance_category_id',
         'name',
         'amount',
         'period_type',
@@ -39,6 +40,9 @@ class Budget extends Model
     protected function casts(): array
     {
         return [
+            'active_finance_category_id' =>
+                'integer',
+
             'amount' => 'decimal:2',
 
             'warning_threshold_percent' =>
@@ -59,6 +63,25 @@ class Budget extends Model
             'is_active' =>
                 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(
+            function (Budget $budget): void {
+                if (
+                    ! $budget->isForceDeleting()
+                    && $budget
+                        ->active_finance_category_id
+                        !== null
+                ) {
+                    $budget->forceFill([
+                        'is_active' => false,
+                        'active_finance_category_id' => null,
+                    ])->saveQuietly();
+                }
+            }
+        );
     }
 
     public function user(): BelongsTo

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DeleteAccountRequest;
+use App\Http\Requests\ExportPersonalDataRequest;
 use App\Services\AccountDeletionService;
 use App\Services\PersonalDataExportService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DataPrivacyController extends Controller
 {
@@ -19,58 +19,37 @@ class DataPrivacyController extends Controller
     }
 
     public function export(
-        Request $request
-    ): StreamedResponse {
-        $user = $request
-            ->user()
-            ->loadMissing(
-                'preference'
-            );
-
+        ExportPersonalDataRequest $request
+    ): BinaryFileResponse {
         $archive = $this
             ->exportService
-            ->build($user);
+            ->createArchive(
+                $request->user()
+            );
 
-        $filename = sprintf(
-            'laras-data-%s.json',
-            now()
-                ->setTimezone(
-                    $user->preference
-                        ?->timezone
-                    ?? config(
-                        'app.timezone',
-                        'Asia/Jakarta'
-                    )
-                )
-                ->format(
-                    'Ymd-His'
-                )
-        );
+        return response()
+            ->download(
+                $archive['path'],
+                $archive['filename'],
+                [
+                    'Content-Type' =>
+                        'application/zip',
 
-        return response()->streamDownload(
-            function () use (
-                $archive
-            ): void {
-                echo json_encode(
-                    $archive,
-                    JSON_PRETTY_PRINT
-                    | JSON_UNESCAPED_UNICODE
-                    | JSON_UNESCAPED_SLASHES
-                    | JSON_THROW_ON_ERROR
-                );
-            },
-            $filename,
-            [
-                'Content-Type' =>
-                    'application/json; charset=UTF-8',
+                    'Cache-Control' =>
+                        'no-store, private, max-age=0',
 
-                'Cache-Control' =>
-                    'no-store, private',
+                    'Pragma' => 'no-cache',
 
-                'X-Content-Type-Options' =>
-                    'nosniff',
-            ]
-        );
+                    'Expires' => '0',
+
+                    'X-Content-Type-Options' =>
+                        'nosniff',
+
+                    'X-Robots-Tag' =>
+                        'noindex, nofollow, noarchive',
+                ]
+            )
+            ->deleteFileAfterSend(true);
     }
 
     public function destroy(

@@ -9,7 +9,9 @@ use App\Models\Budget;
 use App\Models\BudgetPeriod;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class BudgetPeriodService
 {
@@ -23,39 +25,28 @@ class BudgetPeriodService
                 $referenceDate->toDateString()
             )
             : CarbonImmutable::now(
-                config(
-                    'app.timezone',
-                    'Asia/Jakarta'
-                )
+                $this->budgetTimezone($budget)
             )->startOfDay();
 
-        if (
-            ! $budget->isActiveOn(
-                $reference
-            )
-        ) {
+        if (! $budget->isActiveOn($reference)) {
             throw new InvalidArgumentException(
                 'Tanggal berada di luar masa aktif anggaran.'
             );
         }
 
-        [
-            $periodStart,
-            $periodEnd,
-        ] = $this->periodBounds(
-            $budget,
-            $reference
+        [$periodStart, $periodEnd] =
+            $this->periodBounds(
+                $budget,
+                $reference
+            );
+
+        $budgetAmount = $this->toHundredths(
+            $budget->amount
         );
 
-        $budgetAmount =
-            $this->toHundredths(
-                $budget->amount
-            );
-
-        $used =
-            $this->toHundredths(
-                $usedAmount
-            );
+        $used = $this->toHundredths(
+            $usedAmount
+        );
 
         if ($used < 0) {
             throw new InvalidArgumentException(
@@ -69,8 +60,7 @@ class BudgetPeriodService
             );
         }
 
-        $remaining =
-            $budgetAmount - $used;
+        $remaining = $budgetAmount - $used;
 
         $usageBasisPoints =
             $this->usageBasisPoints(
@@ -78,35 +68,7 @@ class BudgetPeriodService
                 $budgetAmount
             );
 
-        $period = BudgetPeriod::query()
-            ->where(
-                'budget_id',
-                $budget->id
-            )
-            ->whereDate(
-                'period_start',
-                $periodStart->toDateString()
-            )
-            ->whereDate(
-                'period_end',
-                $periodEnd->toDateString()
-            )
-            ->first();
-
-        if ($period === null) {
-            $period = new BudgetPeriod([
-                'budget_id' =>
-                    $budget->id,
-
-                'period_start' =>
-                    $periodStart,
-
-                'period_end' =>
-                    $periodEnd,
-            ]);
-        }
-
-        $period->fill([
+        $values = [
             'budget_amount' =>
                 $this->formatHundredths(
                     $budgetAmount
@@ -135,90 +97,182 @@ class BudgetPeriodService
                         $budget
                     )
                 ),
-        ]);
+        ];
 
-        $period->save();
+        return DB::transaction(
+            function () use (
+                $budget,
+                $periodStart,
+                $periodEnd,
+                $values
+            ): BudgetPeriod {
+                /*
+                * Cari menggunakan whereDate agar kompatibel
+                * dengan penyimpanan tanggal MySQL dan SQLite.
+                */
+                $period = BudgetPeriod::query()
+                    ->where(
+                        'budget_id',
+                        $budget->id
+                    )
+                    ->whereDate(
+                        'period_start',
+                        $periodStart->toDateString()
+                    )
+                    ->whereDate(
+                        'period_end',
+                        $periodEnd->toDateString()
+                    )
+                    ->lockForUpdate()
+                    ->first();
 
-        return $period->refresh();
+                if ($period === null) {
+                    try {
+                        $period = BudgetPeriod::query()
+                            ->create([
+                                'budget_id' =>
+                                    $budget->id,
+
+                                'period_start' =>
+                                    $periodStart,
+
+                                'period_end' =>
+                                    $periodEnd,
+
+                                ...$values,
+                            ]);
+                    } catch (
+                        UniqueConstraintViolationException
+                    ) {
+                        /*
+                        * Proses lain mungkin telah membuat
+                        * periode yang sama lebih dahulu.
+                        */
+                        $period = BudgetPeriod::query()
+                            ->where(
+                                'budget_id',
+                                $budget->id
+                            )
+                            ->whereDate(
+                                'period_start',
+                                $periodStart
+                                    ->toDateString()
+                            )
+                            ->whereDate(
+                                'period_end',
+                                $periodEnd
+                                    ->toDateString()
+                            )
+                            ->lockForUpdate()
+                            ->firstOrFail();
+                    }
+                }
+
+                $lockedPeriod = BudgetPeriod::query()
+                    ->whereKey($period->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $lockedPeriod
+                    ->forceFill($values)
+                    ->save();
+
+                return $lockedPeriod->refresh();
+            },
+            3
+        );
     }
 
     public function refreshExisting(
         BudgetPeriod $period
     ): BudgetPeriod {
-        $period->loadMissing('budget');
+        return DB::transaction(
+            function () use ($period): BudgetPeriod {
+                $lockedPeriod = BudgetPeriod::query()
+                    ->whereKey($period->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $budgetAmount =
-            $this->toHundredths(
-                $period->budget->amount
-            );
+                $lockedPeriod->loadMissing(
+                    'budget'
+                );
 
-        $usedAmount =
-            $this->toHundredths(
-                $period->used_amount
-            );
+                $budgetAmount =
+                    $this->toHundredths(
+                        $lockedPeriod
+                            ->budget
+                            ->amount
+                    );
 
-        if ($budgetAmount <= 0) {
-            throw new InvalidArgumentException(
-                'Batas anggaran harus lebih dari nol.'
-            );
-        }
+                $usedAmount =
+                    $this->toHundredths(
+                        $lockedPeriod
+                            ->used_amount
+                    );
 
-        if ($usedAmount < 0) {
-            throw new InvalidArgumentException(
-                'Penggunaan anggaran tidak boleh negatif.'
-            );
-        }
+                if ($budgetAmount <= 0) {
+                    throw new InvalidArgumentException(
+                        'Batas anggaran harus lebih dari nol.'
+                    );
+                }
 
-        $remainingAmount =
-            $budgetAmount - $usedAmount;
+                if ($usedAmount < 0) {
+                    throw new InvalidArgumentException(
+                        'Penggunaan anggaran tidak boleh negatif.'
+                    );
+                }
 
-        $usageBasisPoints =
-            $this->usageBasisPoints(
-                $usedAmount,
-                $budgetAmount
-            );
+                $remainingAmount =
+                    $budgetAmount - $usedAmount;
 
-        $periodStart = CarbonImmutable::parse(
-            $period
-                ->period_start
-                ->toDateString()
+                $usageBasisPoints =
+                    $this->usageBasisPoints(
+                        $usedAmount,
+                        $budgetAmount
+                    );
+
+                $periodStart = CarbonImmutable::parse(
+                    $lockedPeriod
+                        ->period_start
+                        ->toDateString()
+                );
+
+                $periodEnd = CarbonImmutable::parse(
+                    $lockedPeriod
+                        ->period_end
+                        ->toDateString()
+                );
+
+                $lockedPeriod->forceFill([
+                    'budget_amount' =>
+                        $this->formatHundredths(
+                            $budgetAmount
+                        ),
+
+                    'remaining_amount' =>
+                        $this->formatHundredths(
+                            $remainingAmount
+                        ),
+
+                    'usage_percent' =>
+                        $this->formatHundredths(
+                            $usageBasisPoints
+                        ),
+
+                    'status' =>
+                        $this->periodStatus(
+                            $periodStart,
+                            $periodEnd,
+                            $this->budgetTimezone(
+                                $lockedPeriod->budget
+                            )
+                        ),
+                ])->save();
+
+                return $lockedPeriod->refresh();
+            },
+            3
         );
-
-        $periodEnd = CarbonImmutable::parse(
-            $period
-                ->period_end
-                ->toDateString()
-        );
-
-        $period->forceFill([
-            'budget_amount' =>
-                $this->formatHundredths(
-                    $budgetAmount
-                ),
-
-            'remaining_amount' =>
-                $this->formatHundredths(
-                    $remainingAmount
-                ),
-
-            'usage_percent' =>
-                $this->formatHundredths(
-                    $usageBasisPoints
-                ),
-
-            'status' =>
-                $this->periodStatus(
-                    $periodStart,
-                    $periodEnd,
-                    $this->budgetTimezone(
-                        $period->budget
-                    )
-                ),
-        ]);
-
-        $period->save();
-
-        return $period->refresh();
     }
 
     public function alertLevel(
@@ -344,14 +398,6 @@ class BudgetPeriodService
         CarbonImmutable $end,
         string $timezone
     ): BudgetPeriodStatus {
-        /*
-        * Periode anggaran menggunakan tanggal kalender,
-        * bukan waktu absolut.
-        *
-        * Ambil tanggal hari ini berdasarkan zona waktu
-        * pengguna, kemudian bandingkan dalam format
-        * ISO YYYY-MM-DD.
-        */
         $todayDate = CarbonImmutable::now()
             ->setTimezone($timezone)
             ->toDateString();

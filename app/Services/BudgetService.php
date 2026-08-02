@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\FinanceCategory;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -61,7 +62,7 @@ class BudgetService
             ]
         );
 
-        $validator = Validator::make(
+        $validated = Validator::make(
             $payload,
             [
                 'name' => [
@@ -127,87 +128,102 @@ class BudgetService
                 'end_date.after_or_equal' =>
                     'Tanggal selesai tidak boleh sebelum tanggal mulai.',
             ]
-        );
-
-        $validated =
-            $validator->validate();
+        )->validate();
 
         $this->ensureNoDuplicateActiveBudget(
             $user,
             $category
         );
 
-        $periodType =
-            BudgetPeriodType::from(
-                $validated['period_type']
-            );
+        $periodType = BudgetPeriodType::from(
+            $validated['period_type']
+        );
 
-        return DB::transaction(
-            function () use (
-                $user,
-                $category,
-                $validated,
-                $periodType
-            ): Budget {
-                $budget = Budget::query()
-                    ->create([
-                        'user_id' =>
-                            $user->id,
+        try {
+            return DB::transaction(
+                function () use (
+                    $user,
+                    $category,
+                    $validated,
+                    $periodType
+                ): Budget {
+                    $budget = Budget::query()
+                        ->create([
+                            'user_id' =>
+                                $user->id,
 
-                        'finance_category_id' =>
-                            $category->id,
+                            'finance_category_id' =>
+                                $category->id,
 
-                        'name' =>
-                            $validated['name'],
+                            'active_finance_category_id' =>
+                                $category->id,
 
-                        'amount' =>
-                            $validated['amount'],
+                            'name' =>
+                                $validated['name'],
 
-                        'period_type' =>
-                            $periodType,
+                            'amount' =>
+                                $validated['amount'],
 
-                        'warning_threshold_percent' =>
-                            $validated[
-                                'warning_threshold_percent'
-                            ],
+                            'period_type' =>
+                                $periodType,
 
-                        'start_date' =>
-                            $validated[
-                                'start_date'
-                            ],
+                            'warning_threshold_percent' =>
+                                $validated[
+                                    'warning_threshold_percent'
+                                ],
 
-                        'end_date' =>
-                            $validated[
-                                'end_date'
-                            ] ?? null,
+                            'start_date' =>
+                                $validated['start_date'],
 
-                        'is_recurring' =>
-                            $periodType
-                                ->isRecurring(),
+                            'end_date' =>
+                                $validated['end_date']
+                                ?? null,
 
-                        'is_active' =>
-                            true,
-                    ]);
+                            'is_recurring' =>
+                                $periodType
+                                    ->isRecurring(),
 
-                $this
-                    ->usageSyncService
-                    ->syncBudgetForDate(
-                        $budget,
-                        CarbonImmutable::parse(
-                            $validated[
-                                'start_date'
-                            ]
-                        )
-                    );
+                            'is_active' => true,
+                        ]);
 
-                return $budget
-                    ->load([
+                    $this
+                        ->usageSyncService
+                        ->syncBudgetForDate(
+                            $budget,
+                            CarbonImmutable::parse(
+                                $validated[
+                                    'start_date'
+                                ]
+                            )
+                        );
+
+                    return $budget->load([
                         'financeCategory',
                         'periods',
                     ]);
-            },
-            3
-        );
+                },
+                3
+            );
+        } catch (
+            UniqueConstraintViolationException $exception
+        ) {
+            if (
+                Budget::query()
+                    ->where('user_id', $user->id)
+                    ->where(
+                        'active_finance_category_id',
+                        $category->id
+                    )
+                    ->exists()
+            ) {
+                throw ValidationException::withMessages([
+                    'finance_category_id' =>
+                        'Kategori ini sudah memiliki anggaran aktif.',
+                ]);
+            }
+
+            throw $exception;
+        }
     }
 
     private function ensureCategoryOwnership(
@@ -274,17 +290,10 @@ class BudgetService
         FinanceCategory $category
     ): void {
         $exists = Budget::query()
+            ->where('user_id', $user->id)
             ->where(
-                'user_id',
-                $user->id
-            )
-            ->where(
-                'finance_category_id',
+                'active_finance_category_id',
                 $category->id
-            )
-            ->where(
-                'is_active',
-                true
             )
             ->exists();
 

@@ -3,256 +3,343 @@
 namespace App\Services;
 
 use App\Models\User;
-use Closure;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
+use ZipArchive;
 
 class PersonalDataExportService
 {
     /**
-     * @return array<string, mixed>
+     * @return array{path: string, filename: string}
      */
-    public function build(User $user): array
-    {
-        $accounts = $this->rowsByUser(
-            'accounts',
-            $user->id
+    public function createArchive(
+        User $user
+    ): array {
+        $user->loadMissing('preference');
+
+        $exportId = (string) Str::uuid();
+
+        $exportRoot = storage_path(
+            'app/private/exports'
         );
 
-        $accountIds = $this->ids(
-            $accounts
+        $workingDirectory = $exportRoot
+            .DIRECTORY_SEPARATOR
+            .$exportId;
+
+        $zipPath = $exportRoot
+            .DIRECTORY_SEPARATOR
+            .$exportId
+            .'.zip';
+
+        File::ensureDirectoryExists(
+            $workingDirectory
         );
 
-        $transactions = $this->rowsByUser(
-            'transactions',
-            $user->id
-        );
+        try {
+            $datasetCounts = [];
 
-        $transactionIds = $this->ids(
-            $transactions
-        );
+            foreach (
+                $this->datasets($user)
+                as $relativePath => $query
+            ) {
+                $absolutePath = $workingDirectory
+                    .DIRECTORY_SEPARATOR
+                    .str_replace(
+                        '/',
+                        DIRECTORY_SEPARATOR,
+                        $relativePath
+                    );
 
-        $activities = $this->rowsByUser(
-            'activities',
-            $user->id
-        );
+                File::ensureDirectoryExists(
+                    dirname($absolutePath)
+                );
 
-        $activityIds = $this->ids(
-            $activities
-        );
+                $datasetCounts[$relativePath] =
+                    $this->writeQueryAsJson(
+                        $absolutePath,
+                        $query
+                    );
+            }
 
-        $subscriptions = $this->rowsByUser(
-            'subscriptions',
-            $user->id
-        );
+            $profilePhotoEntry =
+                $this->copyProfilePhoto(
+                    $user,
+                    $workingDirectory
+                );
 
-        $subscriptionIds = $this->ids(
-            $subscriptions
-        );
+            $manifestPath = $workingDirectory
+                .DIRECTORY_SEPARATOR
+                .'manifest.json';
 
-        $budgets = $this->rowsByUser(
-            'budgets',
-            $user->id
-        );
+            File::put(
+                $manifestPath,
+                json_encode(
+                    [
+                        'application' =>
+                            config(
+                                'app.name',
+                                'Laras'
+                            ),
 
-        $budgetIds = $this->ids(
-            $budgets
-        );
+                        'archive_version' => 2,
 
-        $scanDocuments = $this->rowsByUser(
-            'scan_documents',
-            $user->id
-        );
+                        'generated_at' =>
+                            now()->toIso8601String(),
 
-        $scanDocumentIds = $this->ids(
-            $scanDocuments
-        );
+                        'timezone' =>
+                            $user->preference
+                                ?->timezone
+                            ?? config(
+                                'laras.defaults.timezone',
+                                'Asia/Jakarta'
+                            ),
+
+                        'profile' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+
+                            'email_verified_at' =>
+                                $user->getRawOriginal(
+                                    'email_verified_at'
+                                ),
+
+                            'onboarding_completed_at' =>
+                                $user->getRawOriginal(
+                                    'onboarding_completed_at'
+                                ),
+
+                            'is_active' =>
+                                (bool) $user->is_active,
+
+                            'profile_photo_file' =>
+                                $profilePhotoEntry,
+
+                            'created_at' =>
+                                $user->getRawOriginal(
+                                    'created_at'
+                                ),
+
+                            'updated_at' =>
+                                $user->getRawOriginal(
+                                    'updated_at'
+                                ),
+                        ],
+
+                        'datasets' =>
+                            $datasetCounts,
+
+                        'excluded_fields' => [
+                            'password',
+                            'remember_token',
+                            'session_payload',
+                            'password_reset_token',
+                        ],
+                    ],
+                    JSON_PRETTY_PRINT
+                    | JSON_UNESCAPED_UNICODE
+                    | JSON_UNESCAPED_SLASHES
+                    | JSON_THROW_ON_ERROR
+                )
+            );
+
+            $this->createZip(
+                $workingDirectory,
+                $zipPath
+            );
+
+            $filename = sprintf(
+                'laras-data-%s.zip',
+                now()
+                    ->setTimezone(
+                        $user->preference
+                            ?->timezone
+                        ?? config(
+                            'laras.defaults.timezone',
+                            'Asia/Jakarta'
+                        )
+                    )
+                    ->format('Ymd-His')
+            );
+
+            return [
+                'path' => $zipPath,
+                'filename' => $filename,
+            ];
+        } catch (Throwable $exception) {
+            File::delete($zipPath);
+
+            throw $exception;
+        } finally {
+            File::deleteDirectory(
+                $workingDirectory
+            );
+        }
+    }
+
+    /**
+     * @return array<string, Builder|null>
+     */
+    private function datasets(
+        User $user
+    ): array {
+        $userId = (int) $user->id;
 
         return [
-            'meta' => [
-                'application' =>
-                    config('app.name', 'Laras'),
-
-                'archive_version' => 1,
-
-                'generated_at' =>
-                    now()->toIso8601String(),
-
-                'timezone' =>
-                    $user->preference?->timezone
-                    ?? config(
-                        'app.timezone',
-                        'Asia/Jakarta'
-                    ),
-            ],
-
-            /*
-             * Password, remember_token, dan
-             * token sesi tidak diekspor.
-             */
-            'profile' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-
-                'email_verified_at' =>
-                    $user->getRawOriginal(
-                        'email_verified_at'
-                    ),
-
-                'onboarding_completed_at' =>
-                    $user->getRawOriginal(
-                        'onboarding_completed_at'
-                    ),
-
-                'is_active' =>
-                    (bool) $user->is_active,
-
-                'has_profile_photo' =>
-                    filled(
-                        $user
-                            ->profile_photo_path
-                    ),
-
-                'created_at' =>
-                    $user->getRawOriginal(
-                        'created_at'
-                    ),
-
-                'updated_at' =>
-                    $user->getRawOriginal(
-                        'updated_at'
-                    ),
-            ],
-
-            'preferences' => $this->first(
-                $this->rowsByUser(
+            'preferences/preferences.json' =>
+                $this->queryByUser(
                     'user_preferences',
-                    $user->id
-                )
-            ),
+                    $userId
+                ),
 
-            'onboarding' =>
-                $this->firstAvailableUserRow(
+            'onboarding/progress.json' =>
+                $this->firstAvailableUserQuery(
                     [
                         'onboarding_progress',
                         'onboarding_progresses',
                     ],
-                    $user->id
+                    $userId
                 ),
 
-            'finance' => [
-                'categories' =>
-                    $this->rowsByUser(
-                        'finance_categories',
-                        $user->id
-                    ),
+            'finance/categories.json' =>
+                $this->queryByUser(
+                    'finance_categories',
+                    $userId
+                ),
 
-                'accounts' => $accounts,
+            'finance/accounts.json' =>
+                $this->queryByUser(
+                    'accounts',
+                    $userId
+                ),
 
-                'account_balance_snapshots' =>
-                    $this->rowsWhereIn(
-                        'account_balance_snapshots',
-                        'account_id',
-                        $accountIds
-                    ),
+            'finance/account-balance-snapshots.json' =>
+                $this->queryWhereParentBelongsToUser(
+                    table: 'account_balance_snapshots',
+                    foreignKey: 'account_id',
+                    parentTable: 'accounts',
+                    userId: $userId
+                ),
 
-                'transactions' =>
-                    $transactions,
+            'finance/transactions.json' =>
+                $this->queryByUser(
+                    'transactions',
+                    $userId
+                ),
 
-                'transaction_entries' =>
-                    $this->rowsWhereIn(
-                        'transaction_entries',
-                        'transaction_id',
-                        $transactionIds
-                    ),
+            'finance/transaction-entries.json' =>
+                $this->queryWhereParentBelongsToUser(
+                    table: 'transaction_entries',
+                    foreignKey: 'transaction_id',
+                    parentTable: 'transactions',
+                    userId: $userId
+                ),
 
-                'transaction_attachments' =>
-                    $this->rowsByUser(
-                        'transaction_attachments',
-                        $user->id
-                    ),
+            'finance/transaction-attachments.json' =>
+                $this->queryByUser(
+                    'transaction_attachments',
+                    $userId
+                ),
 
-                'budgets' => $budgets,
+            'finance/budgets.json' =>
+                $this->queryByUser(
+                    'budgets',
+                    $userId
+                ),
 
-                'budget_periods' =>
-                    $this->rowsWhereIn(
-                        'budget_periods',
-                        'budget_id',
-                        $budgetIds
-                    ),
+            'finance/budget-periods.json' =>
+                $this->queryWhereParentBelongsToUser(
+                    table: 'budget_periods',
+                    foreignKey: 'budget_id',
+                    parentTable: 'budgets',
+                    userId: $userId
+                ),
 
-                'scan_documents' =>
-                    $scanDocuments,
+            'finance/budget-alert-events.json' =>
+                $this->budgetAlertEventsQuery(
+                    $userId
+                ),
 
-                'scan_extractions' =>
-                    $this->rowsWhereIn(
-                        'scan_extractions',
-                        'scan_document_id',
-                        $scanDocumentIds
-                    ),
-            ],
+            'finance/scan-documents.json' =>
+                $this->queryByUser(
+                    'scan_documents',
+                    $userId
+                ),
 
-            'activities' => [
-                'items' => $activities,
+            'finance/scan-extractions.json' =>
+                $this->queryWhereParentBelongsToUser(
+                    table: 'scan_extractions',
+                    foreignKey: 'scan_document_id',
+                    parentTable: 'scan_documents',
+                    userId: $userId
+                ),
 
-                'status_histories' =>
-                    $this->rowsWhereIn(
-                        'activity_status_histories',
-                        'activity_id',
-                        $activityIds
-                    ),
+            'activities/items.json' =>
+                $this->queryByUser(
+                    'activities',
+                    $userId
+                ),
 
-                'priority_histories' =>
-                    $this->rowsWhereIn(
-                        'activity_priority_histories',
-                        'activity_id',
-                        $activityIds
-                    ),
-            ],
+            'activities/status-histories.json' =>
+                $this->queryWhereParentBelongsToUser(
+                    table: 'activity_status_histories',
+                    foreignKey: 'activity_id',
+                    parentTable: 'activities',
+                    userId: $userId
+                ),
 
-            'subscriptions' => [
-                'items' => $subscriptions,
+            'activities/priority-histories.json' =>
+                $this->queryWhereParentBelongsToUser(
+                    table: 'activity_priority_histories',
+                    foreignKey: 'activity_id',
+                    parentTable: 'activities',
+                    userId: $userId
+                ),
 
-                'billings' =>
-                    $this->rowsWhereIn(
-                        'subscription_billings',
-                        'subscription_id',
-                        $subscriptionIds
-                    ),
-            ],
+            'subscriptions/items.json' =>
+                $this->queryByUser(
+                    'subscriptions',
+                    $userId
+                ),
 
-            'recommendations' => [
-                'interactions' =>
-                    $this->rowsByUser(
-                        'recommendation_interactions',
-                        $user->id
-                    ),
-            ],
+            'subscriptions/billings.json' =>
+                $this->queryWhereParentBelongsToUser(
+                    table: 'subscription_billings',
+                    foreignKey: 'subscription_id',
+                    parentTable: 'subscriptions',
+                    userId: $userId
+                ),
 
-            'security' => [
-                'events' =>
-                    $this->rowsByUser(
-                        'security_events',
-                        $user->id
-                    ),
-            ],
+            'recommendations/interactions.json' =>
+                $this->queryByUser(
+                    'recommendation_interactions',
+                    $userId
+                ),
 
-            'notifications' =>
-                $this->notificationRows(
+            'security/events.json' =>
+                $this->queryByUser(
+                    'security_events',
+                    $userId
+                ),
+
+            'notifications/items.json' =>
+                $this->notificationsQuery(
                     $user
                 ),
         ];
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function rowsByUser(
+    private function queryByUser(
         string $table,
         int $userId
-    ): array {
+    ): ?Builder {
         if (
             ! Schema::hasTable($table)
             || ! Schema::hasColumn(
@@ -260,172 +347,314 @@ class PersonalDataExportService
                 'user_id'
             )
         ) {
-            return [];
+            return null;
         }
 
-        return $this->fetch(
-            $table,
-            function (
-                Builder $query
-            ) use ($userId): void {
-                $query->where(
-                    'user_id',
-                    $userId
-                );
-            }
-        );
+        return DB::table($table)
+            ->where('user_id', $userId);
     }
 
-    /**
-     * @param array<int, int|string> $values
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function rowsWhereIn(
+    private function queryWhereParentBelongsToUser(
         string $table,
-        string $column,
-        array $values
-    ): array {
+        string $foreignKey,
+        string $parentTable,
+        int $userId
+    ): ?Builder {
         if (
-            $values === []
-            || ! Schema::hasTable($table)
+            ! Schema::hasTable($table)
+            || ! Schema::hasTable(
+                $parentTable
+            )
             || ! Schema::hasColumn(
                 $table,
-                $column
+                $foreignKey
+            )
+            || ! Schema::hasColumn(
+                $parentTable,
+                'user_id'
             )
         ) {
-            return [];
+            return null;
         }
 
-        return $this->fetch(
-            $table,
-            function (
-                Builder $query
-            ) use (
-                $column,
-                $values
-            ): void {
-                $query->whereIn(
-                    $column,
-                    $values
-                );
-            }
-        );
+        return DB::table($table)
+            ->whereIn(
+                $foreignKey,
+                function (
+                    Builder $query
+                ) use (
+                    $parentTable,
+                    $userId
+                ): void {
+                    $query
+                        ->select('id')
+                        ->from($parentTable)
+                        ->where(
+                            'user_id',
+                            $userId
+                        );
+                }
+            );
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function notificationRows(
-        User $user
-    ): array {
+    private function budgetAlertEventsQuery(
+        int $userId
+    ): ?Builder {
         if (
             ! Schema::hasTable(
-                'notifications'
+                'budget_alert_events'
             )
+            || ! Schema::hasTable(
+                'budget_periods'
+            )
+            || ! Schema::hasTable('budgets')
         ) {
-            return [];
+            return null;
         }
 
-        return $this->fetch(
-            'notifications',
+        return DB::table(
+            'budget_alert_events'
+        )->whereIn(
+            'budget_period_id',
             function (
-                Builder $query
-            ) use ($user): void {
-                $query
-                    ->where(
-                        'notifiable_type',
-                        User::class
+                Builder $periodQuery
+            ) use ($userId): void {
+                $periodQuery
+                    ->select(
+                        'budget_periods.id'
                     )
-                    ->where(
-                        'notifiable_id',
-                        $user->id
+                    ->from(
+                        'budget_periods'
+                    )
+                    ->whereIn(
+                        'budget_id',
+                        function (
+                            Builder $budgetQuery
+                        ) use ($userId): void {
+                            $budgetQuery
+                                ->select(
+                                    'budgets.id'
+                                )
+                                ->from('budgets')
+                                ->where(
+                                    'user_id',
+                                    $userId
+                                );
+                        }
                     );
             }
         );
     }
 
+    private function notificationsQuery(
+        User $user
+    ): ?Builder {
+        if (
+            ! Schema::hasTable(
+                'notifications'
+            )
+        ) {
+            return null;
+        }
+
+        return DB::table('notifications')
+            ->where(
+                'notifiable_type',
+                $user->getMorphClass()
+            )
+            ->where(
+                'notifiable_id',
+                $user->id
+            );
+    }
+
     /**
      * @param array<int, string> $tables
-     *
-     * @return array<string, mixed>|null
      */
-    private function firstAvailableUserRow(
+    private function firstAvailableUserQuery(
         array $tables,
         int $userId
-    ): ?array {
+    ): ?Builder {
         foreach ($tables as $table) {
-            $rows = $this->rowsByUser(
+            $query = $this->queryByUser(
                 $table,
                 $userId
             );
 
-            if ($rows !== []) {
-                return $rows[0];
+            if ($query !== null) {
+                return $query;
             }
         }
 
         return null;
     }
 
-    /**
-     * @param Closure(Builder): void $scope
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function fetch(
-        string $table,
-        Closure $scope
-    ): array {
-        $query = DB::table($table);
+    private function writeQueryAsJson(
+        string $path,
+        ?Builder $query
+    ): int {
+        $handle = fopen($path, 'wb');
 
-        $scope($query);
-
-        if (
-            Schema::hasColumn(
-                $table,
-                'id'
-            )
-        ) {
-            $query->orderBy('id');
+        if ($handle === false) {
+            throw new RuntimeException(
+                'File ekspor tidak dapat dibuat.'
+            );
         }
 
-        return $query
-            ->get()
-            ->map(
-                fn (object $row): array =>
-                    (array) $row
-            )
-            ->all();
+        $count = 0;
+
+        try {
+            fwrite($handle, "[\n");
+
+            if ($query !== null) {
+                $table = $query->from;
+
+                if (
+                    is_string($table)
+                    && Schema::hasColumn(
+                        $table,
+                        'id'
+                    )
+                ) {
+                    $query->orderBy('id');
+                }
+
+                foreach ($query->cursor() as $row) {
+                    if ($count > 0) {
+                        fwrite($handle, ",\n");
+                    }
+
+                    fwrite(
+                        $handle,
+                        json_encode(
+                            (array) $row,
+                            JSON_UNESCAPED_UNICODE
+                            | JSON_UNESCAPED_SLASHES
+                            | JSON_THROW_ON_ERROR
+                        )
+                    );
+
+                    $count++;
+                }
+            }
+
+            fwrite($handle, "\n]\n");
+        } finally {
+            fclose($handle);
+        }
+
+        return $count;
     }
 
-    /**
-     * @param array<int, array<string, mixed>> $rows
-     *
-     * @return array<int, int|string>
-     */
-    private function ids(array $rows): array
-    {
-        return array_values(
-            array_filter(
-                array_column(
-                    $rows,
-                    'id'
-                ),
-                fn (mixed $id): bool =>
-                    $id !== null
+    private function copyProfilePhoto(
+        User $user,
+        string $workingDirectory
+    ): ?string {
+        $photoPath = $user
+            ->profile_photo_path;
+
+        if (
+            blank($photoPath)
+            || ! Storage::disk('public')
+                ->exists($photoPath)
+        ) {
+            return null;
+        }
+
+        $extension = strtolower(
+            pathinfo(
+                $photoPath,
+                PATHINFO_EXTENSION
             )
         );
+
+        $extension = preg_match(
+            '/^[a-z0-9]{2,5}$/',
+            $extension
+        )
+            ? $extension
+            : 'bin';
+
+        $relativePath = 'files/profile-photo.'
+            .$extension;
+
+        $destination = $workingDirectory
+            .DIRECTORY_SEPARATOR
+            .str_replace(
+                '/',
+                DIRECTORY_SEPARATOR,
+                $relativePath
+            );
+
+        File::ensureDirectoryExists(
+            dirname($destination)
+        );
+
+        $source = Storage::disk('public')
+            ->path($photoPath);
+
+        if (! File::copy($source, $destination)) {
+            throw new RuntimeException(
+                'Foto profil gagal ditambahkan ke arsip.'
+            );
+        }
+
+        return $relativePath;
     }
 
-    /**
-     * @param array<int, array<string, mixed>> $rows
-     *
-     * @return array<string, mixed>|null
-     */
-    private function first(
-        array $rows
-    ): ?array {
-        return $rows[0] ?? null;
+    private function createZip(
+        string $workingDirectory,
+        string $zipPath
+    ): void {
+        File::ensureDirectoryExists(
+            dirname($zipPath)
+        );
+
+        $zip = new ZipArchive();
+
+        $opened = $zip->open(
+            $zipPath,
+            ZipArchive::CREATE
+            | ZipArchive::OVERWRITE
+        );
+
+        if ($opened !== true) {
+            throw new RuntimeException(
+                'Arsip ZIP gagal dibuat.'
+            );
+        }
+
+        try {
+            foreach (
+                File::allFiles(
+                    $workingDirectory
+                ) as $file
+            ) {
+                $relativePath = str_replace(
+                    DIRECTORY_SEPARATOR,
+                    '/',
+                    $file->getRelativePathname()
+                );
+
+                if (
+                    ! $zip->addFile(
+                        $file->getPathname(),
+                        $relativePath
+                    )
+                ) {
+                    throw new RuntimeException(
+                        'File gagal dimasukkan ke arsip ZIP.'
+                    );
+                }
+            }
+        } finally {
+            $closed = $zip->close();
+        }
+
+        if (! $closed) {
+            throw new RuntimeException(
+                'Arsip ZIP gagal diselesaikan.'
+            );
+        }
     }
 }
