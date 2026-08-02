@@ -3,110 +3,57 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DeleteAccountRequest;
+use App\Http\Requests\ExportPersonalDataRequest;
+use App\Services\AccountDeletionService;
 use App\Services\PersonalDataExportService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DataPrivacyController extends Controller
 {
     public function __construct(
-        private readonly PersonalDataExportService $exportService
-    ) {
-    }
+        private readonly PersonalDataExportService $exportService,
+        private readonly AccountDeletionService $deletionService
+    ) {}
 
     public function export(
-        Request $request
-    ): StreamedResponse {
-        $user = $request
-            ->user()
-            ->loadMissing(
-                'preference'
-            );
-
+        ExportPersonalDataRequest $request
+    ): BinaryFileResponse {
         $archive = $this
             ->exportService
-            ->build($user);
+            ->createArchive(
+                $request->user()
+            );
 
-        $filename = sprintf(
-            'laras-data-%s.json',
-            now()
-                ->setTimezone(
-                    $user->preference
-                        ?->timezone
-                    ?? config(
-                        'app.timezone',
-                        'Asia/Jakarta'
-                    )
-                )
-                ->format(
-                    'Ymd-His'
-                )
-        );
+        return response()
+            ->download(
+                $archive['path'],
+                $archive['filename'],
+                [
+                    'Content-Type' => 'application/zip',
 
-        return response()->streamDownload(
-            function () use (
-                $archive
-            ): void {
-                echo json_encode(
-                    $archive,
-                    JSON_PRETTY_PRINT
-                    | JSON_UNESCAPED_UNICODE
-                    | JSON_UNESCAPED_SLASHES
-                    | JSON_THROW_ON_ERROR
-                );
-            },
-            $filename,
-            [
-                'Content-Type' =>
-                    'application/json; charset=UTF-8',
+                    'Cache-Control' => 'no-store, private, max-age=0',
 
-                'Cache-Control' =>
-                    'no-store, private',
+                    'Pragma' => 'no-cache',
 
-                'X-Content-Type-Options' =>
-                    'nosniff',
-            ]
-        );
+                    'Expires' => '0',
+
+                    'X-Content-Type-Options' => 'nosniff',
+
+                    'X-Robots-Tag' => 'noindex, nofollow, noarchive',
+                ]
+            )
+            ->deleteFileAfterSend(true);
     }
 
     public function destroy(
         DeleteAccountRequest $request
     ): RedirectResponse {
-        $user = $request->user();
-
-        $userId = $user->getKey();
-
-        $profilePhotoPath =
-            $user->profile_photo_path;
-
-        DB::transaction(
-            function () use ($userId): void {
-                /*
-                * Query Builder melakukan DELETE
-                * permanen dan melewati SoftDeletes.
-                */
-                $deletedRows = DB::table('users')
-                    ->where('id', $userId)
-                    ->delete();
-
-                if ($deletedRows !== 1) {
-                    throw new \RuntimeException(
-                        'Akun gagal dihapus secara permanen.'
-                    );
-                }
-            },
-            3
-        );
-
-        if (filled($profilePhotoPath)) {
-            Storage::disk('public')->delete(
-                $profilePhotoPath
+        $this->deletionService
+            ->delete(
+                $request->user()
             );
-        }
 
         Auth::logout();
 

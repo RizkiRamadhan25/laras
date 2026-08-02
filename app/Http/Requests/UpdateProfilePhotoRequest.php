@@ -21,8 +21,9 @@ class UpdateProfilePhotoRequest extends FormRequest
                 'required',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
-                'max:5120',
-                'dimensions:min_width=128,min_height=128,max_width=6000,max_height=6000',
+                'extensions:jpg,jpeg,png,webp',
+                'max:4096',
+                'dimensions:min_width=128,min_height=128,max_width=4096,max_height=4096',
             ],
         ];
     }
@@ -33,20 +34,17 @@ class UpdateProfilePhotoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'photo.required' =>
-                'Pilih foto yang akan digunakan.',
+            'photo.required' => 'Pilih foto yang akan digunakan.',
 
-            'photo.image' =>
-                'File yang dipilih harus berupa gambar.',
+            'photo.image' => 'File yang dipilih harus berupa gambar.',
 
-            'photo.mimes' =>
-                'Foto harus berformat JPG, JPEG, PNG, atau WebP.',
+            'photo.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau WebP.',
 
-            'photo.max' =>
-                'Ukuran foto maksimal 5 MB.',
+            'photo.extensions' => 'Ekstensi nama file foto tidak sesuai.',
 
-            'photo.dimensions' =>
-                'Resolusi foto minimal 128 × 128 dan maksimal 6000 × 6000 piksel.',
+            'photo.max' => 'Ukuran foto maksimal 4 MB.',
+
+            'photo.dimensions' => 'Resolusi foto minimal 128 × 128 dan maksimal 4096 × 4096 piksel.',
         ];
     }
 

@@ -15,8 +15,7 @@ class SubscriptionBillingPosted extends Notification
         public readonly string $currencyCode,
         public readonly string $scheduledFor,
         public readonly string $accountName
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>
@@ -50,8 +49,7 @@ class SubscriptionBillingPosted extends Notification
         return [
             'kind' => 'subscription_billing_posted',
 
-            'title' =>
-                'Tagihan langganan berhasil dicatat',
+            'title' => 'Tagihan langganan berhasil dicatat',
 
             'message' => sprintf(
                 '%s sebesar %s %s telah dipotong dari saldo %s.',
@@ -61,28 +59,21 @@ class SubscriptionBillingPosted extends Notification
                 $this->accountName
             ),
 
-            'subscription_id' =>
-                $this->subscriptionId,
+            'subscription_id' => $this->subscriptionId,
 
-            'subscription_billing_id' =>
-                $this->billingId,
+            'subscription_billing_id' => $this->billingId,
 
-            'transaction_id' =>
-                $this->transactionId,
+            'transaction_id' => $this->transactionId,
 
-            'subscription_name' =>
-                $this->subscriptionName,
+            'subscription_name' => $this->subscriptionName,
 
             'amount' => $this->amount,
 
-            'currency_code' =>
-                $this->currencyCode,
+            'currency_code' => $this->currencyCode,
 
-            'scheduled_for' =>
-                $this->scheduledFor,
+            'scheduled_for' => $this->scheduledFor,
 
-            'account_name' =>
-                $this->accountName,
+            'account_name' => $this->accountName,
 
             'severity' => 'success',
             'icon' => 'circle-check',

@@ -1,26 +1,74 @@
 <?php
 
+use App\Http\Middleware\AddQueryMetricsHeaders;
+use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\AssignRequestId;
+use App\Http\Middleware\EnsureOnboardingIsComplete;
+use App\Http\Middleware\RedirectIfOnboardingIsComplete;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use App\Http\Middleware\EnsureOnboardingIsComplete;
-use App\Http\Middleware\RedirectIfOnboardingIsComplete;
+use Symfony\Component\HttpFoundation\Response;
 
-return Application::configure(basePath: dirname(__DIR__))
+return Application::configure(
+    basePath: dirname(__DIR__)
+)
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias([
-            'onboarding.completed' => EnsureOnboardingIsComplete::class,
-            'onboarding.pending' => RedirectIfOnboardingIsComplete::class,
-        ]);
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
-        );
-    })->create();
+    ->withMiddleware(
+        function (Middleware $middleware): void {
+            /*
+            * Request ID harus tersedia untuk seluruh request,
+            * termasuk 404 yang terjadi sebelum route ditemukan.
+            */
+            $middleware->prepend(
+                AssignRequestId::class
+            );
+
+            /*
+            * Query metrics dan security headers tetap diterapkan
+            * pada halaman web Laras.
+            */
+            $middleware->web(append: [
+                AddQueryMetricsHeaders::class,
+                AddSecurityHeaders::class,
+            ]);
+
+            $middleware->alias([
+                'onboarding.completed' => EnsureOnboardingIsComplete::class,
+
+                'onboarding.pending' => RedirectIfOnboardingIsComplete::class,
+            ]);
+        }
+    )
+    ->withExceptions(
+        function (Exceptions $exceptions): void {
+            $exceptions->dontReportDuplicates();
+
+            $exceptions->shouldRenderJsonWhen(
+                fn (Request $request): bool => $request->is('api/*'),
+            );
+
+            $exceptions->respond(
+                function (Response $response): Response {
+                    $requestId = request()
+                        ->attributes
+                        ->get('request_id');
+
+                    if (is_string($requestId)) {
+                        $response->headers->set(
+                            'X-Request-ID',
+                            $requestId
+                        );
+                    }
+
+                    return $response;
+                }
+            );
+        }
+    )
+    ->create();

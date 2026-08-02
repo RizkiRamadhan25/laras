@@ -63,17 +63,14 @@ class DashboardRecommendationTest extends TestCase
                 ->create([
                     'user_id' => $user->id,
 
-                    'title' =>
-                        'Aktivitas prioritas '
+                    'title' => 'Aktivitas prioritas '
                         .$number,
 
-                    'status' =>
-                        ActivityStatus::Planned,
+                    'status' => ActivityStatus::Planned,
 
-                    'due_at' =>
-                        $reference->addHours(
-                            $number
-                        ),
+                    'due_at' => $reference->addHours(
+                        $number
+                    ),
                 ]);
         }
 
@@ -122,14 +119,11 @@ class DashboardRecommendationTest extends TestCase
             ->create([
                 'user_id' => $user->id,
 
-                'title' =>
-                    'Aktivitas mendesak',
+                'title' => 'Aktivitas mendesak',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addHour(),
+                'due_at' => $reference->addHour(),
             ]);
 
         $subscription =
@@ -144,13 +138,11 @@ class DashboardRecommendationTest extends TestCase
             ->firstOrFail();
 
         $billing->forceFill([
-            'status' =>
-                SubscriptionBillingStatus::Failed,
+            'status' => SubscriptionBillingStatus::Failed,
 
             'attempted_at' => now(),
 
-            'failure_reason' =>
-                'Saldo rekening tidak mencukupi.',
+            'failure_reason' => 'Saldo rekening tidak mencukupi.',
 
             'metadata' => [
                 'attempt_count' => 1,
@@ -206,8 +198,7 @@ class DashboardRecommendationTest extends TestCase
                 account: $otherAccount,
                 category: $otherCategory,
                 data: [
-                    'name' =>
-                        'Langganan pengguna lain',
+                    'name' => 'Langganan pengguna lain',
                 ]
             );
 
@@ -216,13 +207,11 @@ class DashboardRecommendationTest extends TestCase
             ->firstOrFail();
 
         $billing->forceFill([
-            'status' =>
-                SubscriptionBillingStatus::Failed,
+            'status' => SubscriptionBillingStatus::Failed,
 
             'attempted_at' => now(),
 
-            'failure_reason' =>
-                'Tagihan pengguna lain gagal.',
+            'failure_reason' => 'Tagihan pengguna lain gagal.',
         ])->save();
 
         $this
@@ -239,11 +228,10 @@ class DashboardRecommendationTest extends TestCase
                     ]->doesntContain(
                         fn (
                             array $item
-                        ): bool =>
-                            str_contains(
-                                $item['title'],
-                                'Langganan pengguna lain'
-                            )
+                        ): bool => str_contains(
+                            $item['title'],
+                            'Langganan pengguna lain'
+                        )
                     );
                 }
             )
@@ -262,8 +250,7 @@ class DashboardRecommendationTest extends TestCase
     private function context(): array
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -283,11 +270,9 @@ class DashboardRecommendationTest extends TestCase
             'name' => 'BCA Utama',
             'currency_code' => 'IDR',
 
-            'initial_balance' =>
-                '1000000.00',
+            'initial_balance' => '1000000.00',
 
-            'cached_balance' =>
-                '1000000.00',
+            'cached_balance' => '1000000.00',
 
             'is_active' => true,
         ]);
@@ -298,8 +283,7 @@ class DashboardRecommendationTest extends TestCase
                 'user_id' => $user->id,
                 'name' => 'Hiburan',
 
-                'flow_type' =>
-                    FinanceFlowType::Expense,
+                'flow_type' => FinanceFlowType::Expense,
 
                 'is_active' => true,
             ]);
@@ -312,7 +296,7 @@ class DashboardRecommendationTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function subscriptionFor(
         User $user,
@@ -327,26 +311,21 @@ class DashboardRecommendationTest extends TestCase
 
             data: array_merge(
                 [
-                    'account_id' =>
-                        $account->id,
+                    'account_id' => $account->id,
 
-                    'finance_category_id' =>
-                        $category->id,
+                    'finance_category_id' => $category->id,
 
                     'name' => 'Spotify',
                     'provider' => 'Spotify',
                     'amount' => '59000',
 
-                    'interval_unit' =>
-                        'month',
+                    'interval_unit' => 'month',
 
                     'interval_count' => 1,
 
-                    'started_on' =>
-                        '2026-08-10',
+                    'started_on' => '2026-08-10',
 
-                    'next_billing_on' =>
-                        '2026-08-10',
+                    'next_billing_on' => '2026-08-10',
 
                     'end_on' => null,
                     'billing_time' => '08:00',

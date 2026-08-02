@@ -23,11 +23,10 @@ class TransactionPostingService
 {
     public function __construct(
         private readonly BudgetUsageSyncService $budgetUsageSyncService
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function postIncome(
         User $user,
@@ -86,7 +85,7 @@ class TransactionPostingService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function postExpense(
         User $user,
@@ -161,7 +160,7 @@ class TransactionPostingService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function postTransfer(
         User $user,
@@ -349,7 +348,7 @@ class TransactionPostingService
                 ->keyBy('id');
 
             if ($accounts->count() !== count($accountIds)) {
-                throw (new ModelNotFoundException())
+                throw (new ModelNotFoundException)
                     ->setModel(Account::class, $accountIds);
             }
 
@@ -411,7 +410,7 @@ class TransactionPostingService
     }
 
     /**
-     * @param list<int> $accountIds
+     * @param  list<int>  $accountIds
      * @return Collection<int, Account>
      */
     private function lockOwnedActiveAccounts(
@@ -434,7 +433,7 @@ class TransactionPostingService
             ->keyBy('id');
 
         if ($accounts->count() !== count($uniqueAccountIds)) {
-            throw (new ModelNotFoundException())
+            throw (new ModelNotFoundException)
                 ->setModel(Account::class, $uniqueAccountIds);
         }
 
@@ -481,7 +480,7 @@ class TransactionPostingService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function createPostedTransaction(
         User $user,

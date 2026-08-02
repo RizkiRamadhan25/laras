@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SecurityEventType;
 use App\Http\Requests\UpdatePreferencesRequest;
+use App\Http\Requests\UpdateProfilePhotoRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\UserPreference;
+use App\Services\ProfilePhotoService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use App\Http\Requests\UpdateProfilePhotoRequest;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use App\Enums\SecurityEventType;
 
 class SettingsController extends Controller
 {
+    public function __construct(
+        private readonly ProfilePhotoService $photoService
+    ) {}
+
     public function index(): View
     {
         $user = request()
@@ -40,8 +44,7 @@ class SettingsController extends Controller
             ->securityEvents()
             ->where(
                 'type',
-                SecurityEventType
-                    ::PasswordChanged
+                SecurityEventType::PasswordChanged
                     ->value
             )
             ->latest('occurred_at')
@@ -54,96 +57,78 @@ class SettingsController extends Controller
             [
                 'user' => $user,
 
-                'preference' =>
-                    $user->preference,
+                'preference' => $user->preference,
 
-                'securityEvents' =>
-                    $securityEvents,
+                'securityEvents' => $securityEvents,
 
-                'lastPasswordChangedAt' =>
-                    $lastPasswordChangedAt,
+                'lastPasswordChangedAt' => $lastPasswordChangedAt,
 
                 'timezones' => [
                     'Asia/Jakarta' => [
-                        'label' =>
-                            'Waktu Indonesia Barat',
+                        'label' => 'Waktu Indonesia Barat',
 
                         'short_label' => 'WIB',
 
-                        'description' =>
-                            'Jakarta, Sumatra, Jawa, Kalimantan Barat dan Tengah',
+                        'description' => 'Jakarta, Sumatra, Jawa, Kalimantan Barat dan Tengah',
                     ],
 
                     'Asia/Makassar' => [
-                        'label' =>
-                            'Waktu Indonesia Tengah',
+                        'label' => 'Waktu Indonesia Tengah',
 
                         'short_label' => 'WITA',
 
-                        'description' =>
-                            'Bali, Sulawesi, Nusa Tenggara, Kalimantan Selatan, Timur dan Utara',
+                        'description' => 'Bali, Sulawesi, Nusa Tenggara, Kalimantan Selatan, Timur dan Utara',
                     ],
 
                     'Asia/Jayapura' => [
-                        'label' =>
-                            'Waktu Indonesia Timur',
+                        'label' => 'Waktu Indonesia Timur',
 
                         'short_label' => 'WIT',
 
-                        'description' =>
-                            'Maluku dan Papua',
+                        'description' => 'Maluku dan Papua',
                     ],
                 ],
 
                 'dateFormats' => [
-                    'd/m/Y' =>
-                        $previewNow->format('d/m/Y')
+                    'd/m/Y' => $previewNow->format('d/m/Y')
                         .' — Hari/Bulan/Tahun',
 
-                    'd-m-Y' =>
-                        $previewNow->format('d-m-Y')
+                    'd-m-Y' => $previewNow->format('d-m-Y')
                         .' — Hari-Bulan-Tahun',
 
-                    'Y-m-d' =>
-                        $previewNow->format('Y-m-d')
+                    'Y-m-d' => $previewNow->format('Y-m-d')
                         .' — Tahun-Bulan-Hari',
                 ],
 
                 'timeFormats' => [
-                    'H:i' =>
-                        $previewNow->format('H:i')
+                    'H:i' => $previewNow->format('H:i')
                         .' — Format 24 jam',
 
-                    'h:i A' =>
-                        $previewNow->format('h:i A')
+                    'h:i A' => $previewNow->format('h:i A')
                         .' — Format 12 jam',
                 ],
 
                 'currencies' => [
                     'IDR' => [
-                        'name' =>
-                            'Rupiah Indonesia',
+                        'name' => 'Rupiah Indonesia',
 
                         'symbol' => 'Rp',
                     ],
 
                     'USD' => [
-                        'name' =>
-                            'Dolar Amerika Serikat',
+                        'name' => 'Dolar Amerika Serikat',
 
                         'symbol' => '$',
                     ],
 
                     'SGD' => [
-                        'name' =>
-                            'Dolar Singapura',
+                        'name' => 'Dolar Singapura',
 
                         'symbol' => 'S$',
                     ],
 
                     'MYR' => [
-                        'name' =>
-                            'Ringgit Malaysia',
+                        'name' => 'Ringgit Malaysia',
 
                         'symbol' => 'RM',
                     ],
@@ -197,15 +182,13 @@ class SettingsController extends Controller
                 UserPreference::query()
                     ->updateOrCreate(
                         [
-                            'user_id' =>
-                                $user->id,
+                            'user_id' => $user->id,
                         ],
                         array_merge(
                             [
-                                'locale' =>
-                                    $user
-                                        ->preference
-                                        ?->locale
+                                'locale' => $user
+                                    ->preference
+                                    ?->locale
                                     ?? 'id',
                             ],
                             $request->validated()
@@ -232,28 +215,10 @@ class SettingsController extends Controller
     public function updatePhoto(
         UpdateProfilePhotoRequest $request
     ): RedirectResponse {
-        $user = $request->user();
-
-        $oldPhotoPath =
-            $user->profile_photo_path;
-
-        $newPhotoPath = $request
-            ->file('photo')
-            ->store(
-                'profile-photos/'.$user->id,
-                'public'
-            );
-
-        $user->forceFill([
-            'profile_photo_path' =>
-                $newPhotoPath,
-        ])->save();
-
-        if ($oldPhotoPath !== null) {
-            Storage::disk('public')->delete(
-                $oldPhotoPath
-            );
-        }
+        $this->photoService->replace(
+            $request->user(),
+            $request->file('photo')
+        );
 
         return redirect(
             route('settings.index')
@@ -268,20 +233,9 @@ class SettingsController extends Controller
     public function destroyPhoto(
         Request $request
     ): RedirectResponse {
-        $user = $request->user();
-
-        $photoPath =
-            $user->profile_photo_path;
-
-        $user->forceFill([
-            'profile_photo_path' => null,
-        ])->save();
-
-        if ($photoPath !== null) {
-            Storage::disk('public')->delete(
-                $photoPath
-            );
-        }
+        $this->photoService->delete(
+            $request->user()
+        );
 
         return redirect(
             route('settings.index')

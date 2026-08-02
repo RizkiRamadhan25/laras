@@ -45,8 +45,7 @@ class SubscriptionAutomationTest extends TestCase
             category: $category,
             data: [
                 'started_on' => '2026-08-01',
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
             ]
         );
 
@@ -124,8 +123,7 @@ class SubscriptionAutomationTest extends TestCase
                 'provider' => 'Netflix',
                 'amount' => '186000',
                 'started_on' => '2026-08-10',
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
                 'billing_time' => '08:00',
             ]
         );
@@ -242,8 +240,7 @@ class SubscriptionAutomationTest extends TestCase
                 'name' => 'Netflix',
                 'amount' => '186000',
                 'started_on' => '2026-08-10',
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
             ]
         );
 
@@ -340,8 +337,7 @@ class SubscriptionAutomationTest extends TestCase
             data: [
                 'amount' => '59000',
                 'started_on' => '2026-08-10',
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
             ]
         );
 
@@ -367,8 +363,7 @@ class SubscriptionAutomationTest extends TestCase
             SubscriptionBilling::query()
                 ->where(
                     'status',
-                    SubscriptionBillingStatus
-                        ::Posted->value
+                    SubscriptionBillingStatus::Posted->value
                 )
                 ->count()
         );
@@ -396,8 +391,7 @@ class SubscriptionAutomationTest extends TestCase
             data: [
                 'amount' => '59000',
                 'started_on' => '2026-08-10',
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
                 'billing_time' => '08:00',
             ]
         );
@@ -458,8 +452,7 @@ class SubscriptionAutomationTest extends TestCase
             category: $category,
             data: [
                 'started_on' => '2026-08-10',
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
             ]
         );
 
@@ -501,8 +494,7 @@ class SubscriptionAutomationTest extends TestCase
             category: $category,
             data: [
                 'started_on' => '2026-08-10',
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
                 'billing_time' => '08:00',
             ]
         );
@@ -562,8 +554,7 @@ class SubscriptionAutomationTest extends TestCase
                 ->create([
                     'user_id' => $user->id,
 
-                    'flow_type' =>
-                        FinanceFlowType::Expense,
+                    'flow_type' => FinanceFlowType::Expense,
 
                     'is_active' => true,
                 ]);
@@ -576,7 +567,7 @@ class SubscriptionAutomationTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function subscriptionFor(
         User $user,
@@ -590,26 +581,21 @@ class SubscriptionAutomationTest extends TestCase
             user: $user,
             data: array_merge(
                 [
-                    'account_id' =>
-                        $account->id,
+                    'account_id' => $account->id,
 
-                    'finance_category_id' =>
-                        $category->id,
+                    'finance_category_id' => $category->id,
 
                     'name' => 'Spotify',
                     'provider' => 'Spotify',
                     'amount' => '59000',
 
-                    'interval_unit' =>
-                        'month',
+                    'interval_unit' => 'month',
 
                     'interval_count' => 1,
 
-                    'started_on' =>
-                        '2026-08-01',
+                    'started_on' => '2026-08-01',
 
-                    'next_billing_on' =>
-                        '2026-08-10',
+                    'next_billing_on' => '2026-08-10',
 
                     'end_on' => null,
                     'billing_time' => '08:00',

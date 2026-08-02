@@ -16,7 +16,7 @@ use ValueError;
 class ActivityService
 {
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function create(
         User $user,
@@ -41,7 +41,7 @@ class ActivityService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(
         User $user,
@@ -287,7 +287,7 @@ class ActivityService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     private function normalizePayload(
@@ -367,8 +367,7 @@ class ActivityService
                 $data['all_day'] ?? false
             ),
 
-            'estimated_minutes' =>
-                $estimatedMinutes,
+            'estimated_minutes' => $estimatedMinutes,
 
             'is_flexible' => (bool) (
                 $data['is_flexible'] ?? true

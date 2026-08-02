@@ -65,11 +65,9 @@ class PersonalRecommendationTest extends TestCase
                 'user_id' => $user->id,
                 'title' => 'Tugas mendesak',
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->addHour(),
+                'due_at' => $reference->addHour(),
             ]);
 
         $subscription =
@@ -84,13 +82,11 @@ class PersonalRecommendationTest extends TestCase
             ->firstOrFail();
 
         $billing->forceFill([
-            'status' =>
-                SubscriptionBillingStatus::Failed,
+            'status' => SubscriptionBillingStatus::Failed,
 
             'attempted_at' => now(),
 
-            'failure_reason' =>
-                'Saldo rekening tidak mencukupi.',
+            'failure_reason' => 'Saldo rekening tidak mencukupi.',
 
             'metadata' => [
                 'attempt_count' => 1,
@@ -148,17 +144,13 @@ class PersonalRecommendationTest extends TestCase
             ->create([
                 'user_id' => $user->id,
 
-                'title' =>
-                    'Mengumpulkan laporan',
+                'title' => 'Mengumpulkan laporan',
 
-                'priority' =>
-                    ActivityPriority::Urgent,
+                'priority' => ActivityPriority::Urgent,
 
-                'status' =>
-                    ActivityStatus::Planned,
+                'status' => ActivityStatus::Planned,
 
-                'due_at' =>
-                    $reference->subDay(),
+                'due_at' => $reference->subDay(),
             ]);
 
         $recommendations = app(
@@ -213,8 +205,7 @@ class PersonalRecommendationTest extends TestCase
                 account: $account,
                 category: $category,
                 data: [
-                    'next_billing_on' =>
-                        '2026-08-12',
+                    'next_billing_on' => '2026-08-12',
                 ]
             );
 
@@ -266,8 +257,7 @@ class PersonalRecommendationTest extends TestCase
             account: $account,
             category: $category,
             amount: '100000',
-            occurredAt:
-                '2026-07-10 10:00:00'
+            occurredAt: '2026-07-10 10:00:00'
         );
 
         $this->postExpense(
@@ -275,8 +265,7 @@ class PersonalRecommendationTest extends TestCase
             account: $account,
             category: $category,
             amount: '250000',
-            occurredAt:
-                '2026-08-10 10:00:00'
+            occurredAt: '2026-08-10 10:00:00'
         );
 
         $recommendations = app(
@@ -344,8 +333,7 @@ class PersonalRecommendationTest extends TestCase
                 account: $otherAccount,
                 category: $otherCategory,
                 data: [
-                    'name' =>
-                        'Langganan pengguna lain',
+                    'name' => 'Langganan pengguna lain',
                 ]
             );
 
@@ -354,11 +342,9 @@ class PersonalRecommendationTest extends TestCase
             ->firstOrFail();
 
         $billing->forceFill([
-            'status' =>
-                SubscriptionBillingStatus::Failed,
+            'status' => SubscriptionBillingStatus::Failed,
 
-            'failure_reason' =>
-                'Tagihan pengguna lain gagal.',
+            'failure_reason' => 'Tagihan pengguna lain gagal.',
 
             'attempted_at' => now(),
         ])->save();
@@ -373,11 +359,10 @@ class PersonalRecommendationTest extends TestCase
         $containsOtherUserData =
             $recommendations['items']
                 ->contains(
-                    fn (array $item): bool =>
-                        str_contains(
-                            $item['title'],
-                            'Langganan pengguna lain'
-                        )
+                    fn (array $item): bool => str_contains(
+                        $item['title'],
+                        'Langganan pengguna lain'
+                    )
                 );
 
         $this->assertFalse(
@@ -425,8 +410,7 @@ class PersonalRecommendationTest extends TestCase
                 'user_id' => $user->id,
                 'name' => 'Makanan',
 
-                'flow_type' =>
-                    FinanceFlowType::Expense,
+                'flow_type' => FinanceFlowType::Expense,
 
                 'is_active' => true,
             ]);
@@ -439,7 +423,7 @@ class PersonalRecommendationTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function subscriptionFor(
         User $user,
@@ -454,26 +438,21 @@ class PersonalRecommendationTest extends TestCase
 
             data: array_merge(
                 [
-                    'account_id' =>
-                        $account->id,
+                    'account_id' => $account->id,
 
-                    'finance_category_id' =>
-                        $category->id,
+                    'finance_category_id' => $category->id,
 
                     'name' => 'Spotify',
                     'provider' => 'Spotify',
                     'amount' => '59000',
 
-                    'interval_unit' =>
-                        'month',
+                    'interval_unit' => 'month',
 
                     'interval_count' => 1,
 
-                    'started_on' =>
-                        '2026-08-10',
+                    'started_on' => '2026-08-10',
 
-                    'next_billing_on' =>
-                        '2026-08-10',
+                    'next_billing_on' => '2026-08-10',
 
                     'end_on' => null,
                     'billing_time' => '08:00',
@@ -505,17 +484,14 @@ class PersonalRecommendationTest extends TestCase
             amount: $amount,
 
             data: [
-                'source' =>
-                    TransactionSource::System,
+                'source' => TransactionSource::System,
 
-                'occurred_at' =>
-                    CarbonImmutable::parse(
-                        $occurredAt,
-                        'Asia/Jakarta'
-                    ),
+                'occurred_at' => CarbonImmutable::parse(
+                    $occurredAt,
+                    'Asia/Jakarta'
+                ),
 
-                'description' =>
-                    'Pengeluaran rekomendasi',
+                'description' => 'Pengeluaran rekomendasi',
 
                 'counterparty' => null,
                 'reference_number' => null,

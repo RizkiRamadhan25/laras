@@ -53,8 +53,7 @@ class ActivityManagementTest extends TestCase
             ->actingAs($user)
             ->post(route('activities.store'), [
                 'title' => 'Mengerjakan dokumentasi',
-                'description' =>
-                    'Menyelesaikan dokumentasi aplikasi Laras.',
+                'description' => 'Menyelesaikan dokumentasi aplikasi Laras.',
                 'type' => 'task',
                 'priority' => 'high',
                 'starts_at' => '2026-08-02T09:00',
@@ -443,16 +442,14 @@ class ActivityManagementTest extends TestCase
         Activity::factory()->create([
             'user_id' => $user->id,
             'title' => 'Agenda hari ini',
-            'starts_at' =>
-                $reference->addHours(2),
+            'starts_at' => $reference->addHours(2),
             'due_at' => null,
         ]);
 
         Activity::factory()->create([
             'user_id' => $user->id,
             'title' => 'Agenda besok',
-            'starts_at' =>
-                $reference->addDay(),
+            'starts_at' => $reference->addDay(),
             'due_at' => null,
         ]);
 

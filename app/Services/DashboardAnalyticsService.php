@@ -11,14 +11,12 @@ use App\Models\TransactionEntry;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Support\Collection;
 
 class DashboardAnalyticsService
 {
     public function __construct(
         private readonly BudgetDashboardService $budgetDashboardService
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -133,23 +131,17 @@ class DashboardAnalyticsService
             'monthlyExpense' => $summary['expense'],
             'netCashFlow' => $summary['net_cash_flow'],
 
-            'postedTransactionCount' =>
-                $monthTransactions->count(),
+            'postedTransactionCount' => $monthTransactions->count(),
 
-            'cashFlowChart' =>
-                $summary['cash_flow_chart'],
+            'cashFlowChart' => $summary['cash_flow_chart'],
 
-            'categoryBreakdown' =>
-                $summary['category_breakdown'],
+            'categoryBreakdown' => $summary['category_breakdown'],
 
-            'categoryChart' =>
-                $summary['category_chart'],
+            'categoryChart' => $summary['category_chart'],
 
-            'budgetOverview' =>
-                $budgetOverview,
+            'budgetOverview' => $budgetOverview,
 
-            'recentTransactions' =>
-                $recentTransactions,
+            'recentTransactions' => $recentTransactions,
 
             'greeting' => $greeting,
 
@@ -164,7 +156,7 @@ class DashboardAnalyticsService
     }
 
     /**
-     * @param EloquentCollection<int, Transaction> $transactions
+     * @param  EloquentCollection<int, Transaction>  $transactions
      * @return array<string, mixed>
      */
     private function summarizeMonth(
@@ -294,8 +286,7 @@ class DashboardAnalyticsService
 
         $categoryBreakdown = collect($categoryTotals)
             ->sortByDesc(
-                static fn (array $category): float =>
-                    (float) $category['amount']
+                static fn (array $category): float => (float) $category['amount']
             )
             ->take(6)
             ->values();
@@ -315,23 +306,20 @@ class DashboardAnalyticsService
 
                 'income' => array_values(
                     array_map(
-                        static fn (array $day): float =>
-                            (float) $day['income'],
+                        static fn (array $day): float => (float) $day['income'],
                         $dailyTotals
                     )
                 ),
 
                 'expense' => array_values(
                     array_map(
-                        static fn (array $day): float =>
-                            (float) $day['expense'],
+                        static fn (array $day): float => (float) $day['expense'],
                         $dailyTotals
                     )
                 ),
             ],
 
-            'category_breakdown' =>
-                $categoryBreakdown,
+            'category_breakdown' => $categoryBreakdown,
 
             'category_chart' => [
                 'labels' => $categoryBreakdown
@@ -341,8 +329,7 @@ class DashboardAnalyticsService
 
                 'values' => $categoryBreakdown
                     ->map(
-                        static fn (array $category): float =>
-                            (float) $category['amount']
+                        static fn (array $category): float => (float) $category['amount']
                     )
                     ->values()
                     ->all(),

@@ -2,50 +2,54 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Services\InitialUserProvisioningService;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Password;
 use RuntimeException;
 
 class LarasUserSeeder extends Seeder
 {
-    public function run(): void
-    {
-        $credentials = [
-            'name' => config('laras.user.name'),
-            'email' => config('laras.user.email'),
-            'password' => config('laras.user.password'),
-        ];
+    public function run(
+        InitialUserProvisioningService $provisioningService
+    ): void {
+        $name = config(
+            'laras.user.name',
+            'Pengguna Laras'
+        );
 
-        $validator = Validator::make($credentials, [
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:191'],
-            'password' => [
-                'required',
-                'string',
-                Password::min(12)
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols(),
-            ],
-        ]);
+        $email = config(
+            'laras.user.email'
+        );
 
-        if ($validator->fails()) {
+        $password = config(
+            'laras.user.password'
+        );
+
+        if (
+            ! is_string($name)
+            || ! is_string($email)
+        ) {
             throw new RuntimeException(
-                'Konfigurasi akun Laras tidak valid: ' .
-                $validator->errors()->first()
+                'LARAS_USER_NAME dan LARAS_USER_EMAIL wajib diisi untuk menjalankan LarasUserSeeder.'
             );
         }
 
-        User::query()->updateOrCreate(
-            ['email' => $credentials['email']],
-            [
-                'name' => $credentials['name'],
-                'password' => $credentials['password'],
-                'email_verified_at' => now(),
-                'is_active' => true,
-            ],
+        $result = $provisioningService
+            ->provision(
+                $name,
+                $email,
+                is_string($password)
+                    ? $password
+                    : null
+            );
+
+        if ($this->command === null) {
+            return;
+        }
+
+        $this->command->info(
+            $result['created']
+                ? 'Akun awal Laras berhasil dibuat.'
+                : 'Akun awal sudah tersedia dan tidak diubah.'
         );
     }
 }

@@ -16,8 +16,7 @@ class BudgetUsageSyncService
     public function __construct(
         private readonly BudgetPeriodService $periodService,
         private readonly BudgetAlertService $alertService
-    ) {
-    }
+    ) {}
 
     public function syncForTransaction(
         Transaction $transaction
@@ -30,8 +29,7 @@ class BudgetUsageSyncService
         $categoryIds = $transaction
             ->entries
             ->filter(
-                static fn ($entry): bool =>
-                    $entry->finance_category_id !== null
+                static fn ($entry): bool => $entry->finance_category_id !== null
                     && bccomp(
                         $entry->amount,
                         '0.00',
@@ -40,8 +38,7 @@ class BudgetUsageSyncService
             )
             ->pluck('finance_category_id')
             ->map(
-                static fn (mixed $categoryId): int =>
-                    (int) $categoryId
+                static fn (mixed $categoryId): int => (int) $categoryId
             )
             ->unique()
             ->values();

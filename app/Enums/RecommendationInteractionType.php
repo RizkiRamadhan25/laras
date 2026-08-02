@@ -12,34 +12,26 @@ enum RecommendationInteractionType: string
     public function label(): string
     {
         return match ($this) {
-            self::Opened =>
-                'Dibuka',
+            self::Opened => 'Dibuka',
 
-            self::FollowedUp =>
-                'Ditindaklanjuti',
+            self::FollowedUp => 'Ditindaklanjuti',
 
-            self::Dismissed =>
-                'Diingatkan nanti',
+            self::Dismissed => 'Diingatkan nanti',
 
-            self::Irrelevant =>
-                'Tidak relevan',
+            self::Irrelevant => 'Tidak relevan',
         };
     }
 
     public function description(): string
     {
         return match ($this) {
-            self::Opened =>
-                'Rekomendasi dibuka oleh pengguna.',
+            self::Opened => 'Rekomendasi dibuka oleh pengguna.',
 
-            self::FollowedUp =>
-                'Pengguna menyatakan rekomendasi telah ditindaklanjuti.',
+            self::FollowedUp => 'Pengguna menyatakan rekomendasi telah ditindaklanjuti.',
 
-            self::Dismissed =>
-                'Rekomendasi ditunda untuk sementara.',
+            self::Dismissed => 'Rekomendasi ditunda untuk sementara.',
 
-            self::Irrelevant =>
-                'Pengguna menilai rekomendasi tidak relevan.',
+            self::Irrelevant => 'Pengguna menilai rekomendasi tidak relevan.',
         };
     }
 

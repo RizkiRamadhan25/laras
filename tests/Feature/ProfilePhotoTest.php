@@ -13,31 +13,30 @@ class ProfilePhotoTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_upload_profile_photo(): void
+    public function test_uploaded_photo_is_reencoded_and_normalized(): void
     {
         Storage::fake('public');
 
         $user = $this->user();
 
-        $response = $this
+        $photo = UploadedFile::fake()
+            ->image(
+                'profile.jpg',
+                1800,
+                1200
+            )
+            ->size(900);
+
+        $this
             ->actingAs($user)
             ->patch(
                 route(
                     'settings.photo.update'
                 ),
                 [
-                    'photo' =>
-                        UploadedFile::fake()
-                            ->image(
-                                'profile.jpg',
-                                600,
-                                600
-                            )
-                            ->size(500),
+                    'photo' => $photo,
                 ]
-            );
-
-        $response
+            )
             ->assertRedirect(
                 route('settings.index')
                 .'#profile'
@@ -50,10 +49,71 @@ class ProfilePhotoTest extends TestCase
             $user->profile_photo_path
         );
 
+        $this->assertStringEndsWith(
+            '.webp',
+            $user->profile_photo_path
+        );
+
         Storage::disk('public')
             ->assertExists(
                 $user->profile_photo_path
             );
+
+        [$width, $height] = getimagesize(
+            Storage::disk('public')->path(
+                $user->profile_photo_path
+            )
+        );
+
+        $this->assertSame(512, $width);
+        $this->assertSame(512, $height);
+    }
+
+    public function test_reencoding_removes_trailing_metadata_payload(): void
+    {
+        Storage::fake('public');
+
+        $user = $this->user();
+
+        $photo = UploadedFile::fake()
+            ->image(
+                'profile.jpg',
+                600,
+                600
+            );
+
+        file_put_contents(
+            $photo->getPathname(),
+            'PRIVATE-EXIF-MARKER',
+            FILE_APPEND
+        );
+
+        $this
+            ->actingAs($user)
+            ->patch(
+                route(
+                    'settings.photo.update'
+                ),
+                [
+                    'photo' => $photo,
+                ]
+            )
+            ->assertRedirect(
+                route('settings.index')
+                .'#profile'
+            );
+
+        $stored = Storage::disk('public')
+            ->get(
+                $user
+                    ->fresh()
+                    ->profile_photo_path
+            );
+
+        $this->assertStringNotContainsString(
+            'PRIVATE-EXIF-MARKER',
+            $stored
+        );
     }
 
     public function test_new_photo_replaces_old_photo(): void
@@ -65,7 +125,7 @@ class ProfilePhotoTest extends TestCase
         $oldPath =
             'profile-photos/'
             .$user->id
-            .'/old-profile.jpg';
+            .'/old-profile.webp';
 
         Storage::disk('public')->put(
             $oldPath,
@@ -73,8 +133,7 @@ class ProfilePhotoTest extends TestCase
         );
 
         $user->forceFill([
-            'profile_photo_path' =>
-                $oldPath,
+            'profile_photo_path' => $oldPath,
         ])->save();
 
         $this
@@ -84,14 +143,12 @@ class ProfilePhotoTest extends TestCase
                     'settings.photo.update'
                 ),
                 [
-                    'photo' =>
-                        UploadedFile::fake()
-                            ->image(
-                                'new-profile.png',
-                                800,
-                                800
-                            )
-                            ->size(600),
+                    'photo' => UploadedFile::fake()
+                        ->image(
+                            'new-profile.png',
+                            800,
+                            800
+                        ),
                 ]
             )
             ->assertRedirect(
@@ -167,13 +224,12 @@ class ProfilePhotoTest extends TestCase
                     'settings.photo.update'
                 ),
                 [
-                    'photo' =>
-                        UploadedFile::fake()
-                            ->create(
-                                'document.pdf',
-                                500,
-                                'application/pdf'
-                            ),
+                    'photo' => UploadedFile::fake()
+                        ->create(
+                            'document.pdf',
+                            500,
+                            'application/pdf'
+                        ),
                 ]
             )
             ->assertRedirect(
@@ -194,8 +250,7 @@ class ProfilePhotoTest extends TestCase
     private function user(): User
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -203,8 +258,7 @@ class ProfilePhotoTest extends TestCase
         UserPreference::query()
             ->updateOrCreate(
                 [
-                    'user_id' =>
-                        $user->id,
+                    'user_id' => $user->id,
                 ],
                 [
                     'locale' => 'id',

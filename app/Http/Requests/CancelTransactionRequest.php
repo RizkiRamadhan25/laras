@@ -42,8 +42,7 @@ class CancelTransactionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'reason.max' =>
-                'Alasan pembatalan maksimal 500 karakter.',
+            'reason.max' => 'Alasan pembatalan maksimal 500 karakter.',
         ];
     }
 }

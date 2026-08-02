@@ -82,20 +82,13 @@ class FilterTransactionsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'search.max' =>
-                'Kata pencarian maksimal 100 karakter.',
-            'type.in' =>
-                'Jenis transaksi tidak valid.',
-            'status.enum' =>
-                'Status transaksi tidak valid.',
-            'account_id.exists' =>
-                'Rekening filter tidak tersedia.',
-            'date_from.date_format' =>
-                'Format tanggal mulai tidak valid.',
-            'date_to.date_format' =>
-                'Format tanggal akhir tidak valid.',
-            'date_to.after_or_equal' =>
-                'Tanggal akhir tidak boleh mendahului tanggal mulai.',
+            'search.max' => 'Kata pencarian maksimal 100 karakter.',
+            'type.in' => 'Jenis transaksi tidak valid.',
+            'status.enum' => 'Status transaksi tidak valid.',
+            'account_id.exists' => 'Rekening filter tidak tersedia.',
+            'date_from.date_format' => 'Format tanggal mulai tidak valid.',
+            'date_to.date_format' => 'Format tanggal akhir tidak valid.',
+            'date_to.after_or_equal' => 'Tanggal akhir tidak boleh mendahului tanggal mulai.',
         ];
     }
 

@@ -91,8 +91,7 @@ class SaveAccountRequest extends FormRequest
                 ->withTrashed()
                 ->get(['id', 'name'])
                 ->contains(
-                    fn ($account): bool =>
-                        $account->id !== $currentAccountId
+                    fn ($account): bool => $account->id !== $currentAccountId
                         && mb_strtolower(trim($account->name))
                             === $normalizedName
                 );
@@ -113,29 +112,18 @@ class SaveAccountRequest extends FormRequest
     {
         return [
             'name.required' => 'Nama rekening wajib diisi.',
-            'name.max' =>
-                'Nama rekening maksimal 100 karakter.',
+            'name.max' => 'Nama rekening maksimal 100 karakter.',
             'type.required' => 'Tipe rekening wajib dipilih.',
-            'type.enum' =>
-                'Tipe rekening yang dipilih tidak tersedia.',
-            'institution.max' =>
-                'Nama institusi maksimal 100 karakter.',
-            'initial_balance.required' =>
-                'Saldo awal wajib diisi.',
-            'initial_balance.numeric' =>
-                'Saldo awal harus berupa angka.',
-            'initial_balance.decimal' =>
-                'Saldo awal maksimal memiliki dua angka desimal.',
-            'initial_balance.min' =>
-                'Saldo awal tidak boleh kurang dari nol.',
-            'initial_balance.max' =>
-                'Saldo awal melebihi batas yang diperbolehkan.',
-            'account_number_last_four.regex' =>
-                'Empat digit terakhir harus berisi tepat empat angka.',
-            'color.required' =>
-                'Warna penanda wajib dipilih.',
-            'color.regex' =>
-                'Format warna penanda tidak valid.',
+            'type.enum' => 'Tipe rekening yang dipilih tidak tersedia.',
+            'institution.max' => 'Nama institusi maksimal 100 karakter.',
+            'initial_balance.required' => 'Saldo awal wajib diisi.',
+            'initial_balance.numeric' => 'Saldo awal harus berupa angka.',
+            'initial_balance.decimal' => 'Saldo awal maksimal memiliki dua angka desimal.',
+            'initial_balance.min' => 'Saldo awal tidak boleh kurang dari nol.',
+            'initial_balance.max' => 'Saldo awal melebihi batas yang diperbolehkan.',
+            'account_number_last_four.regex' => 'Empat digit terakhir harus berisi tepat empat angka.',
+            'color.required' => 'Warna penanda wajib dipilih.',
+            'color.regex' => 'Format warna penanda tidak valid.',
         ];
     }
 

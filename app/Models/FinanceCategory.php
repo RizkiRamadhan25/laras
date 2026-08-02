@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\FinanceFlowType;
+use Database\Factories\FinanceCategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FinanceCategory extends Model
 {
-    /** @use HasFactory<\Database\Factories\FinanceCategoryFactory> */
+    /** @use HasFactory<FinanceCategoryFactory> */
     use HasFactory, SoftDeletes;
 
     /**

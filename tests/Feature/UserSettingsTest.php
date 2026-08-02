@@ -37,8 +37,7 @@ class UserSettingsTest extends TestCase
                     'settings.profile.update'
                 ),
                 [
-                    'name' =>
-                        'Rizki Ramadhan',
+                    'name' => 'Rizki Ramadhan',
                 ]
             )
             ->assertRedirect(
@@ -64,20 +63,15 @@ class UserSettingsTest extends TestCase
                     'settings.preferences.update'
                 ),
                 [
-                    'timezone' =>
-                        'Asia/Makassar',
+                    'timezone' => 'Asia/Makassar',
 
-                    'date_format' =>
-                        'Y-m-d',
+                    'date_format' => 'Y-m-d',
 
-                    'time_format' =>
-                        'h:i A',
+                    'time_format' => 'h:i A',
 
-                    'currency_code' =>
-                        'USD',
+                    'currency_code' => 'USD',
 
-                    'week_starts_on' =>
-                        0,
+                    'week_starts_on' => 0,
                 ]
             )
             ->assertRedirect(
@@ -132,20 +126,15 @@ class UserSettingsTest extends TestCase
                     'settings.preferences.update'
                 ),
                 [
-                    'timezone' =>
-                        'Invalid/Timezone',
+                    'timezone' => 'Invalid/Timezone',
 
-                    'date_format' =>
-                        'invalid',
+                    'date_format' => 'invalid',
 
-                    'time_format' =>
-                        'invalid',
+                    'time_format' => 'invalid',
 
-                    'currency_code' =>
-                        'INVALID',
+                    'currency_code' => 'INVALID',
 
-                    'week_starts_on' =>
-                        9,
+                    'week_starts_on' => 9,
                 ]
             )
             ->assertRedirect(
@@ -191,8 +180,7 @@ class UserSettingsTest extends TestCase
                     'settings.profile.update'
                 ),
                 [
-                    'name' =>
-                        'Nama diperbarui',
+                    'name' => 'Nama diperbarui',
                 ]
             )
             ->assertRedirect();
@@ -204,20 +192,15 @@ class UserSettingsTest extends TestCase
                     'settings.preferences.update'
                 ),
                 [
-                    'timezone' =>
-                        'Asia/Jayapura',
+                    'timezone' => 'Asia/Jayapura',
 
-                    'date_format' =>
-                        'd-m-Y',
+                    'date_format' => 'd-m-Y',
 
-                    'time_format' =>
-                        'H:i',
+                    'time_format' => 'H:i',
 
-                    'currency_code' =>
-                        'SGD',
+                    'currency_code' => 'SGD',
 
-                    'week_starts_on' =>
-                        6,
+                    'week_starts_on' => 6,
                 ]
             )
             ->assertRedirect();
@@ -246,8 +229,7 @@ class UserSettingsTest extends TestCase
     public function test_preference_is_created_when_missing(): void
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -263,20 +245,15 @@ class UserSettingsTest extends TestCase
                     'settings.preferences.update'
                 ),
                 [
-                    'timezone' =>
-                        'Asia/Jakarta',
+                    'timezone' => 'Asia/Jakarta',
 
-                    'date_format' =>
-                        'd/m/Y',
+                    'date_format' => 'd/m/Y',
 
-                    'time_format' =>
-                        'H:i',
+                    'time_format' => 'H:i',
 
-                    'currency_code' =>
-                        'IDR',
+                    'currency_code' => 'IDR',
 
-                    'week_starts_on' =>
-                        1,
+                    'week_starts_on' => 1,
                 ]
             )
             ->assertRedirect(
@@ -301,8 +278,7 @@ class UserSettingsTest extends TestCase
         $user = User::factory()->create([
             'name' => $name,
 
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -310,8 +286,7 @@ class UserSettingsTest extends TestCase
         UserPreference::query()
             ->updateOrCreate(
                 [
-                    'user_id' =>
-                        $user->id,
+                    'user_id' => $user->id,
                 ],
                 [
                     'locale' => 'id',

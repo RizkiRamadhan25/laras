@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ActivityPriority;
 use App\Enums\ActivityStatus;
+use App\Enums\BudgetAlertLevel;
 use App\Enums\SubscriptionBillingStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
@@ -20,8 +21,7 @@ class PersonalRecommendationService
         private readonly ExpenseAnalysisService $expenseAnalysisService,
         private readonly RecommendationInteractionService $interactionService,
         private readonly BudgetDashboardService $budgetDashboardService
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -87,8 +87,7 @@ class PersonalRecommendationService
             }
 
             $items->push([
-                'key' =>
-                    'billing-failed-'.$billing->id,
+                'key' => 'billing-failed-'.$billing->id,
 
                 'kind' => 'billing_failed',
                 'severity' => 'danger',
@@ -101,8 +100,7 @@ class PersonalRecommendationService
                     $subscription->name
                 ),
 
-                'message' =>
-                    $billing->failure_reason
+                'message' => $billing->failure_reason
                     ?? 'Tagihan belum berhasil dicatat sebagai pengeluaran.',
 
                 'meta' => sprintf(
@@ -123,16 +121,13 @@ class PersonalRecommendationService
                 'action_url' => route(
                     'subscriptions.billings.show',
                     [
-                        'subscription' =>
-                            $subscription->id,
+                        'subscription' => $subscription->id,
 
-                        'billing' =>
-                            $billing->id,
+                        'billing' => $billing->id,
                     ]
                 ),
 
-                'action_label' =>
-                    'Periksa tagihan',
+                'action_label' => 'Periksa tagihan',
 
                 'order_at' => $billing
                     ->scheduled_for
@@ -156,8 +151,7 @@ class PersonalRecommendationService
                 );
 
         foreach (
-            $activityRecommendations
-            as $recommendation
+            $activityRecommendations as $recommendation
         ) {
             $activity =
                 $recommendation['activity'];
@@ -173,16 +167,13 @@ class PersonalRecommendationService
                 $overdue => 'danger',
 
                 $activity->priority
-                    === ActivityPriority::Urgent =>
-                    'danger',
+                    === ActivityPriority::Urgent => 'danger',
 
                 $activity->priority
-                    === ActivityPriority::High =>
-                    'warning',
+                    === ActivityPriority::High => 'warning',
 
                 $activity->status
-                    === ActivityStatus::InProgress =>
-                    'warning',
+                    === ActivityStatus::InProgress => 'warning',
 
                 default => 'info',
             };
@@ -239,8 +230,7 @@ class PersonalRecommendationService
             }
 
             $items->push([
-                'key' =>
-                    'activity-'.$activity->id,
+                'key' => 'activity-'.$activity->id,
 
                 'kind' => 'activity',
                 'severity' => $severity,
@@ -255,8 +245,7 @@ class PersonalRecommendationService
                     : 'Prioritaskan '
                         .$activity->title,
 
-                'message' =>
-                    $recommendation['reason'],
+                'message' => $recommendation['reason'],
 
                 'meta' => implode(
                     ' · ',
@@ -268,8 +257,7 @@ class PersonalRecommendationService
                     $activity->id
                 ),
 
-                'action_label' =>
-                    'Buka aktivitas',
+                'action_label' => 'Buka aktivitas',
 
                 'order_at' => (
                     $activity->relevantAt()
@@ -320,8 +308,7 @@ class PersonalRecommendationService
                 ->get();
 
         foreach (
-            $upcomingSubscriptions
-            as $subscription
+            $upcomingSubscriptions as $subscription
         ) {
             $billingDate =
                 CarbonImmutable::parse(
@@ -356,13 +343,11 @@ class PersonalRecommendationService
             $timeLabel = match ($daysUntil) {
                 0 => 'hari ini',
                 1 => 'besok',
-                default =>
-                    'dalam '.$daysUntil.' hari',
+                default => 'dalam '.$daysUntil.' hari',
             };
 
             $items->push([
-                'key' =>
-                    'subscription-due-'
+                'key' => 'subscription-due-'
                     .$subscription->id,
 
                 'kind' => 'subscription_due',
@@ -404,13 +389,11 @@ class PersonalRecommendationService
                     $subscription->id
                 ),
 
-                'action_label' =>
-                    'Lihat langganan',
+                'action_label' => 'Lihat langganan',
 
-                'order_at' =>
-                    $billingDate->format(
-                        'Y-m-d H:i:s'
-                    ),
+                'order_at' => $billingDate->format(
+                    'Y-m-d H:i:s'
+                ),
             ]);
         }
 
@@ -450,11 +433,9 @@ class PersonalRecommendationService
                 : 'info';
 
             $items->push([
-                'key' =>
-                    'expense-monthly-increase',
+                'key' => 'expense-monthly-increase',
 
-                'kind' =>
-                    'expense_increase',
+                'kind' => 'expense_increase',
 
                 'severity' => $severity,
 
@@ -462,8 +443,7 @@ class PersonalRecommendationService
                     ? 68
                     : 56,
 
-                'icon' =>
-                    'chart-no-axes-combined',
+                'icon' => 'chart-no-axes-combined',
 
                 'title' => sprintf(
                     'Pengeluaran bulan ini naik %s%%',
@@ -485,8 +465,7 @@ class PersonalRecommendationService
                     )
                 ),
 
-                'meta' =>
-                    'Dibandingkan periode setara bulan lalu',
+                'meta' => 'Dibandingkan periode setara bulan lalu',
 
                 'action_url' => route(
                     'analysis.index',
@@ -495,13 +474,11 @@ class PersonalRecommendationService
                     ]
                 ),
 
-                'action_label' =>
-                    'Buka analisis',
+                'action_label' => 'Buka analisis',
 
-                'order_at' =>
-                    $now->format(
-                        'Y-m-d H:i:s'
-                    ),
+                'order_at' => $now->format(
+                    'Y-m-d H:i:s'
+                ),
             ]);
         }
 
@@ -522,12 +499,10 @@ class PersonalRecommendationService
             ) > 0
         ) {
             $items->push([
-                'key' =>
-                    'dominant-category-'
+                'key' => 'dominant-category-'
                     .$topCategory['id'],
 
-                'kind' =>
-                    'dominant_category',
+                'kind' => 'dominant_category',
 
                 'severity' => 'info',
                 'score' => 52,
@@ -570,13 +545,11 @@ class PersonalRecommendationService
                     ]
                 ),
 
-                'action_label' =>
-                    'Evaluasi kategori',
+                'action_label' => 'Evaluasi kategori',
 
-                'order_at' =>
-                    $now->format(
-                        'Y-m-d H:i:s'
-                    ),
+                'order_at' => $now->format(
+                    'Y-m-d H:i:s'
+                ),
             ]);
         }
 
@@ -589,8 +562,7 @@ class PersonalRecommendationService
 
         foreach (
             $budgetOverview['attention_items']
-                ->take(5)
-            as $budgetItem
+                ->take(5) as $budgetItem
         ) {
             $budget = $budgetItem['budget'];
             $period = $budgetItem['period'];
@@ -603,7 +575,7 @@ class PersonalRecommendationService
             }
 
             $exceeded = $alertLevel
-                === \App\Enums\BudgetAlertLevel::Exceeded;
+                === BudgetAlertLevel::Exceeded;
 
             $usagePercent = (float) $budgetItem[
                 'usage_percent'
@@ -707,8 +679,7 @@ class PersonalRecommendationService
                     ]
                 ),
 
-                'action_label' =>
-                    'Tinjau anggaran',
+                'action_label' => 'Tinjau anggaran',
 
                 'order_at' => ($period->updated_at
                     ?? $now)
@@ -795,8 +766,7 @@ class PersonalRecommendationService
                     )
                     ->count(),
 
-                'suppressed' =>
-                    $suppressedCount,
+                'suppressed' => $suppressedCount,
             ],
         ];
     }

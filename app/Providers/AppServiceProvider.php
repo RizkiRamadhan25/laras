@@ -2,13 +2,13 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Listeners\UpdateLastLoginAt;
-use Illuminate\Auth\Events\Login;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\View;
 use App\View\Composers\DashboardRecommendationComposer;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -47,15 +47,13 @@ class AppServiceProvider extends ServiceProvider
                 }
 
                 $view->with([
-                    'headerNotifications' =>
-                        $user->notifications()
-                            ->latest()
-                            ->limit(5)
-                            ->get(),
+                    'headerNotifications' => $user->notifications()
+                        ->latest()
+                        ->limit(5)
+                        ->get(),
 
-                    'headerUnreadNotificationCount' =>
-                        $user->unreadNotifications()
-                            ->count(),
+                    'headerUnreadNotificationCount' => $user->unreadNotifications()
+                        ->count(),
                 ]);
             }
         );

@@ -8,18 +8,50 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+
     <source>
         <include>
             <directory>app</directory>
         </include>
     </source>
+
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+
+        <!--
+            Strict mode diuji secara terisolasi oleh
+            ObservabilityTest, bukan dipaksakan ke
+            seluruh regression suite.
+        -->
+        <env
+            name="LARAS_ELOQUENT_STRICT"
+            value="false"
+        />
+
+        <!--
+            Query monitoring tetap aktif agar
+            query-budget tests dapat membaca header.
+        -->
+        <env
+            name="LARAS_QUERY_MONITORING"
+            value="true"
+        />
+
+        <env
+            name="LARAS_QUERY_RESPONSE_HEADERS"
+            value="true"
+        />
+
+        <env
+            name="APP_MAINTENANCE_DRIVER"
+            value="file"
+        />
+
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>

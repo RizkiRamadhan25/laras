@@ -31,10 +31,8 @@ class MoveAccountRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'direction.required' =>
-                'Arah perpindahan wajib ditentukan.',
-            'direction.in' =>
-                'Arah perpindahan tidak valid.',
+            'direction.required' => 'Arah perpindahan wajib ditentukan.',
+            'direction.in' => 'Arah perpindahan tidak valid.',
         ];
     }
 }

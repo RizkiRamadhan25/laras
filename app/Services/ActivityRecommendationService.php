@@ -34,11 +34,10 @@ class ActivityRecommendationService
             ->open()
             ->get()
             ->map(
-                fn (Activity $activity): array =>
-                    $this->scoreActivity(
-                        $activity,
-                        $now
-                    )
+                fn (Activity $activity): array => $this->scoreActivity(
+                    $activity,
+                    $now
+                )
             )
             ->sort(function (
                 array $left,
@@ -150,17 +149,13 @@ class ActivityRecommendationService
         ActivityPriority $priority
     ): string {
         return match ($priority) {
-            ActivityPriority::Urgent =>
-                'prioritas mendesak',
+            ActivityPriority::Urgent => 'prioritas mendesak',
 
-            ActivityPriority::High =>
-                'prioritas tinggi',
+            ActivityPriority::High => 'prioritas tinggi',
 
-            ActivityPriority::Medium =>
-                'prioritas sedang',
+            ActivityPriority::Medium => 'prioritas sedang',
 
-            ActivityPriority::Low =>
-                'prioritas rendah',
+            ActivityPriority::Low => 'prioritas rendah',
         };
     }
 }

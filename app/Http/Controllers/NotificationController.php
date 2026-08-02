@@ -187,11 +187,9 @@ class NotificationController extends Controller
                     return redirect()->route(
                         'subscriptions.billings.show',
                         [
-                            'subscription' =>
-                                $subscription->id,
+                            'subscription' => $subscription->id,
 
-                            'billing' =>
-                                $billing->id,
+                            'billing' => $billing->id,
                         ]
                     );
                 }

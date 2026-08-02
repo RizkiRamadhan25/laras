@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 class RecommendationInteractionService
 {
     /**
-     * @param array<string, mixed> $item
+     * @param  array<string, mixed>  $item
      */
     public function record(
         User $user,
@@ -23,14 +23,11 @@ class RecommendationInteractionService
             ->create([
                 'user_id' => $user->id,
 
-                'recommendation_key' =>
-                    $item['key'],
+                'recommendation_key' => $item['key'],
 
-                'recommendation_kind' =>
-                    $item['kind'],
+                'recommendation_kind' => $item['kind'],
 
-                'interaction_type' =>
-                    $type,
+                'interaction_type' => $type,
 
                 'title' => mb_substr(
                     $item['title'],
@@ -39,26 +36,19 @@ class RecommendationInteractionService
                 ),
 
                 'snapshot' => [
-                    'message' =>
-                        $item['message'] ?? null,
+                    'message' => $item['message'] ?? null,
 
-                    'meta' =>
-                        $item['meta'] ?? null,
+                    'meta' => $item['meta'] ?? null,
 
-                    'severity' =>
-                        $item['severity'] ?? null,
+                    'severity' => $item['severity'] ?? null,
 
-                    'score' =>
-                        $item['score'] ?? null,
+                    'score' => $item['score'] ?? null,
 
-                    'icon' =>
-                        $item['icon'] ?? null,
+                    'icon' => $item['icon'] ?? null,
 
-                    'action_url' =>
-                        $item['action_url'] ?? null,
+                    'action_url' => $item['action_url'] ?? null,
 
-                    'action_label' =>
-                        $item['action_label'] ?? null,
+                    'action_label' => $item['action_label'] ?? null,
                 ],
 
                 'occurred_at' => now(),
@@ -67,8 +57,7 @@ class RecommendationInteractionService
     }
 
     /**
-     * @param Collection<int, array<string, mixed>> $items
-     *
+     * @param  Collection<int, array<string, mixed>>  $items
      * @return array{
      *     items: Collection<int, array<string, mixed>>,
      *     suppressed_count: int
@@ -127,8 +116,7 @@ class RecommendationInteractionService
                     );
 
                 if (
-                    ! $interaction instanceof
-                        RecommendationInteraction
+                    ! $interaction instanceof RecommendationInteraction
                 ) {
                     $item['latest_interaction'] =
                         null;
@@ -147,9 +135,8 @@ class RecommendationInteractionService
                     'type' => $type->value,
                     'label' => $type->label(),
 
-                    'occurred_at' =>
-                        $interaction
-                            ->occurred_at,
+                    'occurred_at' => $interaction
+                        ->occurred_at,
                 ];
 
                 if (
@@ -187,23 +174,20 @@ class RecommendationInteractionService
 
         $visibleItems = $decorated
             ->reject(
-                fn (array $item): bool =>
-                    $item['_suppressed']
+                fn (array $item): bool => $item['_suppressed']
             )
             ->map(
-                fn (array $item): array =>
-                    Arr::except(
-                        $item,
-                        '_suppressed'
-                    )
+                fn (array $item): array => Arr::except(
+                    $item,
+                    '_suppressed'
+                )
             )
             ->values();
 
         return [
             'items' => $visibleItems,
 
-            'suppressed_count' =>
-                $suppressedCount,
+            'suppressed_count' => $suppressedCount,
         ];
     }
 }

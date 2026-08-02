@@ -44,11 +44,9 @@ class SubscriptionBillingManagementTest extends TestCase
                 route(
                     'subscriptions.billings.show',
                     [
-                        'subscription' =>
-                            $subscription->id,
+                        'subscription' => $subscription->id,
 
-                        'billing' =>
-                            $billing->id,
+                        'billing' => $billing->id,
                     ]
                 )
             )
@@ -83,11 +81,9 @@ class SubscriptionBillingManagementTest extends TestCase
                 route(
                     'subscriptions.billings.show',
                     [
-                        'subscription' =>
-                            $subscription->id,
+                        'subscription' => $subscription->id,
 
-                        'billing' =>
-                            $billing->id,
+                        'billing' => $billing->id,
                     ]
                 )
             )
@@ -127,22 +123,18 @@ class SubscriptionBillingManagementTest extends TestCase
                 route(
                     'subscriptions.billings.retry',
                     [
-                        'subscription' =>
-                            $subscription->id,
+                        'subscription' => $subscription->id,
 
-                        'billing' =>
-                            $billing->id,
+                        'billing' => $billing->id,
                     ]
                 )
             )
             ->assertRedirectToRoute(
                 'subscriptions.billings.show',
                 [
-                    'subscription' =>
-                        $subscription->id,
+                    'subscription' => $subscription->id,
 
-                    'billing' =>
-                        $billing->id,
+                    'billing' => $billing->id,
                 ]
             )
             ->assertSessionHas('status');
@@ -210,11 +202,9 @@ class SubscriptionBillingManagementTest extends TestCase
                 route(
                     'subscriptions.billings.retry',
                     [
-                        'subscription' =>
-                            $subscription->id,
+                        'subscription' => $subscription->id,
 
-                        'billing' =>
-                            $billing->id,
+                        'billing' => $billing->id,
                     ]
                 )
             )
@@ -262,8 +252,7 @@ class SubscriptionBillingManagementTest extends TestCase
             ->firstOrFail();
 
         $billing->forceFill([
-            'status' =>
-                SubscriptionBillingStatus::Posted,
+            'status' => SubscriptionBillingStatus::Posted,
 
             'processed_at' => now(),
         ])->save();
@@ -274,11 +263,9 @@ class SubscriptionBillingManagementTest extends TestCase
                 route(
                     'subscriptions.billings.retry',
                     [
-                        'subscription' =>
-                            $subscription->id,
+                        'subscription' => $subscription->id,
 
-                        'billing' =>
-                            $billing->id,
+                        'billing' => $billing->id,
                     ]
                 )
             )
@@ -311,31 +298,23 @@ class SubscriptionBillingManagementTest extends TestCase
 
         $user->notify(
             new SubscriptionBillingFailed(
-                subscriptionId:
-                    $subscription->id,
+                subscriptionId: $subscription->id,
 
-                billingId:
-                    $billing->id,
+                billingId: $billing->id,
 
-                subscriptionName:
-                    $subscription->name,
+                subscriptionName: $subscription->name,
 
-                amount:
-                    $billing->amount,
+                amount: $billing->amount,
 
-                currencyCode:
-                    $billing->currency_code,
+                currencyCode: $billing->currency_code,
 
-                scheduledFor:
-                    $billing
-                        ->scheduled_for
-                        ->toDateString(),
+                scheduledFor: $billing
+                    ->scheduled_for
+                    ->toDateString(),
 
-                accountName:
-                    $account->name,
+                accountName: $account->name,
 
-                failureReason:
-                    $billing->failure_reason
+                failureReason: $billing->failure_reason
             )
         );
 
@@ -354,11 +333,9 @@ class SubscriptionBillingManagementTest extends TestCase
             ->assertRedirectToRoute(
                 'subscriptions.billings.show',
                 [
-                    'subscription' =>
-                        $subscription->id,
+                    'subscription' => $subscription->id,
 
-                    'billing' =>
-                        $billing->id,
+                    'billing' => $billing->id,
                 ]
             );
     }
@@ -402,8 +379,7 @@ class SubscriptionBillingManagementTest extends TestCase
             ->create([
                 'user_id' => $user->id,
 
-                'flow_type' =>
-                    FinanceFlowType::Expense,
+                'flow_type' => FinanceFlowType::Expense,
 
                 'is_active' => true,
             ]);
@@ -427,8 +403,7 @@ class SubscriptionBillingManagementTest extends TestCase
             data: [
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'name' => 'Spotify',
                 'provider' => 'Spotify',
@@ -439,8 +414,7 @@ class SubscriptionBillingManagementTest extends TestCase
 
                 'started_on' => '2026-08-10',
 
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
 
                 'end_on' => null,
                 'billing_time' => '08:00',
@@ -462,13 +436,11 @@ class SubscriptionBillingManagementTest extends TestCase
             ->firstOrFail();
 
         $billing->forceFill([
-            'status' =>
-                SubscriptionBillingStatus::Failed,
+            'status' => SubscriptionBillingStatus::Failed,
 
             'attempted_at' => now(),
 
-            'failure_reason' =>
-                'Saldo rekening tidak mencukupi.',
+            'failure_reason' => 'Saldo rekening tidak mencukupi.',
 
             'metadata' => [
                 'attempt_count' => 1,

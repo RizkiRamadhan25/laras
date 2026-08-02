@@ -13,7 +13,6 @@ use App\Models\SubscriptionBilling;
 use App\Models\User;
 use App\Models\UserPreference;
 use App\Services\SubscriptionService;
-use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,17 +37,14 @@ class SubscriptionFoundationTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'started_on' => '2026-08-01',
                 'next_billing_on' => '2026-09-01',
 
-                'interval_unit' =>
-                    SubscriptionIntervalUnit::Month,
+                'interval_unit' => SubscriptionIntervalUnit::Month,
 
-                'status' =>
-                    SubscriptionStatus::Active,
+                'status' => SubscriptionStatus::Active,
             ]);
 
         $this->assertTrue(
@@ -106,8 +102,7 @@ class SubscriptionFoundationTest extends TestCase
             data: [
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'name' => 'Netflix',
                 'provider' => 'Netflix',
@@ -119,8 +114,7 @@ class SubscriptionFoundationTest extends TestCase
 
                 'started_on' => '2026-08-10',
 
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
 
                 'end_on' => null,
                 'billing_time' => '08:00',
@@ -152,16 +146,13 @@ class SubscriptionFoundationTest extends TestCase
         $this->assertDatabaseHas(
             'subscription_billings',
             [
-                'subscription_id' =>
-                    $subscription->id,
+                'subscription_id' => $subscription->id,
 
                 'user_id' => $user->id,
 
                 'amount' => '186000.00',
 
-                'status' =>
-                    SubscriptionBillingStatus
-                        ::Scheduled->value,
+                'status' => SubscriptionBillingStatus::Scheduled->value,
             ]
         );
 
@@ -189,8 +180,7 @@ class SubscriptionFoundationTest extends TestCase
                 ->income()
                 ->create([
                     'user_id' => $user->id,
-                    'flow_type' =>
-                        FinanceFlowType::Income,
+                    'flow_type' => FinanceFlowType::Income,
                 ]);
 
         $this->expectException(
@@ -206,8 +196,7 @@ class SubscriptionFoundationTest extends TestCase
             data: [
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $incomeCategory->id,
+                'finance_category_id' => $incomeCategory->id,
 
                 'name' => 'Netflix',
                 'amount' => '186000',
@@ -239,11 +228,9 @@ class SubscriptionFoundationTest extends TestCase
         app(SubscriptionService::class)->create(
             user: $user,
             data: [
-                'account_id' =>
-                    $otherAccount->id,
+                'account_id' => $otherAccount->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'name' => 'Netflix',
                 'amount' => '186000',
@@ -274,8 +261,7 @@ class SubscriptionFoundationTest extends TestCase
             data: [
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'name' => 'Spotify',
                 'amount' => '54990',
@@ -324,16 +310,13 @@ class SubscriptionFoundationTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'started_on' => '2026-01-31',
 
-                'next_billing_on' =>
-                    '2026-01-31',
+                'next_billing_on' => '2026-01-31',
 
-                'interval_unit' =>
-                    SubscriptionIntervalUnit::Month,
+                'interval_unit' => SubscriptionIntervalUnit::Month,
 
                 'interval_count' => 1,
             ]);
@@ -381,13 +364,11 @@ class SubscriptionFoundationTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'started_on' => '2024-02-29',
 
-                'next_billing_on' =>
-                    '2024-02-29',
+                'next_billing_on' => '2024-02-29',
             ]);
 
         $service = app(
@@ -432,11 +413,9 @@ class SubscriptionFoundationTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
-                'status' =>
-                    SubscriptionStatus::Active,
+                'status' => SubscriptionStatus::Active,
             ]);
 
         $service = app(
@@ -505,16 +484,13 @@ class SubscriptionFoundationTest extends TestCase
                 'user_id' => $user->id,
                 'account_id' => $account->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
                 'started_on' => '2026-08-10',
 
-                'next_billing_on' =>
-                    '2026-08-10',
+                'next_billing_on' => '2026-08-10',
 
-                'interval_unit' =>
-                    SubscriptionIntervalUnit::Month,
+                'interval_unit' => SubscriptionIntervalUnit::Month,
 
                 'interval_count' => 1,
                 'end_on' => null,
@@ -548,12 +524,9 @@ class SubscriptionFoundationTest extends TestCase
         $this->assertDatabaseHas(
             'subscription_billings',
             [
-                'subscription_id' =>
-                    $subscription->id,
+                'subscription_id' => $subscription->id,
 
-                'status' =>
-                    SubscriptionBillingStatus
-                        ::Scheduled->value,
+                'status' => SubscriptionBillingStatus::Scheduled->value,
             ]
         );
 
@@ -619,8 +592,7 @@ class SubscriptionFoundationTest extends TestCase
             ->create([
                 'user_id' => $user->id,
 
-                'flow_type' =>
-                    FinanceFlowType::Expense,
+                'flow_type' => FinanceFlowType::Expense,
 
                 'is_active' => true,
             ]);

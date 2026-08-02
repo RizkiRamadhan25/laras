@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\FinanceCategory;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -17,11 +18,10 @@ class BudgetService
 {
     public function __construct(
         private readonly BudgetUsageSyncService $usageSyncService
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function create(
         User $user,
@@ -56,12 +56,11 @@ class BudgetService
         $payload = array_merge(
             $attributes,
             [
-                'period_type' =>
-                    $periodTypeValue,
+                'period_type' => $periodTypeValue,
             ]
         );
 
-        $validator = Validator::make(
+        $validated = Validator::make(
             $payload,
             [
                 'name' => [
@@ -109,105 +108,103 @@ class BudgetService
                 ],
             ],
             [
-                'name.required' =>
-                    'Nama anggaran wajib diisi.',
+                'name.required' => 'Nama anggaran wajib diisi.',
 
-                'amount.required' =>
-                    'Batas anggaran wajib diisi.',
+                'amount.required' => 'Batas anggaran wajib diisi.',
 
-                'amount.gt' =>
-                    'Batas anggaran harus lebih dari nol.',
+                'amount.gt' => 'Batas anggaran harus lebih dari nol.',
 
-                'warning_threshold_percent.between' =>
-                    'Ambang peringatan harus berada antara 1 sampai 100 persen.',
+                'warning_threshold_percent.between' => 'Ambang peringatan harus berada antara 1 sampai 100 persen.',
 
-                'end_date.required' =>
-                    'Tanggal selesai wajib diisi untuk periode khusus.',
+                'end_date.required' => 'Tanggal selesai wajib diisi untuk periode khusus.',
 
-                'end_date.after_or_equal' =>
-                    'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+                'end_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
             ]
-        );
-
-        $validated =
-            $validator->validate();
+        )->validate();
 
         $this->ensureNoDuplicateActiveBudget(
             $user,
             $category
         );
 
-        $periodType =
-            BudgetPeriodType::from(
-                $validated['period_type']
-            );
+        $periodType = BudgetPeriodType::from(
+            $validated['period_type']
+        );
 
-        return DB::transaction(
-            function () use (
-                $user,
-                $category,
-                $validated,
-                $periodType
-            ): Budget {
-                $budget = Budget::query()
-                    ->create([
-                        'user_id' =>
-                            $user->id,
+        try {
+            return DB::transaction(
+                function () use (
+                    $user,
+                    $category,
+                    $validated,
+                    $periodType
+                ): Budget {
+                    $budget = Budget::query()
+                        ->create([
+                            'user_id' => $user->id,
 
-                        'finance_category_id' =>
-                            $category->id,
+                            'finance_category_id' => $category->id,
 
-                        'name' =>
-                            $validated['name'],
+                            'active_finance_category_id' => $category->id,
 
-                        'amount' =>
-                            $validated['amount'],
+                            'name' => $validated['name'],
 
-                        'period_type' =>
-                            $periodType,
+                            'amount' => $validated['amount'],
 
-                        'warning_threshold_percent' =>
-                            $validated[
-                                'warning_threshold_percent'
-                            ],
+                            'period_type' => $periodType,
 
-                        'start_date' =>
-                            $validated[
-                                'start_date'
-                            ],
+                            'warning_threshold_percent' => $validated[
+                                    'warning_threshold_percent'
+                                ],
 
-                        'end_date' =>
-                            $validated[
-                                'end_date'
-                            ] ?? null,
+                            'start_date' => $validated['start_date'],
 
-                        'is_recurring' =>
-                            $periodType
+                            'end_date' => $validated['end_date']
+                                ?? null,
+
+                            'is_recurring' => $periodType
                                 ->isRecurring(),
 
-                        'is_active' =>
-                            true,
-                    ]);
+                            'is_active' => true,
+                        ]);
 
-                $this
-                    ->usageSyncService
-                    ->syncBudgetForDate(
-                        $budget,
-                        CarbonImmutable::parse(
-                            $validated[
-                                'start_date'
-                            ]
-                        )
-                    );
+                    $this
+                        ->usageSyncService
+                        ->syncBudgetForDate(
+                            $budget,
+                            CarbonImmutable::parse(
+                                $validated[
+                                    'start_date'
+                                ]
+                            )
+                        );
 
-                return $budget
-                    ->load([
+                    return $budget->load([
                         'financeCategory',
                         'periods',
                     ]);
-            },
-            3
-        );
+                },
+                3
+            );
+        } catch (
+            UniqueConstraintViolationException $exception
+        ) {
+            if (
+                Budget::query()
+                    ->where('user_id', $user->id)
+                    ->where(
+                        'active_finance_category_id',
+                        $category->id
+                    )
+                    ->exists()
+            ) {
+                throw ValidationException::withMessages([
+                    'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
+                ]);
+            }
+
+            throw $exception;
+        }
     }
 
     private function ensureCategoryOwnership(
@@ -222,8 +219,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Kategori tidak dimiliki oleh pengguna ini.',
+            'finance_category_id' => 'Kategori tidak dimiliki oleh pengguna ini.',
         ]);
     }
 
@@ -242,8 +238,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Anggaran hanya dapat menggunakan kategori yang masih aktif.',
+            'finance_category_id' => 'Anggaran hanya dapat menggunakan kategori yang masih aktif.',
         ]);
     }
 
@@ -264,8 +259,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Anggaran hanya dapat menggunakan kategori pengeluaran.',
+            'finance_category_id' => 'Anggaran hanya dapat menggunakan kategori pengeluaran.',
         ]);
     }
 
@@ -274,17 +268,10 @@ class BudgetService
         FinanceCategory $category
     ): void {
         $exists = Budget::query()
+            ->where('user_id', $user->id)
             ->where(
-                'user_id',
-                $user->id
-            )
-            ->where(
-                'finance_category_id',
+                'active_finance_category_id',
                 $category->id
-            )
-            ->where(
-                'is_active',
-                true
             )
             ->exists();
 
@@ -293,8 +280,7 @@ class BudgetService
         }
 
         throw ValidationException::withMessages([
-            'finance_category_id' =>
-                'Kategori ini sudah memiliki anggaran aktif.',
+            'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
         ]);
     }
 }

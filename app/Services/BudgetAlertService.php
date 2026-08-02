@@ -13,8 +13,7 @@ class BudgetAlertService
 {
     public function __construct(
         private readonly BudgetPeriodService $periodService
-    ) {
-    }
+    ) {}
 
     public function notifyForPeriod(
         BudgetPeriod $period
@@ -58,11 +57,9 @@ class BudgetAlertService
                 $inserted = DB::table(
                     'budget_alert_events'
                 )->insertOrIgnore([
-                    'budget_period_id' =>
-                        $period->id,
+                    'budget_period_id' => $period->id,
 
-                    'alert_level' =>
-                        $level->value,
+                    'alert_level' => $level->value,
 
                     'notified_at' => now(),
                     'created_at' => now(),
@@ -101,29 +98,21 @@ class BudgetAlertService
                         new BudgetExceeded(
                             budgetId: $budget->id,
 
-                            budgetPeriodId:
-                                $period->id,
+                            budgetPeriodId: $period->id,
 
-                            budgetName:
-                                $budget->name,
+                            budgetName: $budget->name,
 
-                            categoryName:
-                                $categoryName,
+                            categoryName: $categoryName,
 
-                            usedAmount:
-                                $period->used_amount,
+                            usedAmount: $period->used_amount,
 
-                            budgetAmount:
-                                $period->budget_amount,
+                            budgetAmount: $period->budget_amount,
 
-                            remainingAmount:
-                                $period->remaining_amount,
+                            remainingAmount: $period->remaining_amount,
 
-                            usagePercent:
-                                $period->usage_percent,
+                            usagePercent: $period->usage_percent,
 
-                            currencyCode:
-                                $currencyCode,
+                            currencyCode: $currencyCode,
 
                             periodStart: $period
                                 ->period_start
@@ -133,8 +122,7 @@ class BudgetAlertService
                                 ->period_end
                                 ->toDateString(),
 
-                            deduplicationKey:
-                                $deduplicationKey
+                            deduplicationKey: $deduplicationKey
                         )
                     );
 
@@ -145,30 +133,22 @@ class BudgetAlertService
                     new BudgetWarningReached(
                         budgetId: $budget->id,
 
-                        budgetPeriodId:
-                            $period->id,
+                        budgetPeriodId: $period->id,
 
-                        budgetName:
-                            $budget->name,
+                        budgetName: $budget->name,
 
-                        categoryName:
-                            $categoryName,
+                        categoryName: $categoryName,
 
-                        usedAmount:
-                            $period->used_amount,
+                        usedAmount: $period->used_amount,
 
-                        budgetAmount:
-                            $period->budget_amount,
+                        budgetAmount: $period->budget_amount,
 
-                        usagePercent:
-                            $period->usage_percent,
+                        usagePercent: $period->usage_percent,
 
-                        warningThresholdPercent:
-                            $budget
-                                ->warning_threshold_percent,
+                        warningThresholdPercent: $budget
+                            ->warning_threshold_percent,
 
-                        currencyCode:
-                            $currencyCode,
+                        currencyCode: $currencyCode,
 
                         periodStart: $period
                             ->period_start
@@ -178,8 +158,7 @@ class BudgetAlertService
                             ->period_end
                             ->toDateString(),
 
-                        deduplicationKey:
-                            $deduplicationKey
+                        deduplicationKey: $deduplicationKey
                     )
                 );
             },

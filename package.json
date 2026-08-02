@@ -4,7 +4,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "audit": "npm audit --audit-level=high",
+        "audit:production": "npm audit --omit=dev --audit-level=high",
+        "quality": "npm run audit:production && npm run build"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

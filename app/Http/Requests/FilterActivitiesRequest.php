@@ -82,29 +82,21 @@ class FilterActivitiesRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'view.in' =>
-                'Tampilan aktivitas tidak valid.',
+            'view.in' => 'Tampilan aktivitas tidak valid.',
 
-            'search.max' =>
-                'Pencarian maksimal 100 karakter.',
+            'search.max' => 'Pencarian maksimal 100 karakter.',
 
-            'type.enum' =>
-                'Jenis aktivitas tidak valid.',
+            'type.enum' => 'Jenis aktivitas tidak valid.',
 
-            'priority.enum' =>
-                'Prioritas aktivitas tidak valid.',
+            'priority.enum' => 'Prioritas aktivitas tidak valid.',
 
-            'status.enum' =>
-                'Status aktivitas tidak valid.',
+            'status.enum' => 'Status aktivitas tidak valid.',
 
-            'date_from.date_format' =>
-                'Format tanggal mulai tidak valid.',
+            'date_from.date_format' => 'Format tanggal mulai tidak valid.',
 
-            'date_to.date_format' =>
-                'Format tanggal akhir tidak valid.',
+            'date_to.date_format' => 'Format tanggal akhir tidak valid.',
 
-            'date_to.after_or_equal' =>
-                'Tanggal akhir tidak boleh mendahului tanggal mulai.',
+            'date_to.after_or_equal' => 'Tanggal akhir tidak boleh mendahului tanggal mulai.',
         ];
     }
 

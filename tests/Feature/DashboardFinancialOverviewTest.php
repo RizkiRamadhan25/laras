@@ -292,8 +292,7 @@ class DashboardFinancialOverviewTest extends TestCase
                 ->expense()
                 ->create([
                     'user_id' => $user->id,
-                    'description' =>
-                        'Transaksi '.$index,
+                    'description' => 'Transaksi '.$index,
                     'occurred_at' => now()
                         ->subMinutes(7 - $index),
                 ]);
@@ -305,8 +304,7 @@ class DashboardFinancialOverviewTest extends TestCase
             ->assertOk()
             ->assertViewHas(
                 'recentTransactions',
-                fn ($transactions): bool =>
-                    $transactions->count() === 6
+                fn ($transactions): bool => $transactions->count() === 6
             )
             ->assertSee('Transaksi 7')
             ->assertDontSee('Transaksi 1');

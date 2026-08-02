@@ -35,8 +35,8 @@
                     </h3>
 
                     <p class="mt-1 text-sm leading-6 text-slate-400">
-                        Buat salinan data Laras dalam
-                        format JSON yang dapat dibaca mesin.
+                        Buat arsip ZIP berisi data JSON dan
+                        foto profil yang tersimpan.
                     </p>
                 </div>
             </header>
@@ -67,12 +67,20 @@
                         <li>
                             • Rekomendasi dan keamanan
                         </li>
+
+                        <li>
+                            • Riwayat peringatan anggaran
+                        </li>
+
+                        <li>
+                            • Foto profil, bila tersedia
+                        </li>
                     </ul>
                 </div>
 
                 <p class="mt-4 text-xs leading-5 text-slate-400">
-                    Hash kata sandi, remember token, dan
-                    token sesi tidak dimasukkan ke dalam arsip.
+                    Hash kata sandi, remember token, token sesi,
+                    dan token reset kata sandi tidak dimasukkan.
                 </p>
             </div>
 
@@ -84,6 +92,30 @@
                 class="mt-7 border-t border-slate-100 pt-6"
             >
                 @csrf
+
+                <div class="mb-5">
+                    <label
+                        for="export_current_password"
+                        class="mb-2 block text-sm font-medium text-slate-700"
+                    >
+                        Kata sandi saat ini
+                    </label>
+
+                    <input
+                        id="export_current_password"
+                        name="export_current_password"
+                        type="password"
+                        required
+                        autocomplete="current-password"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                    >
+
+                    @error('export_current_password')
+                        <p class="mt-2 text-sm text-rose-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
 
                 <button
                     type="submit"

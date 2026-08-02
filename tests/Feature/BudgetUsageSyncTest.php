@@ -46,10 +46,8 @@ class BudgetUsageSyncTest extends TestCase
                 categoryId: $category->id,
                 amount: '250000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T12:00',
-                    'description' =>
-                        'Makan dan belanja bulanan',
+                    'occurred_at' => '2026-08-15T12:00',
+                    'description' => 'Makan dan belanja bulanan',
                 ]
             );
 
@@ -108,8 +106,7 @@ class BudgetUsageSyncTest extends TestCase
                 categoryId: $otherCategory->id,
                 amount: '100000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T13:00',
+                    'occurred_at' => '2026-08-15T13:00',
                 ]
             );
 
@@ -151,8 +148,7 @@ class BudgetUsageSyncTest extends TestCase
             categoryId: $category->id,
             amount: '400000.00',
             data: [
-                'occurred_at' =>
-                    '2026-08-15T14:00',
+                'occurred_at' => '2026-08-15T14:00',
             ]
         );
 
@@ -209,8 +205,7 @@ class BudgetUsageSyncTest extends TestCase
                 categoryId: $category->id,
                 amount: '300000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-10T09:00',
+                    'occurred_at' => '2026-08-10T09:00',
                 ]
             );
 
@@ -256,8 +251,7 @@ class BudgetUsageSyncTest extends TestCase
                 categoryId: $category->id,
                 amount: '150000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-09-10T08:00',
+                    'occurred_at' => '2026-09-10T08:00',
                 ]
             );
 
@@ -319,13 +313,11 @@ class BudgetUsageSyncTest extends TestCase
             ->postTransfer(
                 user: $user,
                 sourceAccountId: $source->id,
-                destinationAccountId:
-                    $destination->id,
+                destinationAccountId: $destination->id,
                 amount: '500000.00',
                 adminFee: '2500.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T15:00',
+                    'occurred_at' => '2026-08-15T15:00',
                 ]
             );
 
@@ -368,8 +360,7 @@ class BudgetUsageSyncTest extends TestCase
                 categoryId: $category->id,
                 amount: '50000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-01T00:30',
+                    'occurred_at' => '2026-08-01T00:30',
                 ]
             );
 
@@ -423,8 +414,7 @@ class BudgetUsageSyncTest extends TestCase
                 categoryId: $category->id,
                 amount: '200000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T16:00',
+                    'occurred_at' => '2026-08-15T16:00',
                 ]
             );
 
@@ -477,8 +467,7 @@ class BudgetUsageSyncTest extends TestCase
                 categoryId: $category->id,
                 amount: '125000.00',
                 data: [
-                    'occurred_at' =>
-                        '2026-08-15T17:00',
+                    'occurred_at' => '2026-08-15T17:00',
                 ]
             );
 
@@ -495,8 +484,7 @@ class BudgetUsageSyncTest extends TestCase
         string $timezone = 'Asia/Jakarta'
     ): User {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
             'is_active' => true,
         ]);
 
@@ -532,7 +520,7 @@ class BudgetUsageSyncTest extends TestCase
         string $flowType,
         string $name
     ): FinanceCategory {
-        $category = new FinanceCategory();
+        $category = new FinanceCategory;
 
         $category->forceFill([
             'user_id' => $user->id,
@@ -559,17 +547,12 @@ class BudgetUsageSyncTest extends TestCase
                 $user,
                 $category,
                 [
-                    'name' =>
-                        'Anggaran '.$category->name,
-                    'amount' =>
-                        '1000000.00',
-                    'period_type' =>
-                        BudgetPeriodType::Monthly
-                            ->value,
-                    'warning_threshold_percent' =>
-                        '80.00',
-                    'start_date' =>
-                        '2026-08-01',
+                    'name' => 'Anggaran '.$category->name,
+                    'amount' => '1000000.00',
+                    'period_type' => BudgetPeriodType::Monthly
+                        ->value,
+                    'warning_threshold_percent' => '80.00',
+                    'start_date' => '2026-08-01',
                 ]
             );
     }

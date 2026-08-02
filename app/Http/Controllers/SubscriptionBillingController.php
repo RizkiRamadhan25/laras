@@ -15,8 +15,7 @@ class SubscriptionBillingController extends Controller
 {
     public function __construct(
         private readonly SubscriptionBillingProcessorService $billingProcessor
-    ) {
-    }
+    ) {}
 
     public function show(
         Request $request,
@@ -54,11 +53,9 @@ class SubscriptionBillingController extends Controller
                 'user' => $request->user()
                     ->load('preference'),
 
-                'subscription' =>
-                    $ownedSubscription,
+                'subscription' => $ownedSubscription,
 
-                'billing' =>
-                    $ownedBilling,
+                'billing' => $ownedBilling,
             ]
         );
     }
@@ -73,11 +70,9 @@ class SubscriptionBillingController extends Controller
                 $this->billingProcessor->retry(
                     user: $request->user(),
 
-                    subscriptionId:
-                        $subscription,
+                    subscriptionId: $subscription,
 
-                    billingId:
-                        $billing
+                    billingId: $billing
                 );
         } catch (DomainException $exception) {
             return back()->with(
@@ -94,11 +89,9 @@ class SubscriptionBillingController extends Controller
                 ->route(
                     'subscriptions.billings.show',
                     [
-                        'subscription' =>
-                            $subscription,
+                        'subscription' => $subscription,
 
-                        'billing' =>
-                            $processed->id,
+                        'billing' => $processed->id,
                     ]
                 )
                 ->with(
@@ -115,11 +108,9 @@ class SubscriptionBillingController extends Controller
                 ->route(
                     'subscriptions.billings.show',
                     [
-                        'subscription' =>
-                            $subscription,
+                        'subscription' => $subscription,
 
-                        'billing' =>
-                            $processed->id,
+                        'billing' => $processed->id,
                     ]
                 )
                 ->with(
@@ -133,11 +124,9 @@ class SubscriptionBillingController extends Controller
             ->route(
                 'subscriptions.billings.show',
                 [
-                    'subscription' =>
-                        $subscription,
+                    'subscription' => $subscription,
 
-                    'billing' =>
-                        $processed->id,
+                    'billing' => $processed->id,
                 ]
             )
             ->with(

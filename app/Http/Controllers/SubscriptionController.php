@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FinanceFlowType;
+use App\Enums\SubscriptionBillingStatus;
 use App\Enums\SubscriptionIntervalUnit;
 use App\Enums\SubscriptionStatus;
 use App\Http\Requests\FilterSubscriptionsRequest;
 use App\Http\Requests\StoreSubscriptionRequest;
 use App\Models\FinanceCategory;
 use App\Models\Subscription;
+use App\Models\SubscriptionBilling;
 use App\Services\SubscriptionService;
 use Carbon\CarbonImmutable;
 use DomainException;
@@ -16,15 +18,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use App\Enums\SubscriptionBillingStatus;
-use App\Models\SubscriptionBilling;
 
 class SubscriptionController extends Controller
 {
     public function __construct(
         private readonly SubscriptionService $subscriptionService
-    ) {
-    }
+    ) {}
 
     public function index(
         FilterSubscriptionsRequest $request
@@ -176,29 +175,24 @@ class SubscriptionController extends Controller
                 ->orderBy('name')
                 ->get(),
 
-            'categories' =>
-                $this->expenseCategories(
-                    $user->id
-                ),
+            'categories' => $this->expenseCategories(
+                $user->id
+            ),
 
-            'statuses' =>
-                SubscriptionStatus::cases(),
+            'statuses' => SubscriptionStatus::cases(),
 
             'summary' => [
-                'active' =>
-                    $activeSubscriptions->count(),
+                'active' => $activeSubscriptions->count(),
 
                 'paused' => $user
                     ->subscriptions()
                     ->where(
                         'status',
-                        SubscriptionStatus
-                            ::Paused->value
+                        SubscriptionStatus::Paused->value
                     )
                     ->count(),
 
-                'monthly' =>
-                    $monthlyEquivalent,
+                'monthly' => $monthlyEquivalent,
 
                 'yearly' => bcmul(
                     $monthlyEquivalent,
@@ -241,13 +235,11 @@ class SubscriptionController extends Controller
                 ->orderBy('name')
                 ->get(),
 
-            'categories' =>
-                $this->expenseCategories(
-                    $user->id
-                ),
+            'categories' => $this->expenseCategories(
+                $user->id
+            ),
 
-            'intervalUnits' =>
-                SubscriptionIntervalUnit::cases(),
+            'intervalUnits' => SubscriptionIntervalUnit::cases(),
         ]);
     }
 
@@ -317,8 +309,7 @@ class SubscriptionController extends Controller
             )
                 ->where(
                     'status',
-                    SubscriptionBillingStatus
-                        ::Posted->value
+                    SubscriptionBillingStatus::Posted->value
                 )
                 ->count(),
 
@@ -327,8 +318,7 @@ class SubscriptionController extends Controller
             )
                 ->where(
                     'status',
-                    SubscriptionBillingStatus
-                        ::Failed->value
+                    SubscriptionBillingStatus::Failed->value
                 )
                 ->count(),
 
@@ -337,8 +327,7 @@ class SubscriptionController extends Controller
             )
                 ->where(
                     'status',
-                    SubscriptionBillingStatus
-                        ::Scheduled->value
+                    SubscriptionBillingStatus::Scheduled->value
                 )
                 ->count(),
 
@@ -347,8 +336,7 @@ class SubscriptionController extends Controller
             )
                 ->where(
                     'status',
-                    SubscriptionBillingStatus
-                        ::Posted->value
+                    SubscriptionBillingStatus::Posted->value
                 )
                 ->sum('amount'),
         ];
@@ -365,13 +353,11 @@ class SubscriptionController extends Controller
         return view('subscriptions.show', [
             'user' => $user,
 
-            'subscription' =>
-                $ownedSubscription,
+            'subscription' => $ownedSubscription,
 
             'billings' => $billings,
 
-            'billingSummary' =>
-                $billingSummary,
+            'billingSummary' => $billingSummary,
         ]);
     }
 
@@ -396,13 +382,11 @@ class SubscriptionController extends Controller
                 ->orderBy('name')
                 ->get(),
 
-            'categories' =>
-                $this->expenseCategories(
-                    $user->id
-                ),
+            'categories' => $this->expenseCategories(
+                $user->id
+            ),
 
-            'intervalUnits' =>
-                SubscriptionIntervalUnit::cases(),
+            'intervalUnits' => SubscriptionIntervalUnit::cases(),
         ]);
     }
 
@@ -414,8 +398,7 @@ class SubscriptionController extends Controller
             $updated =
                 $this->subscriptionService->update(
                     user: $request->user(),
-                    subscriptionId:
-                        $subscription,
+                    subscriptionId: $subscription,
                     data: $request->validated()
                 );
         } catch (DomainException $exception) {
@@ -443,15 +426,13 @@ class SubscriptionController extends Controller
         int $subscription
     ): RedirectResponse {
         return $this->statusAction(
-            callback: fn (): Subscription =>
-                $this->subscriptionService
-                    ->pause(
-                        $request->user(),
-                        $subscription
-                    ),
+            callback: fn (): Subscription => $this->subscriptionService
+                ->pause(
+                    $request->user(),
+                    $subscription
+                ),
 
-            message:
-                'Langganan berhasil dijeda.'
+            message: 'Langganan berhasil dijeda.'
         );
     }
 
@@ -460,15 +441,13 @@ class SubscriptionController extends Controller
         int $subscription
     ): RedirectResponse {
         return $this->statusAction(
-            callback: fn (): Subscription =>
-                $this->subscriptionService
-                    ->resume(
-                        $request->user(),
-                        $subscription
-                    ),
+            callback: fn (): Subscription => $this->subscriptionService
+                ->resume(
+                    $request->user(),
+                    $subscription
+                ),
 
-            message:
-                'Langganan berhasil diaktifkan kembali.'
+            message: 'Langganan berhasil diaktifkan kembali.'
         );
     }
 
@@ -477,15 +456,13 @@ class SubscriptionController extends Controller
         int $subscription
     ): RedirectResponse {
         return $this->statusAction(
-            callback: fn (): Subscription =>
-                $this->subscriptionService
-                    ->cancel(
-                        $request->user(),
-                        $subscription
-                    ),
+            callback: fn (): Subscription => $this->subscriptionService
+                ->cancel(
+                    $request->user(),
+                    $subscription
+                ),
 
-            message:
-                'Langganan berhasil dihentikan.'
+            message: 'Langganan berhasil dihentikan.'
         );
     }
 
@@ -498,11 +475,9 @@ class SubscriptionController extends Controller
             ->whereIn(
                 'flow_type',
                 [
-                    FinanceFlowType
-                        ::Expense->value,
+                    FinanceFlowType::Expense->value,
 
-                    FinanceFlowType
-                        ::Both->value,
+                    FinanceFlowType::Both->value,
                 ]
             )
             ->orderBy('name')
@@ -510,7 +485,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * @param callable(): Subscription $callback
+     * @param  callable(): Subscription  $callback
      */
     private function statusAction(
         callable $callback,

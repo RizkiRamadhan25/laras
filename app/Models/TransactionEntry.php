@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Enums\TransactionEntryRole;
+use Database\Factories\TransactionEntryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TransactionEntry extends Model
 {
-    /** @use HasFactory<\Database\Factories\TransactionEntryFactory> */
+    /** @use HasFactory<TransactionEntryFactory> */
     use HasFactory;
 
     /**

@@ -87,8 +87,7 @@ class OnboardingController extends Controller
                     'type' => $account->type->value,
                     'institution' => $account->institution,
                     'initial_balance' => $account->initial_balance,
-                    'account_number_last_four' =>
-                        $account->account_number_last_four,
+                    'account_number_last_four' => $account->account_number_last_four,
                     'color' => $account->color ?? '#2563EB',
                 ]
             )
@@ -153,15 +152,11 @@ class OnboardingController extends Controller
                 $user->accounts()->create([
                     'name' => $account['name'],
                     'type' => $type,
-                    'institution' =>
-                        $account['institution'] ?? null,
+                    'institution' => $account['institution'] ?? null,
                     'currency_code' => $currencyCode,
-                    'initial_balance' =>
-                        $account['initial_balance'],
-                    'cached_balance' =>
-                        $account['initial_balance'],
-                    'account_number_last_four' =>
-                        $account['account_number_last_four'] ?? null,
+                    'initial_balance' => $account['initial_balance'],
+                    'cached_balance' => $account['initial_balance'],
+                    'account_number_last_four' => $account['account_number_last_four'] ?? null,
                     'color' => $account['color'],
                     'icon' => $this->accountIcon($type),
                     'is_active' => true,
@@ -201,4 +196,4 @@ class OnboardingController extends Controller
             AccountType::Other => 'circle-dollar-sign',
         };
     }
-}   
+}

@@ -14,8 +14,7 @@ class AccountSecurityController extends Controller
 {
     public function __construct(
         private readonly SecurityEventService $securityEvents
-    ) {
-    }
+    ) {}
 
     public function updatePassword(
         UpdatePasswordRequest $request
@@ -45,9 +44,7 @@ class AccountSecurityController extends Controller
 
         $this->securityEvents->record(
             user: $user,
-            type:
-                SecurityEventType
-                    ::PasswordChanged,
+            type: SecurityEventType::PasswordChanged,
             request: $request
         );
 
@@ -74,9 +71,7 @@ class AccountSecurityController extends Controller
 
         $this->securityEvents->record(
             user: $user,
-            type:
-                SecurityEventType
-                    ::OtherSessionsLoggedOut,
+            type: SecurityEventType::OtherSessionsLoggedOut,
             request: $request
         );
 

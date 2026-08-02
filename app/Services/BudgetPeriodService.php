@@ -9,6 +9,8 @@ use App\Models\Budget;
 use App\Models\BudgetPeriod;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class BudgetPeriodService
@@ -23,39 +25,28 @@ class BudgetPeriodService
                 $referenceDate->toDateString()
             )
             : CarbonImmutable::now(
-                config(
-                    'app.timezone',
-                    'Asia/Jakarta'
-                )
+                $this->budgetTimezone($budget)
             )->startOfDay();
 
-        if (
-            ! $budget->isActiveOn(
-                $reference
-            )
-        ) {
+        if (! $budget->isActiveOn($reference)) {
             throw new InvalidArgumentException(
                 'Tanggal berada di luar masa aktif anggaran.'
             );
         }
 
-        [
-            $periodStart,
-            $periodEnd,
-        ] = $this->periodBounds(
-            $budget,
-            $reference
+        [$periodStart, $periodEnd] =
+            $this->periodBounds(
+                $budget,
+                $reference
+            );
+
+        $budgetAmount = $this->toHundredths(
+            $budget->amount
         );
 
-        $budgetAmount =
-            $this->toHundredths(
-                $budget->amount
-            );
-
-        $used =
-            $this->toHundredths(
-                $usedAmount
-            );
+        $used = $this->toHundredths(
+            $usedAmount
+        );
 
         if ($used < 0) {
             throw new InvalidArgumentException(
@@ -69,8 +60,7 @@ class BudgetPeriodService
             );
         }
 
-        $remaining =
-            $budgetAmount - $used;
+        $remaining = $budgetAmount - $used;
 
         $usageBasisPoints =
             $this->usageBasisPoints(
@@ -78,141 +68,199 @@ class BudgetPeriodService
                 $budgetAmount
             );
 
-        $period = BudgetPeriod::query()
-            ->where(
-                'budget_id',
-                $budget->id
-            )
-            ->whereDate(
-                'period_start',
-                $periodStart->toDateString()
-            )
-            ->whereDate(
-                'period_end',
-                $periodEnd->toDateString()
-            )
-            ->first();
+        $values = [
+            'budget_amount' => $this->formatHundredths(
+                $budgetAmount
+            ),
 
-        if ($period === null) {
-            $period = new BudgetPeriod([
-                'budget_id' =>
-                    $budget->id,
+            'used_amount' => $this->formatHundredths(
+                $used
+            ),
 
-                'period_start' =>
-                    $periodStart,
+            'remaining_amount' => $this->formatHundredths(
+                $remaining
+            ),
 
-                'period_end' =>
-                    $periodEnd,
-            ]);
-        }
+            'usage_percent' => $this->formatHundredths(
+                $usageBasisPoints
+            ),
 
-        $period->fill([
-            'budget_amount' =>
-                $this->formatHundredths(
-                    $budgetAmount
-                ),
+            'status' => $this->periodStatus(
+                $periodStart,
+                $periodEnd,
+                $this->budgetTimezone(
+                    $budget
+                )
+            ),
+        ];
 
-            'used_amount' =>
-                $this->formatHundredths(
-                    $used
-                ),
+        return DB::transaction(
+            function () use (
+                $budget,
+                $periodStart,
+                $periodEnd,
+                $values
+            ): BudgetPeriod {
+                /*
+                * Cari menggunakan whereDate agar kompatibel
+                * dengan penyimpanan tanggal MySQL dan SQLite.
+                */
+                $period = BudgetPeriod::query()
+                    ->where(
+                        'budget_id',
+                        $budget->id
+                    )
+                    ->whereDate(
+                        'period_start',
+                        $periodStart->toDateString()
+                    )
+                    ->whereDate(
+                        'period_end',
+                        $periodEnd->toDateString()
+                    )
+                    ->lockForUpdate()
+                    ->first();
 
-            'remaining_amount' =>
-                $this->formatHundredths(
-                    $remaining
-                ),
+                if ($period === null) {
+                    try {
+                        $period = BudgetPeriod::query()
+                            ->create([
+                                'budget_id' => $budget->id,
 
-            'usage_percent' =>
-                $this->formatHundredths(
-                    $usageBasisPoints
-                ),
+                                'period_start' => $periodStart,
 
-            'status' =>
-                $this->periodStatus(
-                    $periodStart,
-                    $periodEnd
-                ),
-        ]);
+                                'period_end' => $periodEnd,
 
-        $period->save();
+                                ...$values,
+                            ]);
+                    } catch (
+                        UniqueConstraintViolationException
+                    ) {
+                        /*
+                        * Proses lain mungkin telah membuat
+                        * periode yang sama lebih dahulu.
+                        */
+                        $period = BudgetPeriod::query()
+                            ->where(
+                                'budget_id',
+                                $budget->id
+                            )
+                            ->whereDate(
+                                'period_start',
+                                $periodStart
+                                    ->toDateString()
+                            )
+                            ->whereDate(
+                                'period_end',
+                                $periodEnd
+                                    ->toDateString()
+                            )
+                            ->lockForUpdate()
+                            ->firstOrFail();
+                    }
+                }
 
-        return $period->refresh();
+                $lockedPeriod = BudgetPeriod::query()
+                    ->whereKey($period->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $lockedPeriod
+                    ->forceFill($values)
+                    ->save();
+
+                return $lockedPeriod->refresh();
+            },
+            3
+        );
     }
 
     public function refreshExisting(
         BudgetPeriod $period
     ): BudgetPeriod {
-        $period->loadMissing('budget');
+        return DB::transaction(
+            function () use ($period): BudgetPeriod {
+                $lockedPeriod = BudgetPeriod::query()
+                    ->whereKey($period->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $budgetAmount =
-            $this->toHundredths(
-                $period->budget->amount
-            );
+                $lockedPeriod->loadMissing(
+                    'budget'
+                );
 
-        $usedAmount =
-            $this->toHundredths(
-                $period->used_amount
-            );
+                $budgetAmount =
+                    $this->toHundredths(
+                        $lockedPeriod
+                            ->budget
+                            ->amount
+                    );
 
-        if ($budgetAmount <= 0) {
-            throw new InvalidArgumentException(
-                'Batas anggaran harus lebih dari nol.'
-            );
-        }
+                $usedAmount =
+                    $this->toHundredths(
+                        $lockedPeriod
+                            ->used_amount
+                    );
 
-        if ($usedAmount < 0) {
-            throw new InvalidArgumentException(
-                'Penggunaan anggaran tidak boleh negatif.'
-            );
-        }
+                if ($budgetAmount <= 0) {
+                    throw new InvalidArgumentException(
+                        'Batas anggaran harus lebih dari nol.'
+                    );
+                }
 
-        $remainingAmount =
-            $budgetAmount - $usedAmount;
+                if ($usedAmount < 0) {
+                    throw new InvalidArgumentException(
+                        'Penggunaan anggaran tidak boleh negatif.'
+                    );
+                }
 
-        $usageBasisPoints =
-            $this->usageBasisPoints(
-                $usedAmount,
-                $budgetAmount
-            );
+                $remainingAmount =
+                    $budgetAmount - $usedAmount;
 
-        $periodStart = CarbonImmutable::parse(
-            $period
-                ->period_start
-                ->toDateString()
+                $usageBasisPoints =
+                    $this->usageBasisPoints(
+                        $usedAmount,
+                        $budgetAmount
+                    );
+
+                $periodStart = CarbonImmutable::parse(
+                    $lockedPeriod
+                        ->period_start
+                        ->toDateString()
+                );
+
+                $periodEnd = CarbonImmutable::parse(
+                    $lockedPeriod
+                        ->period_end
+                        ->toDateString()
+                );
+
+                $lockedPeriod->forceFill([
+                    'budget_amount' => $this->formatHundredths(
+                        $budgetAmount
+                    ),
+
+                    'remaining_amount' => $this->formatHundredths(
+                        $remainingAmount
+                    ),
+
+                    'usage_percent' => $this->formatHundredths(
+                        $usageBasisPoints
+                    ),
+
+                    'status' => $this->periodStatus(
+                        $periodStart,
+                        $periodEnd,
+                        $this->budgetTimezone(
+                            $lockedPeriod->budget
+                        )
+                    ),
+                ])->save();
+
+                return $lockedPeriod->refresh();
+            },
+            3
         );
-
-        $periodEnd = CarbonImmutable::parse(
-            $period
-                ->period_end
-                ->toDateString()
-        );
-
-        $period->forceFill([
-            'budget_amount' =>
-                $this->formatHundredths(
-                    $budgetAmount
-                ),
-
-            'remaining_amount' =>
-                $this->formatHundredths(
-                    $remainingAmount
-                ),
-
-            'usage_percent' =>
-                $this->formatHundredths(
-                    $usageBasisPoints
-                ),
-
-            'status' =>
-                $this->periodStatus(
-                    $periodStart,
-                    $periodEnd
-                ),
-        ]);
-
-        $period->save();
-
-        return $period->refresh();
     }
 
     public function alertLevel(
@@ -335,24 +383,42 @@ class BudgetPeriodService
 
     private function periodStatus(
         CarbonImmutable $start,
-        CarbonImmutable $end
+        CarbonImmutable $end,
+        string $timezone
     ): BudgetPeriodStatus {
-        $today = CarbonImmutable::now(
-            config(
-                'app.timezone',
-                'Asia/Jakarta'
-            )
-        )->startOfDay();
+        $todayDate = CarbonImmutable::now()
+            ->setTimezone($timezone)
+            ->toDateString();
 
-        if ($today->lt($start)) {
+        $startDate = $start->toDateString();
+        $endDate = $end->toDateString();
+
+        if ($todayDate < $startDate) {
             return BudgetPeriodStatus::Upcoming;
         }
 
-        if ($today->gt($end)) {
+        if ($todayDate > $endDate) {
             return BudgetPeriodStatus::Closed;
         }
 
         return BudgetPeriodStatus::Active;
+    }
+
+    private function budgetTimezone(
+        Budget $budget
+    ): string {
+        $budget->loadMissing(
+            'user.preference'
+        );
+
+        return $budget
+            ->user
+            ?->preference
+            ?->timezone
+            ?? config(
+                'laras.defaults.timezone',
+                'Asia/Jakarta'
+            );
     }
 
     private function usageBasisPoints(

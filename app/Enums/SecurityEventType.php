@@ -13,44 +13,36 @@ enum SecurityEventType: string
     public function label(): string
     {
         return match ($this) {
-            self::PasswordChanged =>
-                'Kata sandi diubah',
+            self::PasswordChanged => 'Kata sandi diubah',
 
-            self::OtherSessionsLoggedOut =>
-                'Perangkat lain dikeluarkan',
+            self::OtherSessionsLoggedOut => 'Perangkat lain dikeluarkan',
         };
     }
 
     public function description(): string
     {
         return match ($this) {
-            self::PasswordChanged =>
-                'Kata sandi akun berhasil diperbarui.',
+            self::PasswordChanged => 'Kata sandi akun berhasil diperbarui.',
 
-            self::OtherSessionsLoggedOut =>
-                'Seluruh sesi selain perangkat ini telah dikeluarkan.',
+            self::OtherSessionsLoggedOut => 'Seluruh sesi selain perangkat ini telah dikeluarkan.',
         };
     }
 
     public function icon(): string
     {
         return match ($this) {
-            self::PasswordChanged =>
-                'key-round',
+            self::PasswordChanged => 'key-round',
 
-            self::OtherSessionsLoggedOut =>
-                'monitor-smartphone',
+            self::OtherSessionsLoggedOut => 'monitor-smartphone',
         };
     }
 
     public function colorClass(): string
     {
         return match ($this) {
-            self::PasswordChanged =>
-                'bg-emerald-100 text-emerald-700',
+            self::PasswordChanged => 'bg-emerald-100 text-emerald-700',
 
-            self::OtherSessionsLoggedOut =>
-                'bg-blue-100 text-blue-700',
+            self::OtherSessionsLoggedOut => 'bg-blue-100 text-blue-700',
         };
     }
 }

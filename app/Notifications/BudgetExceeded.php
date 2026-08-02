@@ -19,8 +19,7 @@ class BudgetExceeded extends Notification
         public readonly string $periodStart,
         public readonly string $periodEnd,
         public readonly string $deduplicationKey
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>
@@ -59,8 +58,7 @@ class BudgetExceeded extends Notification
         return [
             'kind' => 'budget_exceeded',
 
-            'title' =>
-                'Batas anggaran terlampaui',
+            'title' => 'Batas anggaran terlampaui',
 
             'message' => sprintf(
                 '%s telah melewati batas sebesar %s %s.',
@@ -76,33 +74,26 @@ class BudgetExceeded extends Notification
 
             'budget_id' => $this->budgetId,
 
-            'budget_period_id' =>
-                $this->budgetPeriodId,
+            'budget_period_id' => $this->budgetPeriodId,
 
             'budget_name' => $this->budgetName,
 
-            'category_name' =>
-                $this->categoryName,
+            'category_name' => $this->categoryName,
 
             'used_amount' => $this->usedAmount,
 
-            'budget_amount' =>
-                $this->budgetAmount,
+            'budget_amount' => $this->budgetAmount,
 
-            'remaining_amount' =>
-                $this->remainingAmount,
+            'remaining_amount' => $this->remainingAmount,
 
-            'usage_percent' =>
-                $this->usagePercent,
+            'usage_percent' => $this->usagePercent,
 
-            'currency_code' =>
-                $this->currencyCode,
+            'currency_code' => $this->currencyCode,
 
             'period_start' => $this->periodStart,
             'period_end' => $this->periodEnd,
 
-            'deduplication_key' =>
-                $this->deduplicationKey,
+            'deduplication_key' => $this->deduplicationKey,
 
             'severity' => 'danger',
             'icon' => 'circle-alert',

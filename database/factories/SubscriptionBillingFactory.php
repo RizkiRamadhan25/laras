@@ -4,11 +4,12 @@ namespace Database\Factories;
 
 use App\Enums\SubscriptionBillingStatus;
 use App\Models\Subscription;
+use App\Models\SubscriptionBilling;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\SubscriptionBilling>
+ * @extends Factory<SubscriptionBilling>
  */
 class SubscriptionBillingFactory extends Factory
 {
@@ -18,20 +19,17 @@ class SubscriptionBillingFactory extends Factory
     public function definition(): array
     {
         return [
-            'subscription_id' =>
-                Subscription::factory(),
+            'subscription_id' => Subscription::factory(),
 
             'user_id' => User::factory(),
             'transaction_id' => null,
 
-            'scheduled_for' =>
-                now()->addMonth()->toDateString(),
+            'scheduled_for' => now()->addMonth()->toDateString(),
 
             'amount' => '59000.00',
             'currency_code' => 'IDR',
 
-            'status' =>
-                SubscriptionBillingStatus::Scheduled,
+            'status' => SubscriptionBillingStatus::Scheduled,
 
             'attempted_at' => null,
             'processed_at' => null,
@@ -43,21 +41,18 @@ class SubscriptionBillingFactory extends Factory
     public function failed(): static
     {
         return $this->state(fn (): array => [
-            'status' =>
-                SubscriptionBillingStatus::Failed,
+            'status' => SubscriptionBillingStatus::Failed,
 
             'attempted_at' => now(),
 
-            'failure_reason' =>
-                'Saldo rekening tidak mencukupi.',
+            'failure_reason' => 'Saldo rekening tidak mencukupi.',
         ]);
     }
 
     public function posted(): static
     {
         return $this->state(fn (): array => [
-            'status' =>
-                SubscriptionBillingStatus::Posted,
+            'status' => SubscriptionBillingStatus::Posted,
 
             'attempted_at' => now(),
             'processed_at' => now(),

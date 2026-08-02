@@ -16,8 +16,7 @@ class RecommendationController extends Controller
     public function __construct(
         private readonly PersonalRecommendationService $recommendationService,
         private readonly RecommendationInteractionService $interactionService
-    ) {
-    }
+    ) {}
 
     public function index(
         Request $request
@@ -31,10 +30,9 @@ class RecommendationController extends Controller
             [
                 'user' => $user,
 
-                'recommendations' =>
-                    $this
-                        ->recommendationService
-                        ->build($user),
+                'recommendations' => $this
+                    ->recommendationService
+                    ->build($user),
             ]
         );
     }
@@ -55,9 +53,7 @@ class RecommendationController extends Controller
                 user: $user,
                 item: $item,
 
-                type:
-                    RecommendationInteractionType
-                        ::Opened
+                type: RecommendationInteractionType::Opened
             );
 
         return redirect()->to(
@@ -91,21 +87,13 @@ class RecommendationController extends Controller
             );
 
         $message = match ($type) {
-            RecommendationInteractionType
-                ::FollowedUp =>
-                'Rekomendasi ditandai sebagai sudah ditindaklanjuti.',
+            RecommendationInteractionType::FollowedUp => 'Rekomendasi ditandai sebagai sudah ditindaklanjuti.',
 
-            RecommendationInteractionType
-                ::Dismissed =>
-                'Rekomendasi akan disembunyikan selama 24 jam.',
+            RecommendationInteractionType::Dismissed => 'Rekomendasi akan disembunyikan selama 24 jam.',
 
-            RecommendationInteractionType
-                ::Irrelevant =>
-                'Rekomendasi ditandai tidak relevan.',
+            RecommendationInteractionType::Irrelevant => 'Rekomendasi ditandai tidak relevan.',
 
-            RecommendationInteractionType
-                ::Opened =>
-                'Rekomendasi telah dibuka.',
+            RecommendationInteractionType::Opened => 'Rekomendasi telah dibuka.',
         };
 
         return redirect()
@@ -137,8 +125,7 @@ class RecommendationController extends Controller
             [
                 'user' => $user,
 
-                'interactions' =>
-                    $interactions,
+                'interactions' => $interactions,
             ]
         );
     }

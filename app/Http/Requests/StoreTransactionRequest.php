@@ -197,61 +197,37 @@ class StoreTransactionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'type.required' =>
-                'Jenis transaksi wajib dipilih.',
-            'type.in' =>
-                'Jenis transaksi tidak tersedia.',
+            'type.required' => 'Jenis transaksi wajib dipilih.',
+            'type.in' => 'Jenis transaksi tidak tersedia.',
 
-            'account_id.required' =>
-                'Rekening wajib dipilih.',
-            'account_id.exists' =>
-                'Rekening yang dipilih tidak tersedia.',
+            'account_id.required' => 'Rekening wajib dipilih.',
+            'account_id.exists' => 'Rekening yang dipilih tidak tersedia.',
 
-            'destination_account_id.required' =>
-                'Rekening tujuan wajib dipilih.',
-            'destination_account_id.different' =>
-                'Rekening sumber dan tujuan harus berbeda.',
-            'destination_account_id.exists' =>
-                'Rekening tujuan tidak tersedia.',
+            'destination_account_id.required' => 'Rekening tujuan wajib dipilih.',
+            'destination_account_id.different' => 'Rekening sumber dan tujuan harus berbeda.',
+            'destination_account_id.exists' => 'Rekening tujuan tidak tersedia.',
 
-            'category_id.required' =>
-                'Kategori wajib dipilih.',
-            'category_id.exists' =>
-                'Kategori yang dipilih tidak tersedia.',
+            'category_id.required' => 'Kategori wajib dipilih.',
+            'category_id.exists' => 'Kategori yang dipilih tidak tersedia.',
 
-            'amount.required' =>
-                'Nominal transaksi wajib diisi.',
-            'amount.numeric' =>
-                'Nominal transaksi harus berupa angka.',
-            'amount.decimal' =>
-                'Nominal maksimal memiliki dua angka desimal.',
-            'amount.gt' =>
-                'Nominal transaksi harus lebih besar dari nol.',
-            'amount.max' =>
-                'Nominal transaksi melebihi batas.',
+            'amount.required' => 'Nominal transaksi wajib diisi.',
+            'amount.numeric' => 'Nominal transaksi harus berupa angka.',
+            'amount.decimal' => 'Nominal maksimal memiliki dua angka desimal.',
+            'amount.gt' => 'Nominal transaksi harus lebih besar dari nol.',
+            'amount.max' => 'Nominal transaksi melebihi batas.',
 
-            'admin_fee.numeric' =>
-                'Biaya admin harus berupa angka.',
-            'admin_fee.decimal' =>
-                'Biaya admin maksimal memiliki dua angka desimal.',
-            'admin_fee.min' =>
-                'Biaya admin tidak boleh kurang dari nol.',
-            'admin_fee.max' =>
-                'Biaya admin melebihi batas.',
+            'admin_fee.numeric' => 'Biaya admin harus berupa angka.',
+            'admin_fee.decimal' => 'Biaya admin maksimal memiliki dua angka desimal.',
+            'admin_fee.min' => 'Biaya admin tidak boleh kurang dari nol.',
+            'admin_fee.max' => 'Biaya admin melebihi batas.',
 
-            'occurred_at.required' =>
-                'Tanggal dan waktu transaksi wajib diisi.',
-            'occurred_at.date_format' =>
-                'Format tanggal dan waktu transaksi tidak valid.',
+            'occurred_at.required' => 'Tanggal dan waktu transaksi wajib diisi.',
+            'occurred_at.date_format' => 'Format tanggal dan waktu transaksi tidak valid.',
 
-            'description.max' =>
-                'Deskripsi maksimal 160 karakter.',
-            'counterparty.max' =>
-                'Nama pihak terkait maksimal 120 karakter.',
-            'reference_number.max' =>
-                'Nomor referensi maksimal 100 karakter.',
-            'notes.max' =>
-                'Catatan maksimal 2.000 karakter.',
+            'description.max' => 'Deskripsi maksimal 160 karakter.',
+            'counterparty.max' => 'Nama pihak terkait maksimal 120 karakter.',
+            'reference_number.max' => 'Nomor referensi maksimal 100 karakter.',
+            'notes.max' => 'Catatan maksimal 2.000 karakter.',
         ];
     }
 

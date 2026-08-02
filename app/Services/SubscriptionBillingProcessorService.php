@@ -7,21 +7,20 @@ use App\Enums\SubscriptionStatus;
 use App\Enums\TransactionSource;
 use App\Models\Subscription;
 use App\Models\SubscriptionBilling;
+use App\Models\User;
 use App\Notifications\SubscriptionBillingFailed;
 use App\Notifications\SubscriptionBillingPosted;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use DomainException;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
 
 class SubscriptionBillingProcessorService
 {
     public function __construct(
         private readonly TransactionPostingService $transactionPostingService,
         private readonly SubscriptionService $subscriptionService
-    ) {
-    }
+    ) {}
 
     public function retry(
         User $user,
@@ -198,8 +197,7 @@ class SubscriptionBillingProcessorService
                 ) + 1;
 
             $lockedBilling->forceFill([
-                'status' =>
-                    SubscriptionBillingStatus::Processing,
+                'status' => SubscriptionBillingStatus::Processing,
 
                 'attempted_at' => now(),
                 'failure_reason' => null,
@@ -212,51 +210,42 @@ class SubscriptionBillingProcessorService
                         ->postExpense(
                             user: $user,
 
-                            accountId:
-                                $subscription->account_id,
+                            accountId: $subscription->account_id,
 
-                            categoryId:
-                                $subscription
-                                    ->finance_category_id,
+                            categoryId: $subscription
+                                ->finance_category_id,
 
-                            amount:
-                                $lockedBilling->amount,
+                            amount: $lockedBilling->amount,
 
                             data: [
-                                'source' =>
-                                    TransactionSource::System,
+                                'source' => TransactionSource::System,
 
-                                'occurred_at' =>
-                                    $billingAt,
+                                'occurred_at' => $billingAt,
 
-                                'description' =>
-                                    mb_substr(
-                                        'Langganan '
-                                        .$subscription->name,
-                                        0,
-                                        160
-                                    ),
+                                'description' => mb_substr(
+                                    'Langganan '
+                                    .$subscription->name,
+                                    0,
+                                    160
+                                ),
 
-                                'counterparty' =>
-                                    mb_substr(
-                                        $subscription->provider
-                                            ?? $subscription->name,
-                                        0,
-                                        120
-                                    ),
+                                'counterparty' => mb_substr(
+                                    $subscription->provider
+                                        ?? $subscription->name,
+                                    0,
+                                    120
+                                ),
 
-                                'reference_number' =>
-                                    sprintf(
-                                        'SUB-%d-%s',
-                                        $subscription->id,
-                                        $scheduledOn
-                                            ->format(
-                                                'Ymd'
-                                            )
-                                    ),
+                                'reference_number' => sprintf(
+                                    'SUB-%d-%s',
+                                    $subscription->id,
+                                    $scheduledOn
+                                        ->format(
+                                            'Ymd'
+                                        )
+                                ),
 
-                                'notes' =>
-                                    'Dicatat otomatis oleh Laras dari jadwal langganan.',
+                                'notes' => 'Dicatat otomatis oleh Laras dari jadwal langganan.',
                             ]
                         );
             } catch (DomainException $exception) {
@@ -269,11 +258,9 @@ class SubscriptionBillingProcessorService
             }
 
             $lockedBilling->forceFill([
-                'transaction_id' =>
-                    $transaction->id,
+                'transaction_id' => $transaction->id,
 
-                'status' =>
-                    SubscriptionBillingStatus::Posted,
+                'status' => SubscriptionBillingStatus::Posted,
 
                 'processed_at' => now(),
                 'failure_reason' => null,
@@ -283,43 +270,33 @@ class SubscriptionBillingProcessorService
                 ->advanceAfterSuccessfulBilling(
                     user: $user,
 
-                    subscriptionId:
-                        $subscription->id,
+                    subscriptionId: $subscription->id,
 
-                    billedFor:
-                        $lockedBilling
-                            ->scheduled_for
-                            ->toDateString()
+                    billedFor: $lockedBilling
+                        ->scheduled_for
+                        ->toDateString()
                 );
 
             $user->notify(
                 new SubscriptionBillingPosted(
-                    subscriptionId:
-                        $subscription->id,
+                    subscriptionId: $subscription->id,
 
-                    billingId:
-                        $lockedBilling->id,
+                    billingId: $lockedBilling->id,
 
-                    transactionId:
-                        $transaction->id,
+                    transactionId: $transaction->id,
 
-                    subscriptionName:
-                        $subscription->name,
+                    subscriptionName: $subscription->name,
 
-                    amount:
-                        $lockedBilling->amount,
+                    amount: $lockedBilling->amount,
 
-                    currencyCode:
-                        $lockedBilling->currency_code,
+                    currencyCode: $lockedBilling->currency_code,
 
-                    scheduledFor:
-                        $lockedBilling
-                            ->scheduled_for
-                            ->toDateString(),
+                    scheduledFor: $lockedBilling
+                        ->scheduled_for
+                        ->toDateString(),
 
-                    accountName:
-                        $subscription
-                            ->account?->name
+                    accountName: $subscription
+                        ->account?->name
                             ?? 'Rekening'
                 )
             );
@@ -368,8 +345,7 @@ class SubscriptionBillingProcessorService
         }
 
         $billing->forceFill([
-            'status' =>
-                SubscriptionBillingStatus::Failed,
+            'status' => SubscriptionBillingStatus::Failed,
 
             'failure_reason' => $reason,
             'processed_at' => null,
@@ -379,29 +355,22 @@ class SubscriptionBillingProcessorService
         if ($sendNotification) {
             $subscription->user->notify(
                 new SubscriptionBillingFailed(
-                    subscriptionId:
-                        $subscription->id,
+                    subscriptionId: $subscription->id,
 
-                    billingId:
-                        $billing->id,
+                    billingId: $billing->id,
 
-                    subscriptionName:
-                        $subscription->name,
+                    subscriptionName: $subscription->name,
 
-                    amount:
-                        $billing->amount,
+                    amount: $billing->amount,
 
-                    currencyCode:
-                        $billing->currency_code,
+                    currencyCode: $billing->currency_code,
 
-                    scheduledFor:
-                        $billing
-                            ->scheduled_for
-                            ->toDateString(),
+                    scheduledFor: $billing
+                        ->scheduled_for
+                        ->toDateString(),
 
-                    accountName:
-                        $subscription
-                            ->account?->name
+                    accountName: $subscription
+                        ->account?->name
                             ?? 'Rekening',
 
                     failureReason: $reason

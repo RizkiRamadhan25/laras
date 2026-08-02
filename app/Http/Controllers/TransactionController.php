@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FinanceFlowType;
-use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Http\Requests\CancelTransactionRequest;
 use App\Http\Requests\FilterTransactionsRequest;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Account;
-use App\Models\Transaction;
 use App\Services\TransactionPostingService;
 use Carbon\CarbonImmutable;
 use DomainException;
@@ -22,8 +20,7 @@ class TransactionController extends Controller
 {
     public function __construct(
         private readonly TransactionPostingService $postingService
-    ) {
-    }
+    ) {}
 
     public function index(
         FilterTransactionsRequest $request
@@ -39,27 +36,23 @@ class TransactionController extends Controller
 
         $query->when(
             $filters['type'] ?? null,
-            fn (Builder $query, string $type): Builder =>
-                $query->where('type', $type)
+            fn (Builder $query, string $type): Builder => $query->where('type', $type)
         );
 
         $query->when(
             $filters['status'] ?? null,
-            fn (Builder $query, string $status): Builder =>
-                $query->where('status', $status)
+            fn (Builder $query, string $status): Builder => $query->where('status', $status)
         );
 
         $query->when(
             $filters['account_id'] ?? null,
-            fn (Builder $query, int|string $accountId): Builder =>
-                $query->whereHas(
-                    'entries',
-                    fn (Builder $entryQuery): Builder =>
-                        $entryQuery->where(
-                            'account_id',
-                            (int) $accountId
-                        )
+            fn (Builder $query, int|string $accountId): Builder => $query->whereHas(
+                'entries',
+                fn (Builder $entryQuery): Builder => $entryQuery->where(
+                    'account_id',
+                    (int) $accountId
                 )
+            )
         );
 
         $query->when(
@@ -234,34 +227,30 @@ class TransactionController extends Controller
 
         try {
             $transaction = match ($data['type']) {
-                TransactionType::Income->value =>
-                    $this->postingService->postIncome(
-                        user: $request->user(),
-                        accountId: (int) $data['account_id'],
-                        categoryId: (int) $data['category_id'],
-                        amount: $data['amount'],
-                        data: $this->transactionMetadata($data)
-                    ),
+                TransactionType::Income->value => $this->postingService->postIncome(
+                    user: $request->user(),
+                    accountId: (int) $data['account_id'],
+                    categoryId: (int) $data['category_id'],
+                    amount: $data['amount'],
+                    data: $this->transactionMetadata($data)
+                ),
 
-                TransactionType::Expense->value =>
-                    $this->postingService->postExpense(
-                        user: $request->user(),
-                        accountId: (int) $data['account_id'],
-                        categoryId: (int) $data['category_id'],
-                        amount: $data['amount'],
-                        data: $this->transactionMetadata($data)
-                    ),
+                TransactionType::Expense->value => $this->postingService->postExpense(
+                    user: $request->user(),
+                    accountId: (int) $data['account_id'],
+                    categoryId: (int) $data['category_id'],
+                    amount: $data['amount'],
+                    data: $this->transactionMetadata($data)
+                ),
 
-                TransactionType::Transfer->value =>
-                    $this->postingService->postTransfer(
-                        user: $request->user(),
-                        sourceAccountId: (int) $data['account_id'],
-                        destinationAccountId:
-                            (int) $data['destination_account_id'],
-                        amount: $data['amount'],
-                        adminFee: $data['admin_fee'] ?? '0',
-                        data: $this->transactionMetadata($data)
-                    ),
+                TransactionType::Transfer->value => $this->postingService->postTransfer(
+                    user: $request->user(),
+                    sourceAccountId: (int) $data['account_id'],
+                    destinationAccountId: (int) $data['destination_account_id'],
+                    amount: $data['amount'],
+                    adminFee: $data['admin_fee'] ?? '0',
+                    data: $this->transactionMetadata($data)
+                ),
 
                 default => throw new DomainException(
                     'Jenis transaksi tidak tersedia.'
@@ -339,7 +328,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     private function transactionMetadata(array $data): array
@@ -348,8 +337,7 @@ class TransactionController extends Controller
             'occurred_at' => $data['occurred_at'],
             'description' => $data['description'] ?? null,
             'counterparty' => $data['counterparty'] ?? null,
-            'reference_number' =>
-                $data['reference_number'] ?? null,
+            'reference_number' => $data['reference_number'] ?? null,
             'notes' => $data['notes'] ?? null,
         ];
     }

@@ -21,13 +21,11 @@ class RecommendationInteraction extends Model
     protected function casts(): array
     {
         return [
-            'interaction_type' =>
-                RecommendationInteractionType::class,
+            'interaction_type' => RecommendationInteractionType::class,
 
             'snapshot' => 'array',
 
-            'occurred_at' =>
-                'immutable_datetime',
+            'occurred_at' => 'immutable_datetime',
         ];
     }
 

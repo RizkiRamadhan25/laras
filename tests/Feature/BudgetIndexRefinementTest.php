@@ -384,8 +384,7 @@ class BudgetIndexRefinementTest extends TestCase
     private function user(): User
     {
         $user = User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
             'is_active' => true,
         ]);
@@ -393,8 +392,7 @@ class BudgetIndexRefinementTest extends TestCase
         UserPreference::query()
             ->updateOrCreate(
                 [
-                    'user_id' =>
-                        $user->id,
+                    'user_id' => $user->id,
                 ],
                 [
                     'locale' => 'id',
@@ -414,7 +412,7 @@ class BudgetIndexRefinementTest extends TestCase
         string $categoryName,
         string $budgetName
     ): Budget {
-        $category = new FinanceCategory();
+        $category = new FinanceCategory;
 
         $category->forceFill([
             'user_id' => $user->id,
@@ -437,13 +435,10 @@ class BudgetIndexRefinementTest extends TestCase
             [
                 'name' => $budgetName,
                 'amount' => '1000000.00',
-                'period_type' =>
-                    BudgetPeriodType::Monthly
-                        ->value,
-                'warning_threshold_percent' =>
-                    '80.00',
-                'start_date' =>
-                    '2026-08-01',
+                'period_type' => BudgetPeriodType::Monthly
+                    ->value,
+                'warning_threshold_percent' => '80.00',
+                'start_date' => '2026-08-01',
             ]
         );
     }

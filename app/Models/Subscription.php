@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SubscriptionIntervalUnit;
 use App\Enums\SubscriptionStatus;
+use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subscription extends Model
 {
-    /** @use HasFactory<\Database\Factories\SubscriptionFactory> */
+    /** @use HasFactory<SubscriptionFactory> */
     use HasFactory, SoftDeletes;
 
     /**
@@ -50,11 +51,9 @@ class Subscription extends Model
         return [
             'amount' => 'decimal:2',
 
-            'interval_unit' =>
-                SubscriptionIntervalUnit::class,
+            'interval_unit' => SubscriptionIntervalUnit::class,
 
-            'status' =>
-                SubscriptionStatus::class,
+            'status' => SubscriptionStatus::class,
 
             'interval_count' => 'integer',
             'started_on' => 'immutable_date',
@@ -137,43 +136,39 @@ class Subscription extends Model
         $monthlyAmount = match (
             $this->interval_unit
         ) {
-            SubscriptionIntervalUnit::Day =>
-                bcmul(
-                    bcdiv(
-                        $this->amount,
-                        (string) $intervalCount,
-                        6
-                    ),
-                    '30.4375',
-                    2
-                ),
-
-            SubscriptionIntervalUnit::Week =>
-                bcmul(
-                    bcdiv(
-                        $this->amount,
-                        (string) $intervalCount,
-                        6
-                    ),
-                    '4.345',
-                    2
-                ),
-
-            SubscriptionIntervalUnit::Month =>
+            SubscriptionIntervalUnit::Day => bcmul(
                 bcdiv(
                     $this->amount,
                     (string) $intervalCount,
-                    2
+                    6
                 ),
+                '30.4375',
+                2
+            ),
 
-            SubscriptionIntervalUnit::Year =>
+            SubscriptionIntervalUnit::Week => bcmul(
                 bcdiv(
                     $this->amount,
-                    (string) (
-                        $intervalCount * 12
-                    ),
-                    2
+                    (string) $intervalCount,
+                    6
                 ),
+                '4.345',
+                2
+            ),
+
+            SubscriptionIntervalUnit::Month => bcdiv(
+                $this->amount,
+                (string) $intervalCount,
+                2
+            ),
+
+            SubscriptionIntervalUnit::Year => bcdiv(
+                $this->amount,
+                (string) (
+                    $intervalCount * 12
+                ),
+                2
+            ),
         };
 
         return bcadd(

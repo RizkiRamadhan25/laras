@@ -19,11 +19,9 @@ class SecurityEvent extends Model
     protected function casts(): array
     {
         return [
-            'type' =>
-                SecurityEventType::class,
+            'type' => SecurityEventType::class,
 
-            'occurred_at' =>
-                'immutable_datetime',
+            'occurred_at' => 'immutable_datetime',
         ];
     }
 

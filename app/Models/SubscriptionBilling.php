@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Enums\SubscriptionBillingStatus;
+use Database\Factories\SubscriptionBillingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SubscriptionBilling extends Model
 {
-    /** @use HasFactory<\Database\Factories\SubscriptionBillingFactory> */
+    /** @use HasFactory<SubscriptionBillingFactory> */
     use HasFactory;
 
     /**
@@ -37,8 +38,7 @@ class SubscriptionBilling extends Model
         return [
             'scheduled_for' => 'immutable_date',
             'amount' => 'decimal:2',
-            'status' =>
-                SubscriptionBillingStatus::class,
+            'status' => SubscriptionBillingStatus::class,
             'attempted_at' => 'immutable_datetime',
             'processed_at' => 'immutable_datetime',
             'metadata' => 'array',

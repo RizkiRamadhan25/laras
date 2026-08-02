@@ -13,6 +13,7 @@ use App\Services\BudgetManagementService;
 use App\Services\BudgetPeriodService;
 use App\Services\BudgetService;
 use App\Services\BudgetTransactionQueryService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,8 +26,7 @@ class BudgetController extends Controller
         private readonly BudgetManagementService $managementService,
         private readonly BudgetPeriodService $periodService,
         private readonly BudgetTransactionQueryService $transactionQueryService
-    ) {
-    }
+    ) {}
 
     public function index(
         Request $request
@@ -90,14 +90,11 @@ class BudgetController extends Controller
             'budgets.index',
             [
                 'budgets' => $budgets,
-                'alertLevels' =>
-                    $alertLevels,
+                'alertLevels' => $alertLevels,
                 'summary' => $summary,
                 'filters' => $filters,
-                'hasFilters' =>
-                    $hasFilters,
-                'hasCustomControls' =>
-                    $hasCustomControls,
+                'hasFilters' => $hasFilters,
+                'hasCustomControls' => $hasCustomControls,
             ]
         );
     }
@@ -113,8 +110,7 @@ class BudgetController extends Controller
         return view(
             'budgets.create',
             [
-                'categories' =>
-                    $categories,
+                'categories' => $categories,
             ]
         );
     }
@@ -191,21 +187,19 @@ class BudgetController extends Controller
             'user.preference',
             'financeCategory',
 
-            'periods' =>
-                function ($query): void {
-                    $query
-                        ->orderByDesc(
-                            'period_start'
-                        )
-                        ->orderByDesc('id');
-                },
+            'periods' => function ($query): void {
+                $query
+                    ->orderByDesc(
+                        'period_start'
+                    )
+                    ->orderByDesc('id');
+            },
         ]);
 
         $periodAlerts = [];
 
         foreach (
-            $budget->periods
-            as $period
+            $budget->periods as $period
         ) {
             $periodAlerts[$period->id] =
                 $this
@@ -241,8 +235,7 @@ class BudgetController extends Controller
             $selectedPeriod = $budget
                 ->periods
                 ->first(
-                    static fn ($period): bool =>
-                        $period->status
+                    static fn ($period): bool => $period->status
                         === BudgetPeriodStatus::Active
                 )
                 ?? $budget->periods->first();
@@ -268,12 +261,9 @@ class BudgetController extends Controller
             'budgets.show',
             [
                 'budget' => $budget,
-                'periodAlerts' =>
-                    $periodAlerts,
-                'selectedPeriod' =>
-                    $selectedPeriod,
-                'usageEntries' =>
-                    $usageEntries,
+                'periodAlerts' => $periodAlerts,
+                'selectedPeriod' => $selectedPeriod,
+                'usageEntries' => $usageEntries,
                 'timezone' => $timezone,
             ]
         );
@@ -391,7 +381,7 @@ class BudgetController extends Controller
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, FinanceCategory>
+     * @return Collection<int, FinanceCategory>
      */
     private function expenseCategories(
         Request $request

@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\FinanceFlowType;
+use App\Models\FinanceCategory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\FinanceCategory>
+ * @extends Factory<FinanceCategory>
  */
 class FinanceCategoryFactory extends Factory
 {

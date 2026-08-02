@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\FinanceCategory;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -18,11 +19,10 @@ class BudgetManagementService
         private readonly BudgetPeriodService $periodService,
         private readonly BudgetUsageSyncService $usageSyncService,
         private readonly BudgetAlertService $alertService
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function update(
         User $user,
@@ -59,17 +59,13 @@ class BudgetManagementService
                 ],
             ],
             [
-                'name.required' =>
-                    'Nama anggaran wajib diisi.',
+                'name.required' => 'Nama anggaran wajib diisi.',
 
-                'amount.required' =>
-                    'Batas anggaran wajib diisi.',
+                'amount.required' => 'Batas anggaran wajib diisi.',
 
-                'amount.gt' =>
-                    'Batas anggaran harus lebih dari nol.',
+                'amount.gt' => 'Batas anggaran harus lebih dari nol.',
 
-                'warning_threshold_percent.between' =>
-                    'Ambang peringatan harus berada antara 1 sampai 100 persen.',
+                'warning_threshold_percent.between' => 'Ambang peringatan harus berada antara 1 sampai 100 persen.',
             ]
         )->validate();
 
@@ -78,22 +74,22 @@ class BudgetManagementService
                 $budget,
                 $validated
             ): Budget {
-                $budget->forceFill([
-                    'name' =>
-                        $validated['name'],
+                $lockedBudget = Budget::query()
+                    ->whereKey($budget->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-                    'amount' =>
-                        $validated['amount'],
+                $lockedBudget->forceFill([
+                    'name' => $validated['name'],
 
-                    'warning_threshold_percent' =>
-                        $validated[
+                    'amount' => $validated['amount'],
+
+                    'warning_threshold_percent' => $validated[
                             'warning_threshold_percent'
                         ],
-                ]);
+                ])->save();
 
-                $budget->save();
-
-                $periods = $budget
+                $periods = $lockedBudget
                     ->periods()
                     ->whereIn(
                         'status',
@@ -120,7 +116,7 @@ class BudgetManagementService
                         );
                 }
 
-                return $budget
+                return $lockedBudget
                     ->refresh()
                     ->load([
                         'financeCategory',
@@ -140,15 +136,26 @@ class BudgetManagementService
             $budget
         );
 
-        if (! $budget->is_active) {
-            return $budget;
-        }
+        return DB::transaction(
+            function () use ($budget): Budget {
+                $lockedBudget = Budget::query()
+                    ->whereKey($budget->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $budget->forceFill([
-            'is_active' => false,
-        ])->save();
+                if (! $lockedBudget->is_active) {
+                    return $lockedBudget;
+                }
 
-        return $budget->refresh();
+                $lockedBudget->forceFill([
+                    'is_active' => false,
+                    'active_finance_category_id' => null,
+                ])->save();
+
+                return $lockedBudget->refresh();
+            },
+            3
+        );
     }
 
     public function activate(
@@ -158,15 +165,6 @@ class BudgetManagementService
         $this->ensureOwnership(
             $user,
             $budget
-        );
-
-        $budget->loadMissing(
-            'financeCategory'
-        );
-
-        $this->ensureCategoryAvailable(
-            $user,
-            $budget->financeCategory
         );
 
         $user->loadMissing('preference');
@@ -181,54 +179,100 @@ class BudgetManagementService
             $timezone
         )->startOfDay();
 
-        if (
-            $budget->end_date !== null
-            && $budget->end_date->lt(
-                $today
-            )
-        ) {
-            throw ValidationException::withMessages([
-                'is_active' =>
-                    'Anggaran yang sudah berakhir tidak dapat diaktifkan kembali.',
-            ]);
-        }
+        try {
+            return DB::transaction(
+                function () use (
+                    $user,
+                    $budget,
+                    $today
+                ): Budget {
+                    $lockedBudget = Budget::query()
+                        ->whereKey($budget->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
-        $duplicateExists = Budget::query()
-            ->where(
-                'user_id',
-                $user->id
-            )
-            ->where(
-                'finance_category_id',
-                $budget->finance_category_id
-            )
-            ->where(
-                'is_active',
-                true
-            )
-            ->whereKeyNot(
-                $budget->id
-            )
-            ->exists();
+                    if ($lockedBudget->is_active) {
+                        return $lockedBudget;
+                    }
 
-        if ($duplicateExists) {
-            throw ValidationException::withMessages([
-                'finance_category_id' =>
-                    'Kategori ini sudah memiliki anggaran aktif.',
-            ]);
-        }
+                    $lockedBudget->loadMissing(
+                        'financeCategory'
+                    );
 
-        $budget->forceFill([
-            'is_active' => true,
-        ])->save();
+                    $this->ensureCategoryAvailable(
+                        $user,
+                        $lockedBudget
+                            ->financeCategory
+                    );
 
-        $this->usageSyncService
-            ->syncBudgetForDate(
-                $budget,
-                $today
+                    if (
+                        $lockedBudget->end_date !== null
+                        && $lockedBudget->end_date
+                            ->lt($today)
+                    ) {
+                        throw ValidationException::withMessages([
+                            'is_active' => 'Anggaran yang sudah berakhir tidak dapat diaktifkan kembali.',
+                        ]);
+                    }
+
+                    $duplicateExists = Budget::query()
+                        ->where(
+                            'user_id',
+                            $user->id
+                        )
+                        ->where(
+                            'active_finance_category_id',
+                            $lockedBudget
+                                ->finance_category_id
+                        )
+                        ->whereKeyNot(
+                            $lockedBudget->id
+                        )
+                        ->exists();
+
+                    if ($duplicateExists) {
+                        throw ValidationException::withMessages([
+                            'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
+                        ]);
+                    }
+
+                    $lockedBudget->forceFill([
+                        'is_active' => true,
+                        'active_finance_category_id' => $lockedBudget
+                            ->finance_category_id,
+                    ])->save();
+
+                    $this->usageSyncService
+                        ->syncBudgetForDate(
+                            $lockedBudget,
+                            $today
+                        );
+
+                    return $lockedBudget->refresh();
+                },
+                3
             );
+        } catch (
+            UniqueConstraintViolationException $exception
+        ) {
+            if (
+                Budget::query()
+                    ->where('user_id', $user->id)
+                    ->where(
+                        'active_finance_category_id',
+                        $budget
+                            ->finance_category_id
+                    )
+                    ->whereKeyNot($budget->id)
+                    ->exists()
+            ) {
+                throw ValidationException::withMessages([
+                    'finance_category_id' => 'Kategori ini sudah memiliki anggaran aktif.',
+                ]);
+            }
 
-        return $budget->refresh();
+            throw $exception;
+        }
     }
 
     private function ensureOwnership(
@@ -243,8 +287,7 @@ class BudgetManagementService
         }
 
         throw ValidationException::withMessages([
-            'budget' =>
-                'Anggaran tidak dimiliki oleh pengguna ini.',
+            'budget' => 'Anggaran tidak dimiliki oleh pengguna ini.',
         ]);
     }
 
@@ -257,8 +300,7 @@ class BudgetManagementService
             !== (int) $user->id
         ) {
             throw ValidationException::withMessages([
-                'finance_category_id' =>
-                    'Kategori tidak dimiliki oleh pengguna ini.',
+                'finance_category_id' => 'Kategori tidak dimiliki oleh pengguna ini.',
             ]);
         }
 
@@ -273,25 +315,21 @@ class BudgetManagementService
             )
         ) {
             throw ValidationException::withMessages([
-                'finance_category_id' =>
-                    'Anggaran hanya dapat menggunakan kategori pengeluaran.',
+                'finance_category_id' => 'Anggaran hanya dapat menggunakan kategori pengeluaran.',
             ]);
         }
 
-        $isDeleted =
-            method_exists(
-                $category,
-                'trashed'
-            )
-            && $category->trashed();
+        $isDeleted = method_exists(
+            $category,
+            'trashed'
+        ) && $category->trashed();
 
         if (
             ! $category->is_active
             || $isDeleted
         ) {
             throw ValidationException::withMessages([
-                'finance_category_id' =>
-                    'Kategori anggaran sudah tidak aktif.',
+                'finance_category_id' => 'Kategori anggaran sudah tidak aktif.',
             ]);
         }
     }

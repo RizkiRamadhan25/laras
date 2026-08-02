@@ -19,8 +19,7 @@ class BudgetWarningReached extends Notification
         public readonly string $periodStart,
         public readonly string $periodEnd,
         public readonly string $deduplicationKey
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>
@@ -47,8 +46,7 @@ class BudgetWarningReached extends Notification
         return [
             'kind' => 'budget_warning',
 
-            'title' =>
-                'Anggaran mendekati batas',
+            'title' => 'Anggaran mendekati batas',
 
             'message' => sprintf(
                 '%s telah menggunakan %s%% dari batas %s %s.',
@@ -70,33 +68,26 @@ class BudgetWarningReached extends Notification
 
             'budget_id' => $this->budgetId,
 
-            'budget_period_id' =>
-                $this->budgetPeriodId,
+            'budget_period_id' => $this->budgetPeriodId,
 
             'budget_name' => $this->budgetName,
 
-            'category_name' =>
-                $this->categoryName,
+            'category_name' => $this->categoryName,
 
             'used_amount' => $this->usedAmount,
 
-            'budget_amount' =>
-                $this->budgetAmount,
+            'budget_amount' => $this->budgetAmount,
 
-            'usage_percent' =>
-                $this->usagePercent,
+            'usage_percent' => $this->usagePercent,
 
-            'warning_threshold_percent' =>
-                $this->warningThresholdPercent,
+            'warning_threshold_percent' => $this->warningThresholdPercent,
 
-            'currency_code' =>
-                $this->currencyCode,
+            'currency_code' => $this->currencyCode,
 
             'period_start' => $this->periodStart,
             'period_end' => $this->periodEnd,
 
-            'deduplication_key' =>
-                $this->deduplicationKey,
+            'deduplication_key' => $this->deduplicationKey,
 
             'severity' => 'warning',
             'icon' => 'triangle-alert',

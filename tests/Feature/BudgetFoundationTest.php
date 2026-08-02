@@ -40,21 +40,16 @@ class BudgetFoundationTest extends TestCase
             $user,
             $category,
             [
-                'name' =>
-                    'Anggaran Makanan',
+                'name' => 'Anggaran Makanan',
 
-                'amount' =>
-                    '1000000.00',
+                'amount' => '1000000.00',
 
-                'period_type' =>
-                    BudgetPeriodType::Monthly
-                        ->value,
+                'period_type' => BudgetPeriodType::Monthly
+                    ->value,
 
-                'warning_threshold_percent' =>
-                    '80.00',
+                'warning_threshold_percent' => '80.00',
 
-                'start_date' =>
-                    '2026-08-01',
+                'start_date' => '2026-08-01',
             ]
         );
 
@@ -64,23 +59,17 @@ class BudgetFoundationTest extends TestCase
                 'id' => $budget->id,
                 'user_id' => $user->id,
 
-                'finance_category_id' =>
-                    $category->id,
+                'finance_category_id' => $category->id,
 
-                'name' =>
-                    'Anggaran Makanan',
+                'name' => 'Anggaran Makanan',
 
-                'amount' =>
-                    '1000000.00',
+                'amount' => '1000000.00',
 
-                'period_type' =>
-                    'monthly',
+                'period_type' => 'monthly',
 
-                'is_recurring' =>
-                    true,
+                'is_recurring' => true,
 
-                'is_active' =>
-                    true,
+                'is_active' => true,
             ]
         );
 
@@ -242,8 +231,7 @@ class BudgetFoundationTest extends TestCase
             array_merge(
                 $this->monthlyPayload(),
                 [
-                    'name' =>
-                        'Anggaran Hiburan Kedua',
+                    'name' => 'Anggaran Hiburan Kedua',
                 ]
             )
         );
@@ -362,24 +350,18 @@ class BudgetFoundationTest extends TestCase
             $user,
             $category,
             [
-                'name' =>
-                    'Anggaran Semester Pendek',
+                'name' => 'Anggaran Semester Pendek',
 
-                'amount' =>
-                    '2500000.00',
+                'amount' => '2500000.00',
 
-                'period_type' =>
-                    BudgetPeriodType::Custom
-                        ->value,
+                'period_type' => BudgetPeriodType::Custom
+                    ->value,
 
-                'warning_threshold_percent' =>
-                    '75.00',
+                'warning_threshold_percent' => '75.00',
 
-                'start_date' =>
-                    '2026-08-10',
+                'start_date' => '2026-08-10',
 
-                'end_date' =>
-                    '2026-09-20',
+                'end_date' => '2026-09-20',
             ]
         );
 
@@ -490,11 +472,9 @@ class BudgetFoundationTest extends TestCase
     private function user(): User
     {
         return User::factory()->create([
-            'onboarding_completed_at' =>
-                now(),
+            'onboarding_completed_at' => now(),
 
-            'is_active' =>
-                true,
+            'is_active' => true,
         ]);
     }
 
@@ -504,32 +484,24 @@ class BudgetFoundationTest extends TestCase
         string $name,
         bool $isActive = true
     ): FinanceCategory {
-        $category = new FinanceCategory();
+        $category = new FinanceCategory;
 
         $category->forceFill([
-            'user_id' =>
-                $user->id,
+            'user_id' => $user->id,
 
-            'flow_type' =>
-                $flowType,
+            'flow_type' => $flowType,
 
-            'name' =>
-                $name,
+            'name' => $name,
 
-            'icon' =>
-                'wallet-cards',
+            'icon' => 'wallet-cards',
 
-            'color' =>
-                '#2563EB',
+            'color' => '#2563EB',
 
-            'is_system' =>
-                false,
+            'is_system' => false,
 
-            'is_active' =>
-                $isActive,
+            'is_active' => $isActive,
 
-            'sort_order' =>
-                0,
+            'sort_order' => 0,
         ]);
 
         $category->save();
@@ -543,21 +515,16 @@ class BudgetFoundationTest extends TestCase
     private function monthlyPayload(): array
     {
         return [
-            'name' =>
-                'Anggaran Bulanan',
+            'name' => 'Anggaran Bulanan',
 
-            'amount' =>
-                '1000000.00',
+            'amount' => '1000000.00',
 
-            'period_type' =>
-                BudgetPeriodType::Monthly
-                    ->value,
+            'period_type' => BudgetPeriodType::Monthly
+                ->value,
 
-            'warning_threshold_percent' =>
-                '80.00',
+            'warning_threshold_percent' => '80.00',
 
-            'start_date' =>
-                '2026-08-01',
+            'start_date' => '2026-08-01',
         ];
     }
 }

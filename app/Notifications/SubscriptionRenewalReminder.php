@@ -15,8 +15,7 @@ class SubscriptionRenewalReminder extends Notification
         public readonly string $scheduledFor,
         public readonly int $daysBefore,
         public readonly string $accountName
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>
@@ -66,28 +65,21 @@ class SubscriptionRenewalReminder extends Notification
                 $this->accountName
             ),
 
-            'subscription_id' =>
-                $this->subscriptionId,
+            'subscription_id' => $this->subscriptionId,
 
-            'subscription_billing_id' =>
-                $this->billingId,
+            'subscription_billing_id' => $this->billingId,
 
-            'subscription_name' =>
-                $this->subscriptionName,
+            'subscription_name' => $this->subscriptionName,
 
             'amount' => $this->amount,
 
-            'currency_code' =>
-                $this->currencyCode,
+            'currency_code' => $this->currencyCode,
 
-            'scheduled_for' =>
-                $this->scheduledFor,
+            'scheduled_for' => $this->scheduledFor,
 
-            'days_before' =>
-                $this->daysBefore,
+            'days_before' => $this->daysBefore,
 
-            'account_name' =>
-                $this->accountName,
+            'account_name' => $this->accountName,
 
             'severity' => 'warning',
             'icon' => 'bell-ring',
