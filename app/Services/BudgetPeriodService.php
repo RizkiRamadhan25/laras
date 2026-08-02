@@ -130,7 +130,10 @@ class BudgetPeriodService
             'status' =>
                 $this->periodStatus(
                     $periodStart,
-                    $periodEnd
+                    $periodEnd,
+                    $this->budgetTimezone(
+                        $budget
+                    )
                 ),
         ]);
 
@@ -206,7 +209,10 @@ class BudgetPeriodService
             'status' =>
                 $this->periodStatus(
                     $periodStart,
-                    $periodEnd
+                    $periodEnd,
+                    $this->budgetTimezone(
+                        $period->budget
+                    )
                 ),
         ]);
 
@@ -335,24 +341,51 @@ class BudgetPeriodService
 
     private function periodStatus(
         CarbonImmutable $start,
-        CarbonImmutable $end
+        CarbonImmutable $end,
+        string $timezone
     ): BudgetPeriodStatus {
-        $today = CarbonImmutable::now(
-            config(
-                'app.timezone',
-                'Asia/Jakarta'
-            )
-        )->startOfDay();
+        /*
+        * Periode anggaran menggunakan tanggal kalender,
+        * bukan waktu absolut.
+        *
+        * Ambil tanggal hari ini berdasarkan zona waktu
+        * pengguna, kemudian bandingkan dalam format
+        * ISO YYYY-MM-DD.
+        */
+        $todayDate = CarbonImmutable::now()
+            ->setTimezone($timezone)
+            ->toDateString();
 
-        if ($today->lt($start)) {
+        $startDate = $start->toDateString();
+        $endDate = $end->toDateString();
+
+        if ($todayDate < $startDate) {
             return BudgetPeriodStatus::Upcoming;
         }
 
-        if ($today->gt($end)) {
+        if ($todayDate > $endDate) {
             return BudgetPeriodStatus::Closed;
         }
 
         return BudgetPeriodStatus::Active;
+    }
+
+
+    private function budgetTimezone(
+        Budget $budget
+    ): string {
+        $budget->loadMissing(
+            'user.preference'
+        );
+
+        return $budget
+            ->user
+            ?->preference
+            ?->timezone
+            ?? config(
+                'laras.defaults.timezone',
+                'Asia/Jakarta'
+            );
     }
 
     private function usageBasisPoints(

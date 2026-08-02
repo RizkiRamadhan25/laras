@@ -8,7 +8,7 @@ return [
     */
 
     'user' => [
-        'name' => env('LARAS_USER_NAME', 'Rizki Ramadhan'),
+        'name' => env('LARAS_USER_NAME', 'Pengguna Laras'),
         'email' => env('LARAS_USER_EMAIL'),
         'password' => env('LARAS_USER_PASSWORD'),
     ],

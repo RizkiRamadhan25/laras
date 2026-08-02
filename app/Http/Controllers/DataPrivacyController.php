@@ -3,18 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DeleteAccountRequest;
+use App\Services\AccountDeletionService;
 use App\Services\PersonalDataExportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DataPrivacyController extends Controller
 {
     public function __construct(
-        private readonly PersonalDataExportService $exportService
+        private readonly PersonalDataExportService $exportService,
+        private readonly AccountDeletionService $deletionService
     ) {
     }
 
@@ -76,37 +76,10 @@ class DataPrivacyController extends Controller
     public function destroy(
         DeleteAccountRequest $request
     ): RedirectResponse {
-        $user = $request->user();
-
-        $userId = $user->getKey();
-
-        $profilePhotoPath =
-            $user->profile_photo_path;
-
-        DB::transaction(
-            function () use ($userId): void {
-                /*
-                * Query Builder melakukan DELETE
-                * permanen dan melewati SoftDeletes.
-                */
-                $deletedRows = DB::table('users')
-                    ->where('id', $userId)
-                    ->delete();
-
-                if ($deletedRows !== 1) {
-                    throw new \RuntimeException(
-                        'Akun gagal dihapus secara permanen.'
-                    );
-                }
-            },
-            3
-        );
-
-        if (filled($profilePhotoPath)) {
-            Storage::disk('public')->delete(
-                $profilePhotoPath
+        $this->deletionService
+            ->delete(
+                $request->user()
             );
-        }
 
         Auth::logout();
 

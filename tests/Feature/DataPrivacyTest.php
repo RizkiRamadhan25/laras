@@ -8,8 +8,10 @@ use App\Models\SecurityEvent;
 use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class DataPrivacyTest extends TestCase
@@ -263,6 +265,147 @@ class DataPrivacyTest extends TestCase
             ->assertMissing(
                 $photoPath
             );
+    }
+
+    public function test_account_deletion_removes_orphaned_authentication_data(): void
+    {
+        $user = $this->user(
+            'Pengguna Dihapus'
+        );
+
+        $otherUser = $this->user(
+            'Pengguna Dipertahankan'
+        );
+
+        $userSessionId = 'session-user';
+        $otherSessionId = 'session-other';
+
+        DB::table('sessions')->insert([
+            [
+                'id' => $userSessionId,
+                'user_id' => $user->id,
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'PHPUnit',
+                'payload' => 'payload-user',
+                'last_activity' => now()->timestamp,
+            ],
+            [
+                'id' => $otherSessionId,
+                'user_id' => $otherUser->id,
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'PHPUnit',
+                'payload' => 'payload-other',
+                'last_activity' => now()->timestamp,
+            ],
+        ]);
+
+        $userNotificationId =
+            (string) Str::uuid();
+
+        $otherNotificationId =
+            (string) Str::uuid();
+
+        DB::table('notifications')->insert([
+            [
+                'id' => $userNotificationId,
+                'type' => 'Tests\\Notification',
+                'notifiable_type' =>
+                    $user->getMorphClass(),
+                'notifiable_id' => $user->id,
+                'data' => '{}',
+                'read_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => $otherNotificationId,
+                'type' => 'Tests\\Notification',
+                'notifiable_type' =>
+                    $otherUser->getMorphClass(),
+                'notifiable_id' => $otherUser->id,
+                'data' => '{}',
+                'read_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        DB::table(
+            'password_reset_tokens'
+        )->insert([
+            [
+                'email' => $user->email,
+                'token' => 'token-user',
+                'created_at' => now(),
+            ],
+            [
+                'email' => $otherUser->email,
+                'token' => 'token-other',
+                'created_at' => now(),
+            ],
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->delete(
+                route(
+                    'settings.account.destroy'
+                ),
+                [
+                    'delete_current_password' =>
+                        self::PASSWORD,
+
+                    'confirmation' =>
+                        'HAPUS AKUN',
+                ]
+            )
+            ->assertRedirectToRoute(
+                'login'
+            );
+
+        $this->assertDatabaseMissing(
+            'sessions',
+            [
+                'id' => $userSessionId,
+            ]
+        );
+
+        $this->assertDatabaseMissing(
+            'notifications',
+            [
+                'id' => $userNotificationId,
+            ]
+        );
+
+        $this->assertDatabaseMissing(
+            'password_reset_tokens',
+            [
+                'email' => $user->email,
+            ]
+        );
+
+        $this->assertDatabaseHas(
+            'sessions',
+            [
+                'id' => $otherSessionId,
+                'user_id' => $otherUser->id,
+            ]
+        );
+
+        $this->assertDatabaseHas(
+            'notifications',
+            [
+                'id' => $otherNotificationId,
+                'notifiable_id' => $otherUser->id,
+            ]
+        );
+
+        $this->assertDatabaseHas(
+            'password_reset_tokens',
+            [
+                'email' => $otherUser->email,
+            ]
+        );
     }
 
     public function test_deleting_account_does_not_affect_other_user(): void
