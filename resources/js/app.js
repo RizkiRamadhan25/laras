@@ -61,6 +61,11 @@ import {
     FileJson,
     TriangleAlert,
     Database,
+    ArrowLeft,
+    Save,
+    PauseCircle,
+    PlayCircle,
+    PiggyBank,
 } from 'lucide';
 
 window.Alpine = Alpine;
@@ -124,6 +129,11 @@ const larasIcons = {
     FileJson,
     TriangleAlert,
     Database,
+    ArrowLeft,
+    Save,
+    PauseCircle,
+    PlayCircle,
+    PiggyBank,
 };
 
 const renderIcons = () => {

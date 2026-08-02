@@ -139,6 +139,82 @@ class BudgetPeriodService
         return $period->refresh();
     }
 
+    public function refreshExisting(
+        BudgetPeriod $period
+    ): BudgetPeriod {
+        $period->loadMissing('budget');
+
+        $budgetAmount =
+            $this->toHundredths(
+                $period->budget->amount
+            );
+
+        $usedAmount =
+            $this->toHundredths(
+                $period->used_amount
+            );
+
+        if ($budgetAmount <= 0) {
+            throw new InvalidArgumentException(
+                'Batas anggaran harus lebih dari nol.'
+            );
+        }
+
+        if ($usedAmount < 0) {
+            throw new InvalidArgumentException(
+                'Penggunaan anggaran tidak boleh negatif.'
+            );
+        }
+
+        $remainingAmount =
+            $budgetAmount - $usedAmount;
+
+        $usageBasisPoints =
+            $this->usageBasisPoints(
+                $usedAmount,
+                $budgetAmount
+            );
+
+        $periodStart = CarbonImmutable::parse(
+            $period
+                ->period_start
+                ->toDateString()
+        );
+
+        $periodEnd = CarbonImmutable::parse(
+            $period
+                ->period_end
+                ->toDateString()
+        );
+
+        $period->forceFill([
+            'budget_amount' =>
+                $this->formatHundredths(
+                    $budgetAmount
+                ),
+
+            'remaining_amount' =>
+                $this->formatHundredths(
+                    $remainingAmount
+                ),
+
+            'usage_percent' =>
+                $this->formatHundredths(
+                    $usageBasisPoints
+                ),
+
+            'status' =>
+                $this->periodStatus(
+                    $periodStart,
+                    $periodEnd
+                ),
+        ]);
+
+        $period->save();
+
+        return $period->refresh();
+    }
+
     public function alertLevel(
         BudgetPeriod $period
     ): BudgetAlertLevel {

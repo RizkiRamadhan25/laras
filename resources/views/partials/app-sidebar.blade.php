@@ -45,6 +45,14 @@
             'enabled' => true,
         ],
         [
+            'label' => 'Anggaran',
+            'description' => 'Batas pengeluaran',
+            'icon' => 'piggy-bank',
+            'href' => route('budgets.index'),
+            'active' => request()->routeIs('budgets.*'),
+            'enabled' => true,
+        ],
+        [
             'label' => 'Langganan',
             'description' => 'Tagihan berulang',
             'icon' => 'repeat-2',
