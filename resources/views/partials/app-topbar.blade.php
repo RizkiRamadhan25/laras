@@ -23,23 +23,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <button
-                type="button"
-                disabled
-                class="hidden h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-400 md:flex"
-                title="Pencarian akan tersedia pada pengembangan berikutnya"
-            >
-                <i
-                    data-lucide="search"
-                    class="size-4"
-                ></i>
-
-                <span>Cari</span>
-
-                <kbd class="ml-4 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">
-                    /
-                </kbd>
-            </button>
+            <x-ui.global-search />
 
             <div
                 x-data="{ notificationOpen: false }"

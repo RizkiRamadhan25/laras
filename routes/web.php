@@ -7,6 +7,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataPrivacyController;
 use App\Http\Controllers\ExpenseAnalysisController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\RecommendationController;
@@ -67,6 +68,13 @@ Route::middleware('auth')->group(function (): void {
             '/dashboard',
             [DashboardController::class, 'index']
         )->name('dashboard');
+
+        Route::get(
+            '/global-search',
+            GlobalSearchController::class
+        )
+            ->middleware('throttle:120,1')
+            ->name('search.global');
 
         Route::get(
             '/analysis',
