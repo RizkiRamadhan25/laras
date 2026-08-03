@@ -2,6 +2,7 @@ import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
 import './features/expense-analysis';
 import './features/settings';
+import './features/data-deletion';
 
 import {
     createIcons,

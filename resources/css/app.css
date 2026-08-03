@@ -61,3 +61,50 @@ button,
 a {
     touch-action: manipulation;
 }
+
+dialog[data-data-deletion-dialog] {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+    transition:
+        opacity 180ms ease,
+        transform 180ms ease,
+        overlay 180ms allow-discrete,
+        display 180ms allow-discrete;
+}
+
+dialog[data-data-deletion-dialog][open] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+dialog[data-data-deletion-dialog]::backdrop {
+    background: rgb(15 23 42 / 0.52);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition:
+        opacity 180ms ease,
+        overlay 180ms allow-discrete,
+        display 180ms allow-discrete;
+}
+
+dialog[data-data-deletion-dialog][open]::backdrop {
+    opacity: 1;
+}
+
+@starting-style {
+    dialog[data-data-deletion-dialog][open] {
+        opacity: 0;
+        transform: translateY(0.75rem) scale(0.98);
+    }
+
+    dialog[data-data-deletion-dialog][open]::backdrop {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    dialog[data-data-deletion-dialog],
+    dialog[data-data-deletion-dialog]::backdrop {
+        transition: none;
+    }
+}
