@@ -3,6 +3,8 @@ import Chart from 'chart.js/auto';
 import './features/expense-analysis';
 import './features/settings';
 import './features/data-deletion';
+import './ui/toast';
+import './ui/confirm-dialog';
 
 import {
     createIcons,
@@ -146,6 +148,11 @@ const renderIcons = () => {
         },
     });
 };
+
+document.addEventListener(
+    'laras:icons-refresh',
+    renderIcons
+);
 
 const readJsonPayload = (elementId) => {
     const element = document.getElementById(elementId);

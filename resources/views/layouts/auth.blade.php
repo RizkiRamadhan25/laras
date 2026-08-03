@@ -83,5 +83,7 @@
             </div>
         </section>
     </main>
+
+    <x-ui.toast-container />
 </body>
 </html>

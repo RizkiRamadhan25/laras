@@ -101,9 +101,12 @@
                                     $billing->id,
                             ]
                         ) }}"
-                        onsubmit="return confirm(
-                            'Coba proses kembali tagihan ini? Saldo akan berkurang jika berhasil.'
-                        )"
+                        data-confirm
+                        data-confirm-title="Proses ulang tagihan?"
+                        data-confirm-message="Sistem akan mencoba membuat transaksi kembali. Saldo rekening akan berkurang jika proses berhasil."
+                        data-confirm-label="Proses ulang"
+                        data-confirm-busy-label="Memproses..."
+                        data-confirm-tone="warning"
                     >
                         @csrf
                         @method('PATCH')

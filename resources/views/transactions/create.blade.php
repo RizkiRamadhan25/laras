@@ -36,14 +36,6 @@
             </p>
         </header>
 
-        @if (session('warning'))
-            <div
-                class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900"
-                role="alert"
-            >
-                {{ session('warning') }}
-            </div>
-        @endif
 
         @if ($errors->any())
             <div

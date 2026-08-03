@@ -855,9 +855,12 @@
                                                 'activities.cancel',
                                                 $activity->id
                                             ) }}"
-                                            onsubmit="return confirm(
-                                                'Batalkan aktivitas ini?'
-                                            )"
+                                            data-confirm
+                                            data-confirm-title="Batalkan aktivitas?"
+                                            data-confirm-message="Aktivitas akan ditandai sebagai dibatalkan dan tetap tersimpan dalam riwayat."
+                                            data-confirm-label="Batalkan aktivitas"
+                                            data-confirm-busy-label="Membatalkan..."
+                                            data-confirm-tone="warning"
                                         >
                                             @csrf
                                             @method('PATCH')
@@ -903,9 +906,12 @@
                                             'activities.destroy',
                                             $activity->id
                                         ) }}"
-                                        onsubmit="return confirm(
-                                            'Arsipkan aktivitas ini?'
-                                        )"
+                                        data-confirm
+                                        data-confirm-title="Arsipkan aktivitas?"
+                                        data-confirm-message="Aktivitas akan dipindahkan dari daftar utama dan dapat dipulihkan kembali."
+                                        data-confirm-label="Arsipkan"
+                                        data-confirm-busy-label="Mengarsipkan..."
+                                        data-confirm-tone="warning"
                                     >
                                         @csrf
                                         @method('DELETE')

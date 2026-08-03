@@ -138,9 +138,12 @@
                 'settings.account.destroy'
             ) }}"
             class="rounded-2xl border border-rose-200 bg-white p-6 shadow-laras sm:p-8"
-            onsubmit="return confirm(
-                'Akun dan seluruh data akan dihapus permanen. Lanjutkan?'
-            )"
+            data-confirm
+            data-confirm-title="Hapus akun secara permanen?"
+            data-confirm-message="Akun, data pribadi, aktivitas, rekening, transaksi, anggaran, dan langganan akan dihapus. Tindakan ini tidak dapat dibatalkan."
+            data-confirm-label="Hapus akun"
+            data-confirm-busy-label="Menghapus akun..."
+            data-confirm-tone="danger"
         >
             @csrf
             @method('DELETE')

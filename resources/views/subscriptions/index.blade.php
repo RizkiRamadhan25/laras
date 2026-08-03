@@ -448,9 +448,12 @@
                                         'subscriptions.cancel',
                                         $subscription->id
                                     ) }}"
-                                    onsubmit="return confirm(
-                                        'Hentikan langganan ini?'
-                                    )"
+                                    data-confirm
+                                    data-confirm-title="Hentikan langganan?"
+                                    data-confirm-message="Penjadwalan tagihan berikutnya akan dihentikan. Riwayat tagihan dan transaksi tetap disimpan."
+                                    data-confirm-label="Hentikan"
+                                    data-confirm-busy-label="Menghentikan..."
+                                    data-confirm-tone="danger"
                                 >
                                     @csrf
                                     @method('PATCH')

@@ -208,9 +208,12 @@
                                     'accounts.destroy',
                                     $account->id
                                 ) }}"
-                                onsubmit="return confirm(
-                                    'Arsipkan rekening {{ addslashes($account->name) }}?'
-                                )"
+                                data-confirm
+                                data-confirm-title="Arsipkan rekening?"
+                                data-confirm-message="Rekening {{ $account->name }} akan dipindahkan dari daftar aktif. Riwayat keuangan tetap disimpan."
+                                data-confirm-label="Arsipkan"
+                                data-confirm-busy-label="Mengarsipkan..."
+                                data-confirm-tone="warning"
                             >
                                 @csrf
                                 @method('DELETE')

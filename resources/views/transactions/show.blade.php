@@ -258,9 +258,12 @@
                             $transaction->id
                         ) }}"
                         class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-5"
-                        onsubmit="return confirm(
-                            'Batalkan transaksi ini dan kembalikan perubahan saldo?'
-                        )"
+                        data-confirm
+                        data-confirm-title="Batalkan transaksi?"
+                        data-confirm-message="Perubahan saldo akan dikembalikan dan transaksi tetap tersimpan sebagai riwayat pembatalan."
+                        data-confirm-label="Batalkan transaksi"
+                        data-confirm-busy-label="Membatalkan..."
+                        data-confirm-tone="danger"
                     >
                         @csrf
                         @method('PATCH')

@@ -157,9 +157,12 @@
                 'settings.security.sessions.logout-others'
             ) }}"
             class="rounded-2xl border border-slate-200 bg-white p-6 shadow-laras sm:p-8"
-            onsubmit="return confirm(
-                'Keluarkan akun dari seluruh perangkat lain?'
-            )"
+            data-confirm
+            data-confirm-title="Keluar dari perangkat lain?"
+            data-confirm-message="Semua sesi selain perangkat yang sedang digunakan akan diakhiri."
+            data-confirm-label="Keluarkan perangkat lain"
+            data-confirm-busy-label="Mengeluarkan..."
+            data-confirm-tone="warning"
         >
             @csrf
 

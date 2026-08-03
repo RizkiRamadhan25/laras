@@ -108,3 +108,68 @@ dialog[data-data-deletion-dialog][open]::backdrop {
         transition: none;
     }
 }
+
+@keyframes laras-toast-progress {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+[data-laras-toast-progress] {
+    animation-name: laras-toast-progress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+dialog[data-laras-confirm-dialog] {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+    transition:
+        opacity 180ms ease,
+        transform 180ms ease,
+        overlay 180ms allow-discrete,
+        display 180ms allow-discrete;
+}
+
+dialog[data-laras-confirm-dialog][open] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+dialog[data-laras-confirm-dialog]::backdrop {
+    background: rgb(15 23 42 / 0.52);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition:
+        opacity 180ms ease,
+        overlay 180ms allow-discrete,
+        display 180ms allow-discrete;
+}
+
+dialog[data-laras-confirm-dialog][open]::backdrop {
+    opacity: 1;
+}
+
+@starting-style {
+    dialog[data-laras-confirm-dialog][open] {
+        opacity: 0;
+        transform: translateY(0.75rem) scale(0.98);
+    }
+
+    dialog[data-laras-confirm-dialog][open]::backdrop {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-laras-toast-region] *,
+    dialog[data-laras-confirm-dialog],
+    dialog[data-laras-confirm-dialog]::backdrop {
+        animation-duration: 1ms !important;
+        transition-duration: 1ms !important;
+    }
+}

@@ -79,29 +79,6 @@
             'settings.partials.navigation'
         )
 
-        @if (session('status'))
-            <div
-                role="status"
-                class="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800"
-            >
-                <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                    <i
-                        data-lucide="circle-check"
-                        class="size-4"
-                    ></i>
-                </span>
-
-                <div>
-                    <p class="text-sm font-semibold">
-                        Perubahan berhasil disimpan
-                    </p>
-
-                    <p class="mt-1 text-sm text-emerald-700">
-                        {{ session('status') }}
-                    </p>
-                </div>
-            </div>
-        @endif
 
         <section class="mt-8 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
             <aside class="space-y-6">
@@ -210,9 +187,12 @@
                                 action="{{ route(
                                     'settings.photo.destroy'
                                 ) }}"
-                                onsubmit="return confirm(
-                                    'Hapus foto profil saat ini?'
-                                )"
+                                data-confirm
+                                data-confirm-title="Hapus foto profil?"
+                                data-confirm-message="Foto profil saat ini akan dihapus dan avatar kembali menggunakan inisial nama."
+                                data-confirm-label="Hapus foto"
+                                data-confirm-busy-label="Menghapus..."
+                                data-confirm-tone="danger"
                             >
                                 @csrf
                                 @method('DELETE')

@@ -17,14 +17,6 @@
         </p>
     </header>
 
-    @if (session('status'))
-        <div
-            class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-            role="status"
-        >
-            {{ session('status') }}
-        </div>
-    @endif
 
     <form method="POST" action="{{ route('login.store') }}" class="space-y-5">
         @csrf
