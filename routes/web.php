@@ -86,6 +86,32 @@ Route::middleware('auth')->group(function (): void {
                     [RecommendationController::class, 'history']
                 )->name('history');
 
+                Route::post(
+                    '/history/deletion-preview',
+                    [
+                        RecommendationController::class,
+                        'historyDeletionPreview',
+                    ]
+                )->name('history.deletion-preview');
+
+                Route::delete(
+                    '/history/purge',
+                    [
+                        RecommendationController::class,
+                        'purgeHistory',
+                    ]
+                )->name('history.purge');
+
+                Route::delete(
+                    '/history/{interaction}',
+                    [
+                        RecommendationController::class,
+                        'destroyHistory',
+                    ]
+                )
+                    ->whereNumber('interaction')
+                    ->name('history.destroy');
+
                 Route::get(
                     '/{recommendation}/open',
                     [RecommendationController::class, 'open']
@@ -283,6 +309,19 @@ Route::middleware('auth')->group(function (): void {
                     [NotificationController::class, 'markAllRead']
                 )->name('read-all');
 
+                Route::post(
+                    '/deletion-preview',
+                    [
+                        NotificationController::class,
+                        'deletionPreview',
+                    ]
+                )->name('deletion-preview');
+
+                Route::delete(
+                    '/purge',
+                    [NotificationController::class, 'purge']
+                )->name('purge');
+
                 Route::get(
                     '/{notification}/open',
                     [NotificationController::class, 'open']
@@ -296,6 +335,13 @@ Route::middleware('auth')->group(function (): void {
                 )
                     ->whereUuid('notification')
                     ->name('read');
+
+                Route::delete(
+                    '/{notification}',
+                    [NotificationController::class, 'destroy']
+                )
+                    ->whereUuid('notification')
+                    ->name('destroy');
             });
 
         Route::prefix('subscriptions')
