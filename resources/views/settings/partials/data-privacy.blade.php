@@ -94,27 +94,12 @@
                 @csrf
 
                 <div class="mb-5">
-                    <label
-                        for="export_current_password"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Kata sandi saat ini
-                    </label>
-
-                    <input
-                        id="export_current_password"
+                    <x-ui.password-input
                         name="export_current_password"
-                        type="password"
-                        required
+                        label="Kata sandi saat ini"
                         autocomplete="current-password"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                    >
-
-                    @error('export_current_password')
-                        <p class="mt-2 text-sm text-rose-600">
-                            {{ $message }}
-                        </p>
-                    @enderror
+                        required
+                    />
                 </div>
 
                 <button
@@ -181,56 +166,24 @@
             </div>
 
             <div class="mt-6">
-                <label
-                    for="delete_current_password"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Kata sandi saat ini
-                </label>
-
-                <input
-                    id="delete_current_password"
+                <x-ui.password-input
                     name="delete_current_password"
-                    type="password"
-                    required
+                    label="Kata sandi saat ini"
                     autocomplete="current-password"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
-                >
-
-                @error('delete_current_password')
-                    <p class="mt-2 text-sm text-rose-600">
-                        {{ $message }}
-                    </p>
-                @enderror
+                    tone="danger"
+                    required
+                />
             </div>
 
             <div class="mt-5">
-                <label
-                    for="confirmation"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Ketik
-                    <strong>HAPUS AKUN</strong>
-                </label>
-
-                <input
-                    id="confirmation"
+                <x-ui.floating-input
                     name="confirmation"
-                    type="text"
-                    required
+                    label="Ketik HAPUS AKUN"
                     autocomplete="off"
-                    placeholder="HAPUS AKUN"
-                    value="{{ old(
-                        'confirmation'
-                    ) }}"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
-                >
-
-                @error('confirmation')
-                    <p class="mt-2 text-sm text-rose-600">
-                        {{ $message }}
-                    </p>
-                @enderror
+                    tone="danger"
+                    required
+                    hint="Tuliskan frasa tersebut secara lengkap untuk melanjutkan."
+                />
             </div>
 
             <div class="mt-7 border-t border-rose-100 pt-6">

@@ -17,69 +17,39 @@
         </p>
     </header>
 
-
-    <form method="POST" action="{{ route('login.store') }}" class="space-y-5">
+    <form
+        method="POST"
+        action="{{ route('login.store') }}"
+        class="space-y-5"
+    >
         @csrf
 
-        <div>
-            <label
-                for="email"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Email
-            </label>
-
-            <input
-                id="email"
-                name="email"
-                type="email"
-                value="{{ old('email') }}"
-                autocomplete="email"
-                required
-                autofocus
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-                placeholder="nama@email.com"
-            >
-
-            @error('email')
-                <p class="mt-2 text-sm text-rose-600" role="alert">
-                    {{ $message }}
-                </p>
-            @enderror
-        </div>
+        <x-ui.floating-input
+            name="email"
+            label="Email"
+            type="email"
+            autocomplete="email"
+            required
+            autofocus
+            inputmode="email"
+        />
 
         <div>
-            <div class="mb-2 flex items-center justify-between gap-4">
-                <label
-                    for="password"
-                    class="block text-sm font-medium text-slate-700"
-                >
-                    Password
-                </label>
-
-                <a
-                    href="{{ route('password.request') }}"
-                    class="text-sm font-medium text-blue-700 hover:text-blue-900"
-                >
-                    Lupa password?
-                </a>
-            </div>
-
-            <input
-                id="password"
+            <x-ui.password-input
                 name="password"
-                type="password"
+                label="Kata sandi"
                 autocomplete="current-password"
                 required
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-                placeholder="Masukkan password"
-            >
+            />
 
-            @error('password')
-                <p class="mt-2 text-sm text-rose-600" role="alert">
-                    {{ $message }}
-                </p>
-            @enderror
+            <div class="mt-2 flex justify-end">
+                <a
+                    href="{{ route('password.request') }}"
+                    class="text-sm font-medium text-blue-700 transition hover:text-blue-900"
+                >
+                    Lupa kata sandi?
+                </a>
+            </div>
         </div>
 
         <label class="flex cursor-pointer items-center gap-3">

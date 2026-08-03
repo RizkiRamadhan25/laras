@@ -53,6 +53,14 @@ class UpdatePasswordRequest extends FormRequest
             'password.different' => 'Kata sandi baru harus berbeda dari kata sandi saat ini.',
 
             'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
+
+            'password.min' => 'Kata sandi baru minimal harus terdiri dari 8 karakter.',
+
+            'password.password.mixed' => 'Kata sandi baru harus mengandung huruf besar dan huruf kecil.',
+
+            'password.password.numbers' => 'Kata sandi baru harus mengandung minimal satu angka.',
+
+            'password.password.symbols' => 'Kata sandi baru harus mengandung minimal satu simbol.',
         ];
     }
 

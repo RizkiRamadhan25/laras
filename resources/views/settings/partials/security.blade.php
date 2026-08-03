@@ -57,83 +57,35 @@
             </header>
 
             <div class="mt-6">
-                <label
-                    for="current_password"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Kata sandi saat ini
-                </label>
-
-                <input
-                    id="current_password"
+                <x-ui.password-input
                     name="current_password"
-                    type="password"
-                    required
+                    label="Kata sandi saat ini"
                     autocomplete="current-password"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                >
-
-                @error('current_password')
-                    <p class="mt-2 text-sm text-rose-600">
-                        {{ $message }}
-                    </p>
-                @enderror
+                    required
+                />
             </div>
 
             <div class="mt-5">
-                <label
-                    for="password"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Kata sandi baru
-                </label>
-
-                <input
-                    id="password"
+                <x-ui.password-input
                     name="password"
-                    type="password"
-                    required
-                    minlength="8"
+                    label="Kata sandi baru"
                     autocomplete="new-password"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                >
-
-                @error('password')
-                    <p class="mt-2 text-sm text-rose-600">
-                        {{ $message }}
-                    </p>
-                @enderror
+                    minlength="8"
+                    required
+                />
             </div>
 
             <div class="mt-5">
-                <label
-                    for="password_confirmation"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Konfirmasi kata sandi baru
-                </label>
-
-                <input
-                    id="password_confirmation"
+                <x-ui.password-input
                     name="password_confirmation"
-                    type="password"
-                    required
-                    minlength="8"
+                    label="Konfirmasi kata sandi baru"
                     autocomplete="new-password"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                >
+                    minlength="8"
+                    required
+                />
             </div>
 
-            <div class="mt-5 rounded-2xl bg-slate-50 px-4 py-4">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Ketentuan
-                </p>
-
-                <p class="mt-2 text-xs leading-5 text-slate-500">
-                    Minimal 8 karakter, mengandung huruf
-                    besar, huruf kecil, angka, dan simbol.
-                </p>
-            </div>
+            <x-ui.password-requirements for="password" />
 
             <div class="mt-7 flex justify-end border-t border-slate-100 pt-6">
                 <button
@@ -207,27 +159,12 @@
             </div>
 
             <div class="mt-6">
-                <label
-                    for="logout_current_password"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Konfirmasi kata sandi
-                </label>
-
-                <input
-                    id="logout_current_password"
+                <x-ui.password-input
                     name="logout_current_password"
-                    type="password"
-                    required
+                    label="Konfirmasi kata sandi"
                     autocomplete="current-password"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                >
-
-                @error('logout_current_password')
-                    <p class="mt-2 text-sm text-rose-600">
-                        {{ $message }}
-                    </p>
-                @enderror
+                    required
+                />
             </div>
 
             <div class="mt-7 flex justify-end border-t border-slate-100 pt-6">

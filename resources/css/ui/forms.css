@@ -1,0 +1,396 @@
+/* =========================================================
+   Laras modern form foundation
+   ========================================================= */
+
+.laras-field {
+    --laras-field-border: #cbd5e1;
+    --laras-field-focus: #2563eb;
+    --laras-field-ring: rgb(37 99 235 / 0.14);
+    --laras-field-label: #64748b;
+    --laras-field-text: #0f172a;
+    --laras-field-surface: #ffffff;
+
+    position: relative;
+    width: 100%;
+}
+
+.laras-field[data-tone="danger"] {
+    --laras-field-focus: #e11d48;
+    --laras-field-ring: rgb(225 29 72 / 0.13);
+}
+
+.laras-field[data-invalid="true"] {
+    --laras-field-border: #fb7185;
+    --laras-field-focus: #e11d48;
+    --laras-field-ring: rgb(225 29 72 / 0.13);
+    --laras-field-label: #be123c;
+}
+
+.laras-field__control {
+    position: relative;
+    width: 100%;
+}
+
+.laras-field__input,
+.laras-field__textarea,
+.laras-field__select {
+    display: block;
+    width: 100%;
+    min-height: 3.65rem;
+    border: 1px solid var(--laras-field-border);
+    border-radius: 1rem;
+    background: var(--laras-field-surface);
+    color: var(--laras-field-text);
+    font: inherit;
+    font-size: 0.925rem;
+    line-height: 1.5;
+    outline: none;
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        background-color 180ms ease,
+        transform 180ms ease;
+}
+
+.laras-field__input,
+.laras-field__select {
+    padding: 1.35rem 1rem 0.55rem;
+}
+
+.laras-field__textarea {
+    min-height: 8.5rem;
+    resize: vertical;
+    padding: 1.55rem 1rem 0.75rem;
+}
+
+.laras-field__input::placeholder,
+.laras-field__textarea::placeholder {
+    color: transparent;
+}
+
+.laras-field__input:hover:not(:disabled),
+.laras-field__textarea:hover:not(:disabled),
+.laras-field__select:hover:not(:disabled) {
+    border-color: #94a3b8;
+}
+
+.laras-field__input:focus,
+.laras-field__textarea:focus,
+.laras-field__select:focus {
+    border-color: var(--laras-field-focus);
+    box-shadow: 0 0 0 4px var(--laras-field-ring);
+}
+
+.laras-field__input:disabled,
+.laras-field__textarea:disabled,
+.laras-field__select:disabled,
+.laras-field__input[readonly],
+.laras-field__textarea[readonly] {
+    cursor: not-allowed;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.laras-field__label {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    z-index: 2;
+    max-width: calc(100% - 2rem);
+    overflow: hidden;
+    color: var(--laras-field-label);
+    font-size: 0.925rem;
+    font-weight: 500;
+    line-height: 1;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transform: translateY(-50%);
+    transform-origin: left center;
+    transition:
+        color 180ms ease,
+        font-size 180ms ease,
+        transform 180ms ease,
+        top 180ms ease;
+}
+
+.laras-field--textarea .laras-field__label {
+    top: 1.35rem;
+    transform: none;
+}
+
+.laras-field[data-filled="true"] .laras-field__label,
+.laras-field:focus-within .laras-field__label,
+.laras-field--select .laras-field__label {
+    top: 0.72rem;
+    color: var(--laras-field-focus);
+    font-size: 0.69rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+    transform: translateY(0);
+}
+
+.laras-field--textarea[data-filled="true"] .laras-field__label,
+.laras-field--textarea:focus-within .laras-field__label {
+    top: 0.65rem;
+}
+
+.laras-field__required {
+    margin-left: 0.15rem;
+    color: #e11d48;
+}
+
+.laras-field__focus-line {
+    position: absolute;
+    right: 1rem;
+    bottom: 0;
+    left: 1rem;
+    height: 2px;
+    border-radius: 9999px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--laras-field-focus),
+        transparent
+    );
+    opacity: 0;
+    pointer-events: none;
+    transform: scaleX(0.35);
+    transition:
+        opacity 180ms ease,
+        transform 220ms ease;
+}
+
+.laras-field:focus-within .laras-field__focus-line {
+    opacity: 0.7;
+    transform: scaleX(1);
+}
+
+.laras-field__message {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin-top: 0.55rem;
+    padding-inline: 0.15rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.laras-field__message--hint {
+    color: #64748b;
+}
+
+.laras-field__message--error {
+    color: #e11d48;
+}
+
+.laras-field--password .laras-field__input {
+    padding-right: 3.65rem;
+}
+
+.laras-field--password .laras-field__label {
+    max-width: calc(100% - 4.5rem);
+}
+
+.laras-field__password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.65rem;
+    z-index: 3;
+    display: inline-flex;
+    width: 2.45rem;
+    height: 2.45rem;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 0.75rem;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition:
+        background-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
+}
+
+.laras-field__password-toggle:hover {
+    background: #f1f5f9;
+    color: #1d4ed8;
+}
+
+.laras-field__password-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.laras-field__password-toggle:active {
+    transform: translateY(-50%) scale(0.94);
+}
+
+.laras-field__password-toggle svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.laras-field[data-password-visible="false"]
+    [data-laras-password-visible-icon],
+.laras-field[data-password-visible="true"]
+    [data-laras-password-hidden-icon] {
+    display: none;
+}
+
+.laras-field__select {
+    appearance: none;
+    padding-right: 3rem;
+}
+
+.laras-field__select-chevron {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-right: 2px solid #64748b;
+    border-bottom: 2px solid #64748b;
+    pointer-events: none;
+    transform: translateY(-70%) rotate(45deg);
+}
+
+@keyframes laras-field-autofill {
+    from {
+        opacity: 0.99;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.laras-field__input:-webkit-autofill,
+.laras-field__textarea:-webkit-autofill {
+    animation: laras-field-autofill 1ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .laras-field__input,
+    .laras-field__textarea,
+    .laras-field__select,
+    .laras-field__label,
+    .laras-field__focus-line,
+    .laras-field__password-toggle {
+        animation: none !important;
+        transition-duration: 1ms !important;
+    }
+}
+
+/* =========================================================
+   Password requirement checklist
+   ========================================================= */
+
+.laras-password-rules {
+    margin-top: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    background: #f8fafc;
+    padding: 1rem;
+}
+
+.laras-password-rules__title {
+    margin: 0;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.laras-password-rules__list {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0.85rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.laras-password-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: #64748b;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    transition:
+        color 180ms ease,
+        transform 180ms ease;
+}
+
+.laras-password-rule__indicator {
+    position: relative;
+    display: inline-flex;
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 9999px;
+    background: #ffffff;
+    transition:
+        border-color 180ms ease,
+        background-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+.laras-password-rule__indicator::after {
+    content: "";
+    width: 0.42rem;
+    height: 0.23rem;
+    border-bottom: 1.7px solid #ffffff;
+    border-left: 1.7px solid #ffffff;
+    opacity: 0;
+    transform: translateY(-0.05rem) rotate(-45deg) scale(0.65);
+    transition:
+        opacity 180ms ease,
+        transform 180ms ease;
+}
+
+.laras-password-rule[data-met="true"] {
+    color: #047857;
+    font-weight: 600;
+}
+
+.laras-password-rule[data-met="true"]
+    .laras-password-rule__indicator {
+    border-color: #10b981;
+    background: #10b981;
+    box-shadow: 0 0 0 4px rgb(16 185 129 / 0.1);
+    transform: scale(1.04);
+}
+
+.laras-password-rule[data-met="true"]
+    .laras-password-rule__indicator::after {
+    opacity: 1;
+    transform: translateY(-0.05rem) rotate(-45deg) scale(1);
+}
+
+@media (min-width: 640px) {
+    .laras-password-rules__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .laras-password-rule,
+    .laras-password-rule__indicator,
+    .laras-password-rule__indicator::after {
+        transition-duration: 1ms !important;
+    }
+}
