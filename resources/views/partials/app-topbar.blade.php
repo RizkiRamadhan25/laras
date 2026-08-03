@@ -1,9 +1,3 @@
-@php
-    $userInitial = mb_strtoupper(
-        mb_substr(auth()->user()->name, 0, 1)
-    );
-@endphp
-
 <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
     <div class="flex h-20 items-center gap-4 px-4 sm:px-6 lg:px-8">
         <button
@@ -291,9 +285,11 @@
                 x-bind:aria-expanded="profileOpen"
                 aria-haspopup="menu"
             >
-                <span class="flex size-9 items-center justify-center rounded-xl bg-laras-950 text-sm font-semibold text-white">
-                    {{ $userInitial }}
-                </span>
+                <x-ui.user-avatar
+                    :user="auth()->user()"
+                    size="sm"
+                    rounded="xl"
+                />
 
                 <span class="hidden max-w-36 text-left lg:block">
                     <span class="block truncate text-sm font-semibold text-slate-800">

@@ -9,9 +9,6 @@
 
 @section('content')
     @php
-        $profilePhotoUrl =
-        $user->profilePhotoUrl();
-
         $selectedTimezone = old(
             'timezone',
             $preference?->timezone
@@ -41,22 +38,6 @@
             $preference?->week_starts_on
                 ?? 1
         );
-
-        $initials = collect(
-            preg_split(
-                '/\s+/',
-                trim($user->name)
-            )
-        )
-            ->filter()
-            ->take(2)
-            ->map(
-                fn (string $part): string =>
-                    mb_strtoupper(
-                        mb_substr($part, 0, 1)
-                    )
-            )
-            ->join('');
     @endphp
 
     <div class="mx-auto max-w-6xl">
@@ -84,17 +65,12 @@
             <aside class="space-y-6">
                 <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-laras">
                     <div class="flex items-center gap-4">
-                        @if ($profilePhotoUrl !== null)
-                            <img
-                                src="{{ $profilePhotoUrl }}"
-                                alt="Foto profil {{ $user->name }}"
-                                class="size-20 shrink-0 rounded-2xl border border-slate-200 object-cover shadow-sm"
-                            >
-                        @else
-                            <span class="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-laras-950 text-xl font-semibold text-white">
-                                {{ $initials }}
-                            </span>
-                        @endif
+                        <x-ui.user-avatar
+                            :user="$user"
+                            size="xl"
+                            rounded="2xl"
+                            class="shadow-sm"
+                        />
 
                         <div class="min-w-0">
                             <h2 class="truncate text-lg font-semibold text-slate-950">
@@ -181,7 +157,7 @@
                             </label>
                         </form>
 
-                        @if ($profilePhotoUrl !== null)
+                        @if ($user->profilePhotoUrl() !== null)
                             <form
                                 method="POST"
                                 action="{{ route(

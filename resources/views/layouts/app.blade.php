@@ -27,6 +27,25 @@
         @yield('title', 'Laras')
     </title>
 
+    <script>
+        (() => {
+            try {
+                if (
+                    window.sessionStorage.getItem(
+                        'laras:intro-shown:v1'
+                    ) === '1'
+                ) {
+                    document.documentElement.setAttribute(
+                        'data-laras-intro-seen',
+                        'true'
+                    );
+                }
+            } catch (error) {
+                // Aplikasi tetap berjalan ketika sessionStorage dibatasi.
+            }
+        })();
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @stack('head')
@@ -39,6 +58,8 @@
     x-on:keydown.escape.window="sidebarOpen = false"
     class="min-h-full bg-slate-50 text-slate-950 antialiased"
 >
+    <x-ui.loading-screen />
+
     <div class="min-h-screen">
         <div
             x-cloak

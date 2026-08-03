@@ -116,9 +116,21 @@ class User extends Authenticatable
             return null;
         }
 
-        return Storage::disk('public')->url(
+        $url = Storage::disk('public')->url(
             $this->profile_photo_path
         );
+
+        $separator = str_contains($url, '?')
+            ? '&'
+            : '?';
+
+        $version = substr(
+            sha1($this->profile_photo_path),
+            0,
+            12
+        );
+
+        return $url.$separator.'v='.$version;
     }
 
     public function securityEvents(): HasMany
