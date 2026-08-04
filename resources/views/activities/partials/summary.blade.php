@@ -2,6 +2,7 @@
     data-activity-summary
     class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
     aria-live="polite"
+    aria-busy="false"
 >
     <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
         <span class="flex size-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
@@ -17,7 +18,8 @@
 
         <p
             data-activity-summary-value="open"
-            class="mt-2 text-3xl font-semibold"
+            data-activity-summary-count="{{ $summary['open'] }}"
+            class="mt-2 text-3xl font-semibold text-slate-950"
         >
             {{ $summary['open'] }}
         </p>
@@ -37,7 +39,8 @@
 
         <p
             data-activity-summary-value="today"
-            class="mt-2 text-3xl font-semibold"
+            data-activity-summary-count="{{ $summary['today'] }}"
+            class="mt-2 text-3xl font-semibold text-slate-950"
         >
             {{ $summary['today'] }}
         </p>
@@ -57,6 +60,7 @@
 
         <p
             data-activity-summary-value="overdue"
+            data-activity-summary-count="{{ $summary['overdue'] }}"
             class="mt-2 text-3xl font-semibold text-rose-700"
         >
             {{ $summary['overdue'] }}
@@ -77,6 +81,7 @@
 
         <p
             data-activity-summary-value="completed_month"
+            data-activity-summary-count="{{ $summary['completed_month'] }}"
             class="mt-2 text-3xl font-semibold text-emerald-700"
         >
             {{ $summary['completed_month'] }}

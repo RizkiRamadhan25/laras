@@ -248,6 +248,74 @@ class ActivityLiveBrowserInterfaceTest extends TestCase
         );
     }
 
+    public function test_activity_browser_refreshes_summary_and_list_together(): void
+    {
+        $browserScript = file_get_contents(
+            resource_path(
+                'js/features/activity-browser.js'
+            )
+        );
+
+        $actionScript = file_get_contents(
+            resource_path(
+                'js/features/activity-actions.js'
+            )
+        );
+
+        $this->assertIsString(
+            $browserScript
+        );
+
+        $this->assertIsString(
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            "const SUMMARY_SELECTOR = '[data-activity-summary]'",
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            'documentResult.querySelector(',
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            'replacementSummary',
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            'summary.replaceWith(',
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            'browser.replaceWith(',
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            'return true;',
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            'showErrorToast: false',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'if (! refreshed)',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'window.LarasToast?.warning',
+            $actionScript
+        );
+    }
+
     private function completedUser(): User
     {
         $user = User::factory()->create([

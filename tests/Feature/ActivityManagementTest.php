@@ -684,4 +684,57 @@ class ActivityManagementTest extends TestCase
 
         return $user;
     }
+
+    public function test_activity_summary_reflects_lifecycle_changes(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('activities.index'))
+            ->assertOk()
+            ->assertSeeInOrder(
+                [
+                    'data-activity-summary-value="open"',
+                    'data-activity-summary-count="1"',
+                ],
+                false
+            );
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.complete',
+                    $activity->id
+                )
+            )
+            ->assertOk();
+
+        $this
+            ->actingAs($user)
+            ->get(route('activities.index'))
+            ->assertOk()
+            ->assertSeeInOrder(
+                [
+                    'data-activity-summary-value="open"',
+                    'data-activity-summary-count="0"',
+                ],
+                false
+            )
+            ->assertSeeInOrder(
+                [
+                    'data-activity-summary-value="completed_month"',
+                    'data-activity-summary-count="1"',
+                ],
+                false
+            );
+    }
 }

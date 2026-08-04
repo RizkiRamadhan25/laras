@@ -1,3 +1,4 @@
+const SUMMARY_SELECTOR = '[data-activity-summary]';
 const BROWSER_SELECTOR = '[data-activity-browser]';
 const FILTER_FORM_SELECTOR = '[data-activity-filter-form]';
 const SEARCH_SELECTOR = '[data-activity-search]';
@@ -5,6 +6,12 @@ const SEARCH_DEBOUNCE = 350;
 
 let requestController = null;
 let searchTimer = null;
+
+function currentSummary() {
+    return document.querySelector(
+        SUMMARY_SELECTOR
+    );
+}
 
 function currentBrowser() {
     return document.querySelector(BROWSER_SELECTOR);
@@ -88,14 +95,16 @@ export async function loadActivityBrowser(
         historyMode = 'push',
         focusSearch = false,
         searchQuery = '',
+        showErrorToast = true,
     } = {}
 ) {
+    const summary = currentSummary();
     const browser = currentBrowser();
 
-    if (! browser) {
+    if (! summary || ! browser) {
         window.location.assign(targetUrl);
 
-        return;
+        return false;
     }
 
     requestController?.abort();
@@ -104,80 +113,163 @@ export async function loadActivityBrowser(
 
     requestController = controller;
 
-    browser.style.minHeight = `${browser.offsetHeight}px`;
+    browser.style.minHeight =
+        `${browser.offsetHeight}px`;
+
     browser.classList.add('is-loading');
-    browser.setAttribute('aria-busy', 'true');
+
+    browser.setAttribute(
+        'aria-busy',
+        'true'
+    );
+
+    summary.setAttribute(
+        'aria-busy',
+        'true'
+    );
 
     try {
-        const response = await fetch(targetUrl, {
-            method: 'GET',
-            headers: {
-                Accept: 'text/html',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            credentials: 'same-origin',
-            signal: controller.signal,
-        });
+        const response = await fetch(
+            targetUrl,
+            {
+                method: 'GET',
+
+                headers: {
+                    Accept: 'text/html',
+
+                    'X-Requested-With':
+                        'XMLHttpRequest',
+                },
+
+                credentials: 'same-origin',
+
+                signal: controller.signal,
+            }
+        );
 
         if (! response.ok) {
             throw new Error(
-                `Activity browser request failed: ${response.status}`
+                [
+                    'Activity browser request',
+                    `failed: ${response.status}`,
+                ].join(' ')
             );
         }
 
         const html = await response.text();
+
         const documentResult = new DOMParser()
-            .parseFromString(html, 'text/html');
+            .parseFromString(
+                html,
+                'text/html'
+            );
 
-        const replacement = documentResult
-            .querySelector(BROWSER_SELECTOR);
+        const replacementSummary =
+            documentResult.querySelector(
+                SUMMARY_SELECTOR
+            );
 
-        if (! replacement) {
+        const replacementBrowser =
+            documentResult.querySelector(
+                BROWSER_SELECTOR
+            );
+
+        if (
+            ! replacementSummary
+            || ! replacementBrowser
+        ) {
             throw new Error(
-                'Activity browser fragment was not found.'
+                [
+                    'Activity summary or browser',
+                    'fragment was not found.',
+                ].join(' ')
             );
         }
 
-        browser.replaceWith(replacement);
+        summary.replaceWith(
+            replacementSummary
+        );
+
+        browser.replaceWith(
+            replacementBrowser
+        );
 
         if (historyMode === 'push') {
             window.history.pushState(
-                { larasActivityBrowser: true },
+                {
+                    larasActivityBrowser: true,
+                },
                 '',
                 targetUrl
             );
-        } else if (historyMode === 'replace') {
+        } else if (
+            historyMode === 'replace'
+        ) {
             window.history.replaceState(
-                { larasActivityBrowser: true },
+                {
+                    larasActivityBrowser: true,
+                },
                 '',
                 targetUrl
             );
         }
 
-        refreshDynamicUi(replacement);
+        refreshDynamicUi(
+            replacementBrowser
+        );
 
         if (focusSearch) {
             restoreSearchFocus(
-                replacement,
+                replacementBrowser,
                 searchQuery
             );
         }
+
+        return true;
     } catch (error) {
-        if (error.name === 'AbortError') {
-            return;
+        if (
+            error instanceof DOMException
+            && error.name === 'AbortError'
+        ) {
+            return false;
         }
 
         console.error(error);
 
-        window.LarasToast?.error(
-            'Daftar aktivitas tidak dapat dimuat. Coba lagi beberapa saat.'
+        if (showErrorToast) {
+            window.LarasToast?.error(
+                [
+                    'Daftar dan statistik aktivitas',
+                    'tidak dapat dimuat.',
+                    'Coba lagi beberapa saat.',
+                ].join(' ')
+            );
+        }
+
+        browser.classList.remove(
+            'is-loading'
         );
 
-        browser.classList.remove('is-loading');
-        browser.removeAttribute('style');
-        browser.setAttribute('aria-busy', 'false');
+        browser.removeAttribute(
+            'style'
+        );
+
+        browser.setAttribute(
+            'aria-busy',
+            'false'
+        );
+
+        summary.setAttribute(
+            'aria-busy',
+            'false'
+        );
+
+        return false;
     } finally {
-        if (requestController === controller) {
+        if (
+            requestController
+            === controller
+        ) {
             requestController = null;
         }
     }

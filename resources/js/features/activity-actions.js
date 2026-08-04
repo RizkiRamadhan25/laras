@@ -323,16 +323,35 @@ async function submitActivityAction(
             );
         }
 
-        await loadActivityBrowser(
-            window.location.href,
-            {
-                historyMode: 'none',
-            }
-        );
+        const refreshed =
+            await loadActivityBrowser(
+                window.location.href,
+                {
+                    historyMode: 'none',
+                    showErrorToast: false,
+                }
+            );
+
+        if (! refreshed) {
+            window.LarasToast?.warning(
+                [
+                    payload.message
+                        ?? 'Aktivitas berhasil diperbarui.',
+
+                    'Namun tampilan belum dapat',
+                    'disegarkan. Muat ulang halaman.',
+                ].join(' '),
+                {
+                    duration: 8000,
+                }
+            );
+
+            return;
+        }
 
         window.LarasToast?.success(
             payload.message
-            ?? 'Aktivitas berhasil diperbarui.',
+                ?? 'Aktivitas berhasil diperbarui.',
             {
                 duration: 3200,
             }
