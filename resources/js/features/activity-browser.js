@@ -82,7 +82,7 @@ function restoreSearchFocus(browser, query) {
     }
 }
 
-async function loadActivityBrowser(
+export async function loadActivityBrowser(
     targetUrl,
     {
         historyMode = 'push',

@@ -5,6 +5,7 @@ import './features/settings';
 import './features/data-deletion';
 import './features/global-search';
 import './features/activity-browser';
+import './features/activity-actions';
 import './features/finance-browser';
 import './features/account-ordering';
 import '../css/ui/forms.css';

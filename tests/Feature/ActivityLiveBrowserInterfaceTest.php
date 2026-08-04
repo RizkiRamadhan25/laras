@@ -175,6 +175,79 @@ class ActivityLiveBrowserInterfaceTest extends TestCase
             );
     }
 
+    public function test_activity_action_javascript_supports_async_requests(): void
+    {
+        $appScript = file_get_contents(
+            resource_path('js/app.js')
+        );
+
+        $actionScript = file_get_contents(
+            resource_path(
+                'js/features/activity-actions.js'
+            )
+        );
+
+        $browserScript = file_get_contents(
+            resource_path(
+                'js/features/activity-browser.js'
+            )
+        );
+
+        $this->assertIsString($appScript);
+        $this->assertIsString($actionScript);
+        $this->assertIsString($browserScript);
+
+        $this->assertStringContainsString(
+            "import './features/activity-actions';",
+            $appScript
+        );
+
+        $this->assertStringContainsString(
+            'export async function loadActivityBrowser',
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            '[data-activity-action-form]',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            "Accept: 'application/json'",
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            "'X-Requested-With':",
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'new FormData(form)',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'form.dataset.confirmBypass',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'loadActivityBrowser(',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'window.LarasToast?.success',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'window.LarasToast?.error',
+            $actionScript
+        );
+    }
+
     private function completedUser(): User
     {
         $user = User::factory()->create([
