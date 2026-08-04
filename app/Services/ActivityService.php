@@ -266,12 +266,6 @@ class ActivityService
 
             $activity->restore();
 
-            $activity->forceFill([
-                'status' => ActivityStatus::Planned,
-                'completed_at' => null,
-                'cancelled_at' => null,
-            ])->save();
-
             return $activity->refresh();
         }, 3);
     }

@@ -304,12 +304,15 @@ class ActivityManagementTest extends TestCase
         );
     }
 
-    public function test_activity_can_be_archived_and_restored(): void
+    public function test_planned_activity_keeps_its_status_after_archive_restore(): void
     {
         $user = $this->completedUser();
 
         $activity = Activity::factory()->create([
             'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
         ]);
 
         $this
@@ -323,12 +326,9 @@ class ActivityManagementTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('status');
 
-        $this->assertSoftDeleted(
-            'activities',
-            [
-                'id' => $activity->id,
-            ]
-        );
+        $this->assertSoftDeleted('activities', [
+            'id' => $activity->id,
+        ]);
 
         $this
             ->actingAs($user)
@@ -341,13 +341,67 @@ class ActivityManagementTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('status');
 
-        $this->assertDatabaseHas(
-            'activities',
-            [
-                'id' => $activity->id,
-                'status' => 'planned',
-                'deleted_at' => null,
-            ]
+        $restoredActivity = $activity->fresh();
+
+        $this->assertSame(
+            ActivityStatus::Planned,
+            $restoredActivity->status
+        );
+
+        $this->assertNull(
+            $restoredActivity->deleted_at
+        );
+    }
+
+    public function test_completed_activity_keeps_its_status_after_archive_restore(): void
+    {
+        $user = $this->completedUser();
+        $completedAt = now()->subHour();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Completed,
+            'completed_at' => $completedAt,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->delete(
+                route(
+                    'activities.destroy',
+                    $activity->id
+                )
+            )
+            ->assertRedirect();
+
+        $this->assertSoftDeleted('activities', [
+            'id' => $activity->id,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patch(
+                route(
+                    'activities.restore',
+                    $activity->id
+                )
+            )
+            ->assertRedirect();
+
+        $restoredActivity = $activity->fresh();
+
+        $this->assertSame(
+            ActivityStatus::Completed,
+            $restoredActivity->status
+        );
+
+        $this->assertNotNull(
+            $restoredActivity->completed_at
+        );
+
+        $this->assertNull(
+            $restoredActivity->deleted_at
         );
     }
 
