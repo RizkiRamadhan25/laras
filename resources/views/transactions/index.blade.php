@@ -79,10 +79,17 @@
         </div>
     </section>
 
+    <div
+        data-finance-browser="transactions"
+        class="relative"
+        aria-live="polite"
+        aria-busy="false"
+    >
     <section class="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
         <form
             method="GET"
             action="{{ route('transactions.index') }}"
+            data-finance-filter-form
             class="grid gap-4 md:grid-cols-2 xl:grid-cols-6"
         >
             <div class="xl:col-span-2">
@@ -99,6 +106,8 @@
                     type="search"
                     value="{{ $filters['search'] ?? '' }}"
                     maxlength="100"
+                    data-finance-search
+                    autocomplete="off"
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
                     placeholder="Deskripsi, pihak, referensi..."
                 >
@@ -251,6 +260,7 @@
 
                 <a
                     href="{{ route('transactions.index') }}"
+                    data-finance-reset
                     class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
                     Reset
@@ -436,9 +446,13 @@
                 @endforeach
             </div>
 
-            <div class="border-t border-slate-100 px-5 py-4 sm:px-6">
-                {{ $transactions->links() }}
+            <div
+                data-finance-pagination
+                class="border-t border-slate-100 px-5 py-4 sm:px-6"
+            >
+                {{ $transactions->withQueryString()->links() }}
             </div>
         @endif
     </section>
+    </div>
 @endsection

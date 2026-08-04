@@ -10,6 +10,7 @@
     'autocomplete' => null,
     'tone' => 'default',
     'density' => 'default',
+    'prefix' => null,
     'suffix' => null,
 ])
 
@@ -39,6 +40,7 @@
     @class([
         'laras-field',
         'laras-field--compact' => $density === 'compact',
+        'laras-field--prefix' => filled($prefix),
         'laras-field--suffix' => filled($suffix),
         'laras-field--always-floating' => $alwaysFloating,
     ])
@@ -82,6 +84,15 @@
                 >*</span>
             @endif
         </label>
+
+        @if (filled($prefix))
+            <span
+                class="laras-field__prefix"
+                aria-hidden="true"
+            >
+                {{ $prefix }}
+            </span>
+        @endif
 
         @if (filled($suffix))
             <span

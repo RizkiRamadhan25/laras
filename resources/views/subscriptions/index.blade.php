@@ -94,12 +94,19 @@
         </div>
     </section>
 
+    <div
+        data-finance-browser="subscriptions"
+        class="relative"
+        aria-live="polite"
+        aria-busy="false"
+    >
     <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
         <form
             method="GET"
             action="{{ route(
                 'subscriptions.index'
             ) }}"
+            data-finance-filter-form
             class="grid gap-4 md:grid-cols-2 xl:grid-cols-5"
         >
             <div class="xl:col-span-2">
@@ -116,6 +123,8 @@
                     type="search"
                     maxlength="100"
                     value="{{ $filters['search'] ?? '' }}"
+                    data-finance-search
+                    autocomplete="off"
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none"
                     placeholder="Netflix, Spotify, Google..."
                 >
@@ -220,6 +229,7 @@
                     href="{{ route(
                         'subscriptions.index'
                     ) }}"
+                    data-finance-reset
                     class="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700"
                 >
                     Reset
@@ -470,9 +480,13 @@
                 @endforeach
             </div>
 
-            <div class="mt-6">
-                {{ $subscriptions->links() }}
+            <div
+                data-finance-pagination
+                class="mt-6"
+            >
+                {{ $subscriptions->withQueryString()->links() }}
             </div>
         @endif
     </section>
+    </div>
 @endsection

@@ -102,6 +102,12 @@
             </article>
         </section>
 
+        <div
+            data-finance-browser="budgets"
+            class="relative"
+            aria-live="polite"
+            aria-busy="false"
+        >
         <section
             aria-labelledby="budget-filter-title"
             class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-laras sm:p-6"
@@ -120,21 +126,21 @@
                     </p>
                 </div>
 
-                @if ($hasCustomControls)
-                    <a
-                        href="{{ route(
-                            'budgets.index'
-                        ) }}"
-                        class="inline-flex items-center gap-2 self-start rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100 sm:self-auto"
-                    >
-                        <i
-                            data-lucide="rotate-ccw"
-                            class="size-4"
-                        ></i>
+                <a
+                    href="{{ route('budgets.index') }}"
+                    data-finance-reset
+                    @class([
+                        'inline-flex items-center gap-2 self-start rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100 sm:self-auto',
+                        'hidden' => ! $hasCustomControls,
+                    ])
+                >
+                    <i
+                        data-lucide="rotate-ccw"
+                        class="size-4"
+                    ></i>
 
-                        Atur ulang
-                    </a>
-                @endif
+                    Atur ulang
+                </a>
             </div>
 
             <form
@@ -142,6 +148,7 @@
                 action="{{ route(
                     'budgets.index'
                 ) }}"
+                data-finance-filter-form
                 class="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.75fr))_auto] lg:items-end"
             >
                 <div>
@@ -164,6 +171,8 @@
                             type="search"
                             maxlength="100"
                             value="{{ $filters['q'] }}"
+                            data-finance-search
+                            autocomplete="off"
                             placeholder="Contoh: Makanan"
                             class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
                         >
@@ -671,11 +680,13 @@
 
         @if ($budgets->hasPages())
             <nav
+                data-finance-pagination
                 aria-label="Paginasi anggaran"
                 class="mt-7"
             >
-                {{ $budgets->links() }}
+                {{ $budgets->withQueryString()->links() }}
             </nav>
         @endif
+        </div>
     </div>
 @endsection
