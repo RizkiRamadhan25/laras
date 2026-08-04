@@ -4,6 +4,7 @@ import './features/expense-analysis';
 import './features/settings';
 import './features/data-deletion';
 import './features/global-search';
+import './features/activity-browser';
 import '../css/ui/forms.css';
 import './ui/form-controls';
 import './ui/loading-screen';

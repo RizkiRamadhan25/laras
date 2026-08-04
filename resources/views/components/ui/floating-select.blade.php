@@ -6,6 +6,7 @@
     'hint' => null,
     'required' => false,
     'tone' => 'default',
+    'density' => 'default',
 ])
 
 @php
@@ -19,11 +20,15 @@
 @endphp
 
 <div
-    class="laras-field laras-field--select"
+    @class([
+        'laras-field laras-field--select',
+        'laras-field--compact' => $density === 'compact',
+    ])
     data-laras-field
     data-filled="false"
     data-invalid="{{ $error ? 'true' : 'false' }}"
     data-tone="{{ $tone }}"
+    data-density="{{ $density }}"
 >
     <div class="laras-field__control">
         <select

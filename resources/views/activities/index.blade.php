@@ -197,6 +197,12 @@
         </div>
     </section>
 
+    <div
+        data-activity-browser
+        class="relative"
+        aria-live="polite"
+        aria-busy="false"
+    >
     @if ($showActivityOverview)
         <section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-laras">
@@ -359,8 +365,15 @@
             <nav class="flex min-w-max gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-laras">
                 @foreach ($viewTabs as $value => $label)
                     @php
-                        $tabRoute = $value === 'priority'
-                            ? route('priorities.index')
+                        $tabRoute = $priorityPage
+                            ? (
+                                $value === 'priority'
+                                    ? route('priorities.index')
+                                    : route(
+                                        'activities.index',
+                                        ['view' => $value]
+                                    )
+                            )
                             : route(
                                 'activities.index',
                                 ['view' => $value]
@@ -372,6 +385,9 @@
 
                     <a
                         href="{{ $tabRoute }}"
+                        @if (! $priorityPage)
+                            data-activity-tab
+                        @endif
                         @class([
                             'rounded-xl px-4 py-2.5 text-sm font-semibold transition',
                             'bg-laras-700 text-white shadow-sm' =>
@@ -388,10 +404,33 @@
         </div>
     </section>
 
-    <section class="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
+    <section class="laras-filter-panel mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-laras sm:p-6">
+        <div class="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+                <h2 class="font-semibold text-slate-950">
+                    Saring aktivitas
+                </h2>
+
+                <p class="mt-1 text-sm text-slate-400">
+                    Persempit daftar berdasarkan kata kunci, jenis, prioritas, atau tanggal.
+                </p>
+            </div>
+
+            @if (collect($filters)->filter()->isNotEmpty())
+                <span class="inline-flex w-fit items-center gap-2 rounded-full bg-laras-50 px-3 py-1.5 text-xs font-semibold text-laras-700">
+                    <i
+                        data-lucide="sliders-horizontal"
+                        class="size-3.5"
+                    ></i>
+                    Filter aktif
+                </span>
+            @endif
+        </div>
+
         <form
             method="GET"
             action="{{ $filterRoute }}"
+            data-activity-filter-form
             class="grid gap-4 md:grid-cols-2 xl:grid-cols-6"
         >
             @if (! $priorityPage)
@@ -403,121 +442,80 @@
             @endif
 
             <div class="xl:col-span-2">
-                <label
-                    for="search"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Pencarian
-                </label>
-
-                <input
-                    id="search"
+                <x-ui.floating-input
                     name="search"
                     type="search"
-                    value="{{ $filters['search'] ?? '' }}"
+                    label="Pencarian"
+                    :value="$filters['search'] ?? ''"
+                    density="compact"
                     maxlength="100"
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                    placeholder="Judul, deskripsi, lokasi..."
-                >
+                    autocomplete="off"
+                    data-activity-search
+                    hint="Cari judul, deskripsi, atau lokasi."
+                />
             </div>
 
-            <div>
-                <label
-                    for="type"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Jenis
-                </label>
+            <x-ui.floating-select
+                name="type"
+                label="Jenis"
+                density="compact"
+            >
+                <option value="">
+                    Semua jenis
+                </option>
 
-                <select
-                    id="type"
-                    name="type"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none"
-                >
-                    <option value="">
-                        Semua
+                @foreach ($activityTypes as $type)
+                    <option
+                        value="{{ $type->value }}"
+                        @selected(
+                            ($filters['type'] ?? '')
+                                === $type->value
+                        )
+                    >
+                        {{ $type->label() }}
                     </option>
+                @endforeach
+            </x-ui.floating-select>
 
-                    @foreach ($activityTypes as $type)
-                        <option
-                            value="{{ $type->value }}"
-                            @selected(
-                                ($filters['type'] ?? '')
-                                    === $type->value
-                            )
-                        >
-                            {{ $type->label() }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <x-ui.floating-select
+                name="priority"
+                label="Prioritas"
+                density="compact"
+            >
+                <option value="">
+                    Semua prioritas
+                </option>
 
-            <div>
-                <label
-                    for="priority"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Prioritas
-                </label>
-
-                <select
-                    id="priority"
-                    name="priority"
-                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none"
-                >
-                    <option value="">
-                        Semua
+                @foreach ($priorities as $priority)
+                    <option
+                        value="{{ $priority->value }}"
+                        @selected(
+                            ($filters['priority'] ?? '')
+                                === $priority->value
+                        )
+                    >
+                        {{ $priority->label() }}
                     </option>
+                @endforeach
+            </x-ui.floating-select>
 
-                    @foreach ($priorities as $priority)
-                        <option
-                            value="{{ $priority->value }}"
-                            @selected(
-                                ($filters['priority'] ?? '')
-                                    === $priority->value
-                            )
-                        >
-                            {{ $priority->label() }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <x-ui.floating-input
+                name="date_from"
+                type="date"
+                label="Mulai"
+                :value="$filters['date_from'] ?? ''"
+                density="compact"
+            />
 
-            <div>
-                <label
-                    for="date_from"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Mulai
-                </label>
+            <x-ui.floating-input
+                name="date_to"
+                type="date"
+                label="Sampai"
+                :value="$filters['date_to'] ?? ''"
+                density="compact"
+            />
 
-                <input
-                    id="date_from"
-                    name="date_from"
-                    type="date"
-                    value="{{ $filters['date_from'] ?? '' }}"
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none"
-                >
-            </div>
-
-            <div>
-                <label
-                    for="date_to"
-                    class="mb-2 block text-sm font-medium text-slate-700"
-                >
-                    Sampai
-                </label>
-
-                <input
-                    id="date_to"
-                    name="date_to"
-                    type="date"
-                    value="{{ $filters['date_to'] ?? '' }}"
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none"
-                >
-            </div>
-
-            <div class="flex items-end gap-2 md:col-span-2 xl:col-span-6">
+            <div class="flex flex-wrap items-center gap-2 md:col-span-2 xl:col-span-6">
                 <button
                     type="submit"
                     class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
@@ -526,18 +524,23 @@
                         data-lucide="sliders-horizontal"
                         class="size-4"
                     ></i>
-                    Terapkan
+                    Terapkan filter
                 </button>
 
                 <a
+                    data-activity-reset
                     href="{{ $priorityPage
                         ? route('priorities.index')
                         : route(
                             'activities.index',
                             ['view' => $selectedView]
                         ) }}"
-                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
+                    <i
+                        data-lucide="rotate-ccw"
+                        class="size-4"
+                    ></i>
                     Reset
                 </a>
             </div>
@@ -933,10 +936,14 @@
                     </article>
                 @endforeach
             </div>
-
-            <div class="mt-6">
-                {{ $activities->links() }}
-            </div>
         @endif
+            <div
+            data-activity-pagination
+            @class(['mt-6' => $activities->hasPages(),])>
+            @if ($activities->hasPages())
+                {{ $activities->withQueryString()->links() }}
+            @endif
+        </div>
     </section>
+    </div>
 @endsection

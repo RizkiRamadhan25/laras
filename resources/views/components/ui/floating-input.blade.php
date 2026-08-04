@@ -9,6 +9,8 @@
     'required' => false,
     'autocomplete' => null,
     'tone' => 'default',
+    'density' => 'default',
+    'suffix' => null,
 ])
 
 @php
@@ -19,14 +21,32 @@
     $describedBy = collect([$hintId, $errorId])
         ->filter()
         ->implode(' ');
+
+    $alwaysFloating = in_array(
+        $type,
+        [
+            'date',
+            'datetime-local',
+            'time',
+            'month',
+            'week',
+        ],
+        true
+    );
 @endphp
 
 <div
-    class="laras-field"
+    @class([
+        'laras-field',
+        'laras-field--compact' => $density === 'compact',
+        'laras-field--suffix' => filled($suffix),
+        'laras-field--always-floating' => $alwaysFloating,
+    ])
     data-laras-field
     data-filled="{{ filled(old($name, $value)) ? 'true' : 'false' }}"
     data-invalid="{{ $error ? 'true' : 'false' }}"
     data-tone="{{ $tone }}"
+    data-density="{{ $density }}"
 >
     <div class="laras-field__control">
         <input
@@ -62,6 +82,15 @@
                 >*</span>
             @endif
         </label>
+
+        @if (filled($suffix))
+            <span
+                class="laras-field__suffix"
+                aria-hidden="true"
+            >
+                {{ $suffix }}
+            </span>
+        @endif
 
         <span
             class="laras-field__focus-line"

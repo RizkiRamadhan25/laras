@@ -7,6 +7,7 @@
     'hint' => null,
     'required' => false,
     'tone' => 'default',
+    'density' => 'default',
 ])
 
 @php
@@ -20,11 +21,15 @@
 @endphp
 
 <div
-    class="laras-field laras-field--textarea"
+    @class([
+        'laras-field laras-field--textarea',
+        'laras-field--compact' => $density === 'compact',
+    ])
     data-laras-field
     data-filled="{{ filled(old($name, $value)) ? 'true' : 'false' }}"
     data-invalid="{{ $error ? 'true' : 'false' }}"
     data-tone="{{ $tone }}"
+    data-density="{{ $density }}"
 >
     <div class="laras-field__control">
         <textarea
