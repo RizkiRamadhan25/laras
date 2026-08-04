@@ -96,6 +96,7 @@ export async function loadActivityBrowser(
         focusSearch = false,
         searchQuery = '',
         showErrorToast = true,
+        treatAbortAsSuccess = false,
     } = {}
 ) {
     const summary = currentSummary();
@@ -231,7 +232,7 @@ export async function loadActivityBrowser(
             error instanceof DOMException
             && error.name === 'AbortError'
         ) {
-            return false;
+            return treatAbortAsSuccess;
         }
 
         console.error(error);

@@ -534,9 +534,21 @@
         </section>
     @endif
 
-    <section class="mt-6">
+    <section
+    class="mt-6"
+    aria-labelledby="activity-results-title">
+        <h2
+            id="activity-results-title"
+            data-activity-list-heading
+            tabindex="-1"
+            class="sr-only"
+        >
+            Daftar aktivitas
+        </h2>
         @if ($activities->isEmpty())
-            <div class="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-laras">
+            <div
+            data-activity-empty-state
+            class="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-laras">
                 <span class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
                     <i
                         data-lucide="list-todo"
@@ -597,8 +609,9 @@
                     <article
                         data-activity-card
                         data-activity-id="{{ $activity->id }}"
+                        tabindex="-1"
                         @class([
-                            'rounded-2xl border bg-white p-5 shadow-laras sm:p-6',
+                            'focus:outline-none focus:ring-4 focus:ring-laras-100 rounded-2xl border bg-white p-5 shadow-laras sm:p-6',
                             'border-rose-200' => $overdue,
                             'border-slate-200' => ! $overdue,
                             'opacity-75' => $activity->trashed(),

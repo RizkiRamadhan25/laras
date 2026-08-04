@@ -737,4 +737,36 @@ class ActivityManagementTest extends TestCase
                 false
             );
     }
+
+    public function test_async_action_cannot_mutate_another_users_activity(): void
+    {
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $otherUser->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.start',
+                    $activity->id
+                )
+            )
+            ->assertNotFound();
+
+        $this->assertDatabaseHas(
+            'activities',
+            [
+                'id' => $activity->id,
+                'user_id' => $otherUser->id,
+                'status' => ActivityStatus::Planned->value,
+            ]
+        );
+    }
 }

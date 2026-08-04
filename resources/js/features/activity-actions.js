@@ -14,6 +14,14 @@ const ACTION_LABEL_SELECTOR =
 const CARD_SELECTOR =
     '[data-activity-card]';
 
+const BROWSER_SELECTOR =
+    '[data-activity-browser]';
+
+const LIST_HEADING_SELECTOR =
+    '[data-activity-list-heading]';
+
+let activeActionForm = null;
+
 const busyStates = new WeakMap();
 
 function actionButtonFor(form, submitter) {
@@ -271,6 +279,142 @@ function responseErrorMessage(
     ].join(' ');
 }
 
+function activityCardById(activityId) {
+    if (! activityId) {
+        return null;
+    }
+
+    return Array.from(
+        document.querySelectorAll(
+            CARD_SELECTOR
+        )
+    ).find(
+        (card) =>
+            card instanceof HTMLElement
+            && card.dataset.activityId
+                === String(activityId)
+    ) ?? null;
+}
+
+function restoreActionFocus(activityId) {
+    const activeElement =
+        document.activeElement;
+
+    const userMovedFocus =
+        activeElement instanceof HTMLElement
+        && activeElement !== document.body
+        && activeElement !==
+            document.documentElement;
+
+    if (userMovedFocus) {
+        return;
+    }
+
+    const card =
+        activityCardById(activityId);
+
+    const fallback =
+        document.querySelector(
+            LIST_HEADING_SELECTOR
+        );
+
+    const target = card ?? fallback;
+
+    if (! (target instanceof HTMLElement)) {
+        return;
+    }
+
+    window.requestAnimationFrame(() => {
+        target.focus({
+            preventScroll: true,
+        });
+    });
+}
+
+function previousPageUrlIfEmpty() {
+    const browser =
+        document.querySelector(
+            BROWSER_SELECTOR
+        );
+
+    if (! browser) {
+        return null;
+    }
+
+    const hasActivityCard =
+        browser.querySelector(
+            CARD_SELECTOR
+        ) !== null;
+
+    if (hasActivityCard) {
+        return null;
+    }
+
+    const url = new URL(
+        window.location.href
+    );
+
+    const currentPage =
+        Number.parseInt(
+            url.searchParams.get('page')
+                ?? '1',
+            10
+        );
+
+    if (
+        ! Number.isFinite(currentPage)
+        || currentPage <= 1
+    ) {
+        return null;
+    }
+
+    const previousPage =
+        currentPage - 1;
+
+    if (previousPage === 1) {
+        url.searchParams.delete('page');
+    } else {
+        url.searchParams.set(
+            'page',
+            String(previousPage)
+        );
+    }
+
+    return url.toString();
+}
+
+async function refreshAfterAction() {
+    const refreshed =
+        await loadActivityBrowser(
+            window.location.href,
+            {
+                historyMode: 'none',
+                showErrorToast: false,
+                treatAbortAsSuccess: true,
+            }
+        );
+
+    if (! refreshed) {
+        return false;
+    }
+
+    const previousPageUrl =
+        previousPageUrlIfEmpty();
+
+    if (! previousPageUrl) {
+        return true;
+    }
+
+    return loadActivityBrowser(
+        previousPageUrl,
+        {
+            historyMode: 'replace',
+            showErrorToast: false,
+            treatAbortAsSuccess: true,
+        }
+    );
+}
+
 async function submitActivityAction(
     form,
     submitter
@@ -278,9 +422,15 @@ async function submitActivityAction(
     if (
         form.dataset.activitySubmitting
         === 'true'
+        || activeActionForm !== null
     ) {
         return;
     }
+
+    const activityId =
+        form.dataset.activityId ?? null;
+
+    activeActionForm = form;
 
     setBusyState(
         form,
@@ -324,13 +474,7 @@ async function submitActivityAction(
         }
 
         const refreshed =
-            await loadActivityBrowser(
-                window.location.href,
-                {
-                    historyMode: 'none',
-                    showErrorToast: false,
-                }
-            );
+            await refreshAfterAction();
 
         if (! refreshed) {
             window.LarasToast?.warning(
@@ -345,6 +489,8 @@ async function submitActivityAction(
                     duration: 8000,
                 }
             );
+
+            restoreActionFocus(activityId);
 
             return;
         }
@@ -380,6 +526,10 @@ async function submitActivityAction(
             submitter,
             false
         );
+
+        if (activeActionForm === form) {
+            activeActionForm = null;
+        }
     }
 }
 
@@ -397,6 +547,22 @@ document.addEventListener(
                 ACTION_FORM_SELECTOR
             )
         ) {
+            return;
+        }
+
+        if (
+            activeActionForm !== null
+            && activeActionForm !== form
+        ) {
+            event.preventDefault();
+
+            window.LarasToast?.info(
+                'Tunggu aksi aktivitas sebelumnya selesai.',
+                {
+                    duration: 2500,
+                }
+            );
+
             return;
         }
 

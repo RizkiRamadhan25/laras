@@ -95,7 +95,19 @@ class ActivityLiveBrowserInterfaceTest extends TestCase
                 false
             )
             ->assertSee(
+                'data-activity-list-heading',
+                false
+            )
+            ->assertSee(
+                'tabindex="-1"',
+                false
+            )
+            ->assertSee(
                 'data-activity-card',
+                false
+            )
+            ->assertDontSee(
+                'data-activity-empty-state',
                 false
             )
             ->assertSee(
@@ -334,5 +346,194 @@ class ActivityLiveBrowserInterfaceTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    public function test_activity_results_expose_accessible_focus_targets(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        /*
+        * Tab aktif memiliki satu aktivitas,
+        * sehingga harus menampilkan card,
+        * bukan empty state.
+        */
+        $this
+            ->actingAs($user)
+            ->get(route('activities.index'))
+            ->assertOk()
+            ->assertSee(
+                'data-activity-list-heading',
+                false
+            )
+            ->assertSee(
+                'data-activity-card',
+                false
+            )
+            ->assertSee(
+                'data-activity-id="'.
+                    $activity->id.
+                    '"',
+                false
+            )
+            ->assertSee(
+                'tabindex="-1"',
+                false
+            )
+            ->assertDontSee(
+                'data-activity-empty-state',
+                false
+            );
+
+        /*
+        * Aktivitas tersebut tidak diarsipkan,
+        * sehingga tab arsip pasti kosong dan
+        * harus menampilkan empty state.
+        */
+        $this
+            ->actingAs($user)
+            ->get(
+                route(
+                    'activities.index',
+                    [
+                        'view' => 'archived',
+                    ]
+                )
+            )
+            ->assertOk()
+            ->assertSee(
+                'data-activity-list-heading',
+                false
+            )
+            ->assertSee(
+                'data-activity-empty-state',
+                false
+            )
+            ->assertSee(
+                'tabindex="-1"',
+                false
+            )
+            ->assertDontSee(
+                'data-activity-card',
+                false
+            );
+    }
+
+    public function test_activity_cards_are_focusable_after_async_refresh(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('activities.index'))
+            ->assertOk()
+            ->assertSee(
+                'data-activity-list-heading',
+                false
+            )
+            ->assertSee(
+                'data-activity-card',
+                false
+            )
+            ->assertSee(
+                'data-activity-id="'.
+                    $activity->id.
+                    '"',
+                false
+            )
+            ->assertSee(
+                'tabindex="-1"',
+                false
+            )
+            ->assertDontSee(
+                'data-activity-empty-state',
+                false
+            );
+    }
+
+    public function test_activity_actions_include_async_hardening(): void
+    {
+        $actionScript = file_get_contents(
+            resource_path(
+                'js/features/activity-actions.js'
+            )
+        );
+
+        $browserScript = file_get_contents(
+            resource_path(
+                'js/features/activity-browser.js'
+            )
+        );
+
+        $this->assertIsString(
+            $actionScript
+        );
+
+        $this->assertIsString(
+            $browserScript
+        );
+
+        $this->assertStringContainsString(
+            'let activeActionForm = null;',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'previousPageUrlIfEmpty',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'refreshAfterAction',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'restoreActionFocus',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            '[data-activity-list-heading]',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            "historyMode: 'replace'",
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'treatAbortAsSuccess: true',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'Tunggu aksi aktivitas sebelumnya selesai.',
+            $actionScript
+        );
+
+        $this->assertStringContainsString(
+            'treatAbortAsSuccess = false',
+            $browserScript
+        );
+
+        $this->assertStringNotContainsString(
+            'window.location.reload(',
+            $actionScript
+        );
     }
 }
