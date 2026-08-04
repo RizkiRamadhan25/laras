@@ -12,11 +12,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Services\DataUsageSummaryService;
 
 class SettingsController extends Controller
 {
     public function __construct(
-        private readonly ProfilePhotoService $photoService
+        private readonly ProfilePhotoService $photoService,
+
+        private readonly DataUsageSummaryService $dataUsageSummaryService
     ) {}
 
     public function index(): View
@@ -52,6 +55,10 @@ class SettingsController extends Controller
             ->first()
             ?->occurred_at;
 
+        $dataUsageSummary =
+            $this->dataUsageSummaryService
+                ->summarize($user);
+
         return view(
             'settings.index',
             [
@@ -62,6 +69,8 @@ class SettingsController extends Controller
                 'securityEvents' => $securityEvents,
 
                 'lastPasswordChangedAt' => $lastPasswordChangedAt,
+
+                'dataUsageSummary' => $dataUsageSummary,
 
                 'timezones' => [
                     'Asia/Jakarta' => [

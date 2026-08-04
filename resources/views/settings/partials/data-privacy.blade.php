@@ -18,6 +18,14 @@
         </p>
     </header>
 
+    @include(
+        'settings.partials.data-usage-summary',
+        [
+            'dataUsageSummary' =>
+                $dataUsageSummary,
+        ]
+    )
+
     <div class="mt-6 grid gap-6 lg:grid-cols-2">
         {{-- Ekspor data --}}
         <article class="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-laras sm:p-8">
