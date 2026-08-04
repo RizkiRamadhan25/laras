@@ -16,6 +16,151 @@ class ActivityManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_activity_actions_support_json_responses(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.start',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas mulai dikerjakan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::InProgress->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.complete',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil diselesaikan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Completed->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.reopen',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas dibuka kembali.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Planned->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.cancel',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil dibatalkan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Cancelled->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->deleteJson(
+                route(
+                    'activities.destroy',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil diarsipkan.',
+            ]);
+
+        $this->assertSoftDeleted('activities', [
+            'id' => $activity->id,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.restore',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil dipulihkan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Cancelled->value,
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_invalid_activity_action_returns_json_error(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Completed,
+            'completed_at' => now(),
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.start',
+                    $activity->id
+                )
+            )
+            ->assertUnprocessable()
+            ->assertJson([
+                'message' => 'Aktivitas yang sudah selesai tidak dapat dimulai kembali secara langsung.',
+            ]);
+    }
+
     public function test_completed_user_can_view_activity_pages(): void
     {
         $user = $this->completedUser();
