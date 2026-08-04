@@ -55,6 +55,7 @@ function animateFromPositions(list, before) {
                     `${ANIMATION_DURATION}ms`,
                     'cubic-bezier(0.22, 1, 0.36, 1)',
                 ].join(' ');
+
                 card.style.transform = 'translateY(0)';
             });
         });
@@ -75,6 +76,7 @@ function updateMoveButtons(list) {
         const up = card.querySelector(
             `${FORM_SELECTOR}[data-direction="up"] button`
         );
+
         const down = card.querySelector(
             `${FORM_SELECTOR}[data-direction="down"] button`
         );
@@ -90,23 +92,118 @@ function updateMoveButtons(list) {
 }
 
 function setBusy(list, busy) {
-    list.setAttribute('aria-busy', busy ? 'true' : 'false');
-    list.classList.toggle('is-busy', busy);
+    list.setAttribute(
+        'aria-busy',
+        busy ? 'true' : 'false'
+    );
 
-    list.querySelectorAll(`${FORM_SELECTOR} button`).forEach(
-        (button) => {
+    list.classList.toggle(
+        'is-busy',
+        busy
+    );
+
+    list
+        .querySelectorAll(`${FORM_SELECTOR} button`)
+        .forEach((button) => {
             if (button instanceof HTMLButtonElement) {
                 button.disabled = busy || button.disabled;
             }
-        }
-    );
+        });
 
     if (! busy) {
         updateMoveButtons(list);
     }
 }
 
-function moveCard(list, card, direction) {
+function accountCards(list) {
+    return cardsIn(list).filter(
+        (card) =>
+            card instanceof HTMLElement
+    );
+}
+
+function currentAccountOrder(list) {
+    return accountCards(list)
+        .map(
+            (card) =>
+                card.dataset.accountId
+        )
+        .filter(
+            (accountId) =>
+                typeof accountId === 'string'
+                && accountId !== ''
+        );
+}
+
+function normalizedAccountOrder(
+    orderedAccountIds
+) {
+    if (! Array.isArray(orderedAccountIds)) {
+        return null;
+    }
+
+    const normalized =
+        orderedAccountIds.map(
+            (accountId) =>
+                String(accountId)
+        );
+
+    if (
+        normalized.some(
+            (accountId) =>
+                accountId === ''
+        )
+    ) {
+        return null;
+    }
+
+    if (
+        new Set(normalized).size
+        !== normalized.length
+    ) {
+        return null;
+    }
+
+    return normalized;
+}
+
+function serverOrderIsValid(
+    list,
+    orderedAccountIds
+) {
+    const serverOrder =
+        normalizedAccountOrder(
+            orderedAccountIds
+        );
+
+    if (! serverOrder) {
+        return false;
+    }
+
+    const currentOrder =
+        currentAccountOrder(list);
+
+    if (
+        serverOrder.length
+        !== currentOrder.length
+    ) {
+        return false;
+    }
+
+    const currentIds =
+        new Set(currentOrder);
+
+    return serverOrder.every(
+        (accountId) =>
+            currentIds.has(accountId)
+    );
+}
+
+function moveCard(
+    list,
+    card,
+    direction
+) {
     const sibling = direction === 'up'
         ? card.previousElementSibling
         : card.nextElementSibling;
@@ -118,154 +215,284 @@ function moveCard(list, card, direction) {
     const before = capturePositions(list);
 
     if (direction === 'up') {
-        list.insertBefore(card, sibling);
+        list.insertBefore(
+            card,
+            sibling
+        );
     } else {
-        list.insertBefore(sibling, card);
+        list.insertBefore(
+            sibling,
+            card
+        );
     }
 
-    animateFromPositions(list, before);
+    animateFromPositions(
+        list,
+        before
+    );
+
     updateMoveButtons(list);
 
     return true;
 }
 
-function reconcileServerOrder(list, orderedAccountIds) {
-    if (! Array.isArray(orderedAccountIds)) {
-        return;
-    }
-
-    const cards = cardsIn(list);
+function applyAccountOrder(
+    list,
+    orderedAccountIds
+) {
+    const cards = accountCards(list);
 
     const cardsById = new Map(
-        cards.map((card) => [
-            String(card.dataset.accountId),
-            card,
-        ])
+        cards.map(
+            (card) => [
+                card.dataset.accountId,
+                card,
+            ]
+        )
     );
 
-    const currentOrder = cards.map(
-        (card) => String(card.dataset.accountId)
+    const before = new Map(
+        cards.map(
+            (card) => [
+                card,
+                card.getBoundingClientRect(),
+            ]
+        )
     );
 
-    const serverOrder = orderedAccountIds
-        .map((accountId) => String(accountId))
-        .filter((accountId) => cardsById.has(accountId));
+    orderedAccountIds.forEach(
+        (accountId) => {
+            const card =
+                cardsById.get(
+                    String(accountId)
+                );
 
-    const orderIsAlreadyCorrect =
-        currentOrder.length === serverOrder.length
-        && currentOrder.every(
-            (accountId, index) =>
-                accountId === serverOrder[index]
-        );
-
-    if (orderIsAlreadyCorrect) {
-        return;
-    }
-
-    const before = capturePositions(list);
-
-    serverOrder.forEach((accountId) => {
-        const card = cardsById.get(accountId);
-
-        if (card) {
-            list.append(card);
+            if (card) {
+                list.append(card);
+            }
         }
-    });
+    );
 
-    animateFromPositions(list, before);
+    animateFromPositions(
+        list,
+        before
+    );
+
     updateMoveButtons(list);
 }
 
+function reconcileServerOrder(
+    list,
+    orderedAccountIds
+) {
+    if (
+        ! serverOrderIsValid(
+            list,
+            orderedAccountIds
+        )
+    ) {
+        return false;
+    }
+
+    const normalized =
+        normalizedAccountOrder(
+            orderedAccountIds
+        );
+
+    if (! normalized) {
+        return false;
+    }
+
+    applyAccountOrder(
+        list,
+        normalized
+    );
+
+    return true;
+}
+
+function rollbackAccountOrder(
+    list,
+    previousOrder
+) {
+    if (
+        ! serverOrderIsValid(
+            list,
+            previousOrder
+        )
+    ) {
+        return;
+    }
+
+    applyAccountOrder(
+        list,
+        previousOrder
+    );
+}
+
 async function submitMove(form) {
-    const list = form.closest(LIST_SELECTOR);
-    const card = form.closest(CARD_SELECTOR);
+    const list = form.closest(
+        LIST_SELECTOR
+    );
 
-    if (! list || ! card) {
+    const card = form.closest(
+        CARD_SELECTOR
+    );
+
+    if (
+        ! (list instanceof HTMLElement)
+        || ! (card instanceof HTMLElement)
+    ) {
         form.submit();
 
         return;
     }
 
-    const direction = form.dataset.direction;
+    const direction =
+        form.dataset.direction;
 
-    if (! ['up', 'down'].includes(direction)) {
+    if (
+        ! ['up', 'down'].includes(
+            direction
+        )
+    ) {
         form.submit();
 
         return;
     }
 
-    const originalNext = card.nextElementSibling;
-    const moved = moveCard(list, card, direction);
+    const previousOrder =
+        currentAccountOrder(list);
+
+    const moved = moveCard(
+        list,
+        card,
+        direction
+    );
 
     if (! moved) {
         return;
     }
 
-    setBusy(list, true);
+    setBusy(
+        list,
+        true
+    );
 
     try {
-        const response = await fetch(form.action, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            credentials: 'same-origin',
-            body: new FormData(form),
-        });
+        const response = await fetch(
+            form.action,
+            {
+                method: 'POST',
+
+                headers: {
+                    Accept:
+                        'application/json',
+
+                    'X-Requested-With':
+                        'XMLHttpRequest',
+                },
+
+                credentials:
+                    'same-origin',
+
+                body: new FormData(
+                    form
+                ),
+            }
+        );
+
+        const payload = await response
+            .json()
+            .catch(() => ({}));
 
         if (! response.ok) {
             throw new Error(
-                `Account move request failed: ${response.status}`
+                typeof payload.message === 'string'
+                && payload.message.trim() !== ''
+                    ? payload.message
+                    : [
+                        'Urutan rekening gagal',
+                        'diperbarui.',
+                    ].join(' ')
             );
         }
 
-        const payload = await response.json();
+        const reconciled =
+            reconcileServerOrder(
+                list,
+                payload.ordered_account_ids
+            );
 
-        reconcileServerOrder(
-            list,
-            payload.ordered_account_ids
-        );
+        if (! reconciled) {
+            throw new Error(
+                [
+                    'Respons urutan rekening',
+                    'dari server tidak valid.',
+                ].join(' ')
+            );
+        }
 
         window.LarasToast?.success(
-            payload.message ?? 'Urutan rekening diperbarui.',
+            payload.message
+                ?? 'Urutan rekening diperbarui.',
             {
                 duration: 2600,
             }
         );
     } catch (error) {
-        console.error(error);
+        rollbackAccountOrder(
+            list,
+            previousOrder
+        );
 
-        const before = capturePositions(list);
+        console.error(
+            'Account ordering failed.',
+            error
+        );
 
-        if (originalNext?.isConnected) {
-            list.insertBefore(card, originalNext);
-        } else {
-            list.append(card);
-        }
-
-        animateFromPositions(list, before);
+        const message =
+            error instanceof Error
+            && error.message.trim() !== ''
+                ? error.message
+                : [
+                    'Urutan rekening tidak',
+                    'dapat diperbarui.',
+                ].join(' ');
 
         window.LarasToast?.error(
-            'Urutan rekening tidak dapat diperbarui.'
+            message,
+            {
+                duration: 7000,
+            }
         );
     } finally {
-        setBusy(list, false);
+        setBusy(
+            list,
+            false
+        );
     }
 }
 
-document.addEventListener('submit', (event) => {
-    const form = event.target;
+document.addEventListener(
+    'submit',
+    (event) => {
+        const form = event.target;
 
-    if (! (form instanceof HTMLFormElement)) {
-        return;
+        if (
+            ! (
+                form
+                instanceof HTMLFormElement
+            )
+            || ! form.matches(
+                FORM_SELECTOR
+            )
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+
+        void submitMove(form);
     }
-
-    if (! form.matches(FORM_SELECTOR)) {
-        return;
-    }
-
-    event.preventDefault();
-
-    submitMove(form);
-});
+);
