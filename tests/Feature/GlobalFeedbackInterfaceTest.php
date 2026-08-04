@@ -101,6 +101,25 @@ class GlobalFeedbackInterfaceTest extends TestCase
         }
     }
 
+    public function test_toast_shell_uses_valid_relative_positioning_class(): void
+    {
+        $script = file_get_contents(
+            resource_path('js/ui/toast.js')
+        );
+
+        $this->assertIsString($script);
+
+        $this->assertStringContainsString(
+            'pointer-events-auto relative overflow-hidden',
+            $script
+        );
+
+        $this->assertStringNotContainsString(
+            '<relativ>',
+            $script
+        );
+    }
+
     private function completedUser(): User
     {
         $user = User::factory()->create([

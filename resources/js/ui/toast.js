@@ -244,7 +244,7 @@ const showToast = ({
     toast.setAttribute('role', role);
     toast.setAttribute('tabindex', '0');
     toast.className = [
-        'pointer-events-auto <relativ></relativ>e overflow-hidden rounded-2xl border p-4 pr-12 shadow-2xl',
+        'pointer-events-auto relative overflow-hidden rounded-2xl border p-4 pr-12 shadow-2xl',
         'opacity-0 transition duration-200 ease-out',
         'will-change-transform touch-pan-y',
         style.shell,
