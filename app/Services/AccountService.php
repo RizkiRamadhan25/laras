@@ -3,11 +3,11 @@
 namespace App\Services;
 
 use App\Enums\AccountType;
+use App\Enums\SubscriptionStatus;
 use App\Models\Account;
 use App\Models\User;
 use DomainException;
 use Illuminate\Support\Facades\DB;
-use App\Enums\SubscriptionStatus;
 
 class AccountService
 {
@@ -197,8 +197,7 @@ class AccountService
                 ->get();
 
             $currentIndex = $accounts->search(
-                fn (Account $account): bool =>
-                    $account->id === $accountId
+                fn (Account $account): bool => $account->id === $accountId
             );
 
             if ($currentIndex === false) {

@@ -7,12 +7,12 @@ use App\Http\Requests\UpdatePreferencesRequest;
 use App\Http\Requests\UpdateProfilePhotoRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\UserPreference;
+use App\Services\DataUsageSummaryService;
 use App\Services\ProfilePhotoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-use App\Services\DataUsageSummaryService;
 
 class SettingsController extends Controller
 {

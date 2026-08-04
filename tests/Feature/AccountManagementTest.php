@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\SubscriptionStatus;
 use App\Models\Account;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Enums\SubscriptionStatus;
-use App\Models\Subscription;
 
 class AccountManagementTest extends TestCase
 {
