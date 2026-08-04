@@ -7,6 +7,11 @@ const REDUCED_MOTION = window.matchMedia(
     '(prefers-reduced-motion: reduce)'
 );
 
+const busyStates = new WeakMap();
+
+let activeMoveForm = null;
+let lockNoticeShown = false;
+
 function cardsIn(list) {
     return Array.from(
         list.querySelectorAll(`:scope > ${CARD_SELECTOR}`)
@@ -82,37 +87,129 @@ function updateMoveButtons(list) {
         );
 
         if (up instanceof HTMLButtonElement) {
-            up.disabled = index === 0;
+            const disabled = index === 0;
+
+            up.disabled = disabled;
+            up.setAttribute(
+                'aria-disabled',
+                disabled ? 'true' : 'false'
+            );
         }
 
         if (down instanceof HTMLButtonElement) {
-            down.disabled = index === cards.length - 1;
+            const disabled =
+                index === cards.length - 1;
+
+            down.disabled = disabled;
+            down.setAttribute(
+                'aria-disabled',
+                disabled ? 'true' : 'false'
+            );
         }
     });
 }
 
+function moveButtonsIn(list) {
+    return Array.from(
+        list.querySelectorAll(
+            `${FORM_SELECTOR} button`
+        )
+    ).filter(
+        (button) =>
+            button instanceof HTMLButtonElement
+    );
+}
+
 function setBusy(list, busy) {
-    list.setAttribute(
-        'aria-busy',
-        busy ? 'true' : 'false'
-    );
+    if (busy) {
+        if (busyStates.has(list)) {
+            return;
+        }
 
-    list.classList.toggle(
-        'is-busy',
-        busy
-    );
+        busyStates.set(list, {
+            hadPointerLock:
+                list.classList.contains(
+                    'pointer-events-none'
+                ),
 
-    list
-        .querySelectorAll(`${FORM_SELECTOR} button`)
-        .forEach((button) => {
-            if (button instanceof HTMLButtonElement) {
-                button.disabled = busy || button.disabled;
-            }
+            hadOpacity:
+                list.classList.contains(
+                    'opacity-75'
+                ),
+
+            hadSelectLock:
+                list.classList.contains(
+                    'select-none'
+                ),
         });
 
-    if (! busy) {
-        updateMoveButtons(list);
+        list.dataset.accountOrderingBusy =
+            'true';
+
+        list.setAttribute(
+            'aria-busy',
+            'true'
+        );
+
+        list.classList.add(
+            'pointer-events-none',
+            'opacity-75',
+            'select-none'
+        );
+
+        moveButtonsIn(list).forEach(
+            (button) => {
+                button.disabled = true;
+
+                button.setAttribute(
+                    'aria-disabled',
+                    'true'
+                );
+            }
+        );
+
+        return;
     }
+
+    const state = busyStates.get(list);
+
+    delete list.dataset.accountOrderingBusy;
+
+    list.setAttribute(
+        'aria-busy',
+        'false'
+    );
+
+    if (
+        state
+        && ! state.hadPointerLock
+    ) {
+        list.classList.remove(
+            'pointer-events-none'
+        );
+    }
+
+    if (
+        state
+        && ! state.hadOpacity
+    ) {
+        list.classList.remove(
+            'opacity-75'
+        );
+    }
+
+    if (
+        state
+        && ! state.hadSelectLock
+    ) {
+        list.classList.remove(
+            'select-none'
+        );
+    }
+
+    busyStates.delete(list);
+
+    updateMoveButtons(list);
 }
 
 function accountCards(list) {
@@ -197,6 +294,91 @@ function serverOrderIsValid(
         (accountId) =>
             currentIds.has(accountId)
     );
+}
+
+function accountCardById(
+    list,
+    accountId
+) {
+    if (
+        typeof accountId !== 'string'
+        || accountId === ''
+    ) {
+        return null;
+    }
+
+    return accountCards(list).find(
+        (card) =>
+            card.dataset.accountId
+                === accountId
+    ) ?? null;
+}
+
+function shouldRestoreKeyboardFocus(
+    submitter
+) {
+    if (! (submitter instanceof HTMLElement)) {
+        return false;
+    }
+
+    if (document.activeElement === submitter) {
+        return true;
+    }
+
+    try {
+        return submitter.matches(
+            ':focus-visible'
+        );
+    } catch {
+        return false;
+    }
+}
+
+function restoreMoveFocus(
+    list,
+    accountId,
+    direction
+) {
+    const card = accountCardById(
+        list,
+        accountId
+    );
+
+    if (! card) {
+        return;
+    }
+
+    const directionButton =
+        card.querySelector(
+            [
+                FORM_SELECTOR,
+                `[data-direction="${direction}"]`,
+                'button',
+            ].join(' ')
+        );
+
+    const target =
+        directionButton
+            instanceof HTMLButtonElement
+        && ! directionButton.disabled
+            ? directionButton
+            : card;
+
+    if (
+        target === card
+        && ! card.hasAttribute('tabindex')
+    ) {
+        card.setAttribute(
+            'tabindex',
+            '-1'
+        );
+    }
+
+    window.requestAnimationFrame(() => {
+        target.focus({
+            preventScroll: true,
+        });
+    });
 }
 
 function moveCard(
@@ -330,7 +512,14 @@ function rollbackAccountOrder(
     );
 }
 
-async function submitMove(form) {
+async function submitMove(
+    form,
+    submitter
+) {
+    if (activeMoveForm !== null) {
+        return;
+    }
+
     const list = form.closest(
         LIST_SELECTOR
     );
@@ -361,8 +550,18 @@ async function submitMove(form) {
         return;
     }
 
+    const accountId =
+        card.dataset.accountId ?? '';
+
+    const restoreKeyboardFocus =
+        shouldRestoreKeyboardFocus(
+            submitter
+        );
+
     const previousOrder =
         currentAccountOrder(list);
+
+    activeMoveForm = form;
 
     const moved = moveCard(
         list,
@@ -371,6 +570,8 @@ async function submitMove(form) {
     );
 
     if (! moved) {
+        activeMoveForm = null;
+
         return;
     }
 
@@ -471,6 +672,20 @@ async function submitMove(form) {
             list,
             false
         );
+
+        if (activeMoveForm === form) {
+            activeMoveForm = null;
+        }
+
+        lockNoticeShown = false;
+
+        if (restoreKeyboardFocus) {
+            restoreMoveFocus(
+                list,
+                accountId,
+                direction
+            );
+        }
     }
 }
 
@@ -491,8 +706,31 @@ document.addEventListener(
             return;
         }
 
+        if (activeMoveForm !== null) {
+            event.preventDefault();
+
+            if (! lockNoticeShown) {
+                lockNoticeShown = true;
+
+                window.LarasToast?.info(
+                    [
+                        'Tunggu pengurutan rekening',
+                        'sebelumnya selesai.',
+                    ].join(' '),
+                    {
+                        duration: 2500,
+                    }
+                );
+            }
+
+            return;
+        }
+
         event.preventDefault();
 
-        void submitMove(form);
+        void submitMove(
+            form,
+            event.submitter
+        );
     }
 );
