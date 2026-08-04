@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\User;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use App\Enums\SubscriptionStatus;
 
 class AccountService
 {
@@ -126,6 +127,21 @@ class AccountService
                 );
             }
 
+            $blockingSubscriptionCount = $account
+                ->subscriptions()
+                ->whereIn('status', [
+                    SubscriptionStatus::Active->value,
+                    SubscriptionStatus::Paused->value,
+                ])
+                ->lockForUpdate()
+                ->count();
+
+            if ($blockingSubscriptionCount > 0) {
+                throw new DomainException(
+                    "Rekening masih digunakan oleh {$blockingSubscriptionCount} langganan aktif atau dijeda. Pindahkan rekening langganan, jeda, atau batalkan langganan terlebih dahulu."
+                );
+            }
+
             $account->forceFill([
                 'is_active' => false,
             ])->save();
@@ -155,16 +171,19 @@ class AccountService
         }, 3);
     }
 
+    /**
+     * @return list<int>
+     */
     public function move(
         User $user,
         int $accountId,
         string $direction
-    ): void {
-        DB::transaction(function () use (
+    ): array {
+        return DB::transaction(function () use (
             $user,
             $accountId,
             $direction
-        ): void {
+        ): array {
             User::query()
                 ->lockForUpdate()
                 ->findOrFail($user->id);
@@ -178,7 +197,8 @@ class AccountService
                 ->get();
 
             $currentIndex = $accounts->search(
-                fn (Account $account): bool => $account->id === $accountId
+                fn (Account $account): bool =>
+                    $account->id === $accountId
             );
 
             if ($currentIndex === false) {
@@ -189,23 +209,33 @@ class AccountService
                 ? $currentIndex - 1
                 : $currentIndex + 1;
 
-            if (! $accounts->has($targetIndex)) {
-                return;
+            if ($accounts->has($targetIndex)) {
+                $currentAccount = $accounts->get($currentIndex);
+                $targetAccount = $accounts->get($targetIndex);
+
+                $currentSortOrder = $currentAccount->sort_order;
+                $targetSortOrder = $targetAccount->sort_order;
+
+                $currentAccount->update([
+                    'sort_order' => $targetSortOrder,
+                ]);
+
+                $targetAccount->update([
+                    'sort_order' => $currentSortOrder,
+                ]);
             }
 
-            $currentAccount = $accounts->get($currentIndex);
-            $targetAccount = $accounts->get($targetIndex);
-
-            $currentSortOrder = $currentAccount->sort_order;
-            $targetSortOrder = $targetAccount->sort_order;
-
-            $currentAccount->update([
-                'sort_order' => $targetSortOrder,
-            ]);
-
-            $targetAccount->update([
-                'sort_order' => $currentSortOrder,
-            ]);
+            return Account::query()
+                ->where('user_id', $user->id)
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->pluck('id')
+                ->map(
+                    static fn (mixed $id): int => (int) $id
+                )
+                ->values()
+                ->all();
         }, 3);
     }
 

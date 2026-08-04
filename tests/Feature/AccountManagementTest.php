@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\SubscriptionStatus;
+use App\Models\Subscription;
 
 class AccountManagementTest extends TestCase
 {
@@ -219,12 +221,26 @@ class AccountManagementTest extends TestCase
             'sort_order' => 2,
         ]);
 
-        $this
+        $response = $this
             ->actingAs($user)
-            ->patch(route('accounts.move', $second->id), [
+            ->patchJson(
+                route('accounts.move', $second->id),
+                [
+                    'direction' => 'up',
+                ]
+            );
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Urutan rekening berhasil diperbarui.',
+                'account_id' => $second->id,
                 'direction' => 'up',
-            ])
-            ->assertRedirectToRoute('accounts.index');
+                'ordered_account_ids' => [
+                    $second->id,
+                    $first->id,
+                ],
+            ]);
 
         $this->assertSame(
             [
@@ -252,5 +268,79 @@ class AccountManagementTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    public function test_account_used_by_active_subscription_cannot_be_archived(): void
+    {
+        $user = $this->completedUser();
+
+        Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Cadangan',
+            'sort_order' => 1,
+        ]);
+
+        $account = Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'BCA Langganan',
+            'sort_order' => 2,
+        ]);
+
+        Subscription::factory()->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'status' => SubscriptionStatus::Active,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->delete(route('accounts.destroy', $account->id));
+
+        $response
+            ->assertRedirectToRoute('accounts.index')
+            ->assertSessionHas('warning');
+
+        $this->assertNotSoftDeleted('accounts', [
+            'id' => $account->id,
+        ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $account->id,
+            'is_active' => true,
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_account_used_only_by_cancelled_subscription_can_be_archived(): void
+    {
+        $user = $this->completedUser();
+
+        Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Cadangan',
+            'sort_order' => 1,
+        ]);
+
+        $account = Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Lama',
+            'sort_order' => 2,
+        ]);
+
+        Subscription::factory()->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'status' => SubscriptionStatus::Cancelled,
+            'cancelled_at' => now(),
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->delete(route('accounts.destroy', $account->id))
+            ->assertRedirectToRoute('accounts.index');
+
+        $this->assertSoftDeleted('accounts', [
+            'id' => $account->id,
+        ]);
     }
 }

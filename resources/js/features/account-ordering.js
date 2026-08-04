@@ -3,6 +3,10 @@ const CARD_SELECTOR = '[data-account-order-card]';
 const FORM_SELECTOR = '[data-account-move-form]';
 const ANIMATION_DURATION = 320;
 
+const REDUCED_MOTION = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+);
+
 function cardsIn(list) {
     return Array.from(
         list.querySelectorAll(`:scope > ${CARD_SELECTOR}`)
@@ -19,6 +23,10 @@ function capturePositions(list) {
 }
 
 function animateFromPositions(list, before) {
+    if (REDUCED_MOTION.matches) {
+        return;
+    }
+
     const cards = cardsIn(list);
 
     cards.forEach((card) => {
@@ -121,6 +129,53 @@ function moveCard(list, card, direction) {
     return true;
 }
 
+function reconcileServerOrder(list, orderedAccountIds) {
+    if (! Array.isArray(orderedAccountIds)) {
+        return;
+    }
+
+    const cards = cardsIn(list);
+
+    const cardsById = new Map(
+        cards.map((card) => [
+            String(card.dataset.accountId),
+            card,
+        ])
+    );
+
+    const currentOrder = cards.map(
+        (card) => String(card.dataset.accountId)
+    );
+
+    const serverOrder = orderedAccountIds
+        .map((accountId) => String(accountId))
+        .filter((accountId) => cardsById.has(accountId));
+
+    const orderIsAlreadyCorrect =
+        currentOrder.length === serverOrder.length
+        && currentOrder.every(
+            (accountId, index) =>
+                accountId === serverOrder[index]
+        );
+
+    if (orderIsAlreadyCorrect) {
+        return;
+    }
+
+    const before = capturePositions(list);
+
+    serverOrder.forEach((accountId) => {
+        const card = cardsById.get(accountId);
+
+        if (card) {
+            list.append(card);
+        }
+    });
+
+    animateFromPositions(list, before);
+    updateMoveButtons(list);
+}
+
 async function submitMove(form) {
     const list = form.closest(LIST_SELECTOR);
     const card = form.closest(CARD_SELECTOR);
@@ -166,6 +221,11 @@ async function submitMove(form) {
         }
 
         const payload = await response.json();
+
+        reconcileServerOrder(
+            list,
+            payload.ordered_account_ids
+        );
 
         window.LarasToast?.success(
             payload.message ?? 'Urutan rekening diperbarui.',
