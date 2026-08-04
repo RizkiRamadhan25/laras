@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ActivityStatus;
+use App\Models\Activity;
 use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,6 +73,106 @@ class ActivityLiveBrowserInterfaceTest extends TestCase
             "window.addEventListener('popstate'",
             $script
         );
+    }
+
+    public function test_activity_cards_expose_async_action_hooks(): void
+    {
+        $user = $this->completedUser();
+
+        $plannedActivity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('activities.index'))
+            ->assertOk()
+            ->assertSee(
+                'data-activity-list',
+                false
+            )
+            ->assertSee(
+                'data-activity-card',
+                false
+            )
+            ->assertSee(
+                'data-activity-id="'.
+                    $plannedActivity->id.
+                    '"',
+                false
+            )
+            ->assertSee(
+                'data-activity-action-form',
+                false
+            )
+            ->assertSee(
+                'data-activity-action="start"',
+                false
+            )
+            ->assertSee(
+                'data-activity-action="complete"',
+                false
+            )
+            ->assertSee(
+                'data-activity-action="cancel"',
+                false
+            )
+            ->assertSee(
+                'data-activity-action="archive"',
+                false
+            )
+            ->assertSee(
+                'data-activity-action-button',
+                false
+            );
+
+        Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Completed,
+            'completed_at' => now(),
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(
+                route(
+                    'activities.index',
+                    ['view' => 'completed']
+                )
+            )
+            ->assertOk()
+            ->assertSee(
+                'data-activity-action="reopen"',
+                false
+            );
+
+        $archivedActivity =
+            Activity::factory()->create([
+                'user_id' => $user->id,
+                'status' => ActivityStatus::Cancelled,
+                'completed_at' => null,
+                'cancelled_at' => now(),
+            ]);
+
+        $archivedActivity->delete();
+
+        $this
+            ->actingAs($user)
+            ->get(
+                route(
+                    'activities.index',
+                    ['view' => 'archived']
+                )
+            )
+            ->assertOk()
+            ->assertSee(
+                'data-activity-action="restore"',
+                false
+            );
     }
 
     private function completedUser(): User

@@ -564,7 +564,7 @@
                 </a>
             </div>
         @else
-            <div class="space-y-4">
+            <div class="space-y-4" data-activity-list>
                 @foreach ($activities as $activity)
                     @php
                         $relevantAt =
@@ -595,6 +595,8 @@
                     @endphp
 
                     <article
+                        data-activity-card
+                        data-activity-id="{{ $activity->id }}"
                         @class([
                             'rounded-2xl border bg-white p-5 shadow-laras sm:p-6',
                             'border-rose-200' => $overdue,
@@ -709,19 +711,26 @@
                                             'activities.restore',
                                             $activity->id
                                         ) }}"
+                                        data-activity-action-form
+                                        data-activity-action="restore"
+                                        data-activity-id="{{ $activity->id }}"
+                                        data-activity-busy-label="Memulihkan..."
                                     >
                                         @csrf
                                         @method('PATCH')
 
                                         <button
                                             type="submit"
+                                            data-activity-action-button
                                             class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                                         >
                                             <i
                                                 data-lucide="archive-restore"
                                                 class="size-4"
                                             ></i>
-                                            Pulihkan
+                                            <span data-activity-action-label>
+                                                Pulihkan
+                                            </span>
                                         </button>
                                     </form>
                                 @else
@@ -735,19 +744,26 @@
                                                 'activities.start',
                                                 $activity->id
                                             ) }}"
+                                            data-activity-action-form
+                                            data-activity-action="start"
+                                            data-activity-id="{{ $activity->id }}"
+                                            data-activity-busy-label="Memulai..."
                                         >
                                             @csrf
                                             @method('PATCH')
 
                                             <button
                                                 type="submit"
+                                                data-activity-action-button
                                                 class="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
                                             >
                                                 <i
                                                     data-lucide="play"
                                                     class="size-4"
                                                 ></i>
-                                                Mulai
+                                                <span data-activity-action-label>
+                                                    Mulai
+                                                </span>
                                             </button>
                                         </form>
                                     @endif
@@ -759,19 +775,26 @@
                                                 'activities.complete',
                                                 $activity->id
                                             ) }}"
+                                            data-activity-action-form
+                                            data-activity-action="complete"
+                                            data-activity-id="{{ $activity->id }}"
+                                            data-activity-busy-label="Menyelesaikan..."
                                         >
                                             @csrf
                                             @method('PATCH')
 
                                             <button
                                                 type="submit"
+                                                data-activity-action-button
                                                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
                                             >
                                                 <i
                                                     data-lucide="check"
                                                     class="size-4"
                                                 ></i>
-                                                Selesai
+                                                <span data-activity-action-label>
+                                                    Selesai
+                                                </span>
                                             </button>
                                         </form>
 
@@ -795,6 +818,10 @@
                                                 'activities.cancel',
                                                 $activity->id
                                             ) }}"
+                                            data-activity-action-form
+                                            data-activity-action="cancel"
+                                            data-activity-id="{{ $activity->id }}"
+                                            data-activity-busy-label="Membatalkan..."
                                             data-confirm
                                             data-confirm-title="Batalkan aktivitas?"
                                             data-confirm-message="Aktivitas akan ditandai sebagai dibatalkan dan tetap tersimpan dalam riwayat."
@@ -807,6 +834,7 @@
 
                                             <button
                                                 type="submit"
+                                                data-activity-action-button
                                                 class="flex size-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100"
                                                 aria-label="Batalkan aktivitas"
                                             >
@@ -823,19 +851,26 @@
                                                 'activities.reopen',
                                                 $activity->id
                                             ) }}"
+                                            data-activity-action-form
+                                            data-activity-action="reopen"
+                                            data-activity-id="{{ $activity->id }}"
+                                            data-activity-busy-label="Membuka kembali..."
                                         >
                                             @csrf
                                             @method('PATCH')
 
                                             <button
                                                 type="submit"
+                                                data-activity-action-button
                                                 class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
                                             >
                                                 <i
                                                     data-lucide="rotate-ccw"
                                                     class="size-4"
                                                 ></i>
-                                                Buka kembali
+                                                <span data-activity-action-label>
+                                                    Buka kembali
+                                                </span>
                                             </button>
                                         </form>
                                     @endif
@@ -846,6 +881,10 @@
                                             'activities.destroy',
                                             $activity->id
                                         ) }}"
+                                        data-activity-action-form
+                                        data-activity-action="archive"
+                                        data-activity-id="{{ $activity->id }}"
+                                        data-activity-busy-label="Mengarsipkan..."
                                         data-confirm
                                         data-confirm-title="Arsipkan aktivitas?"
                                         data-confirm-message="Aktivitas akan dipindahkan dari daftar utama dan dapat dipulihkan kembali."
@@ -858,6 +897,7 @@
 
                                         <button
                                             type="submit"
+                                            data-activity-action-button
                                             class="flex size-10 items-center justify-center rounded-xl border border-rose-200 text-rose-600 transition hover:bg-rose-50"
                                             aria-label="Arsipkan aktivitas"
                                         >
