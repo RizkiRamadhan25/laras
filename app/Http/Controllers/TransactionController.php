@@ -6,11 +6,13 @@ use App\Enums\FinanceFlowType;
 use App\Enums\TransactionTransferKind;
 use App\Enums\TransactionType;
 use App\Http\Requests\CancelTransactionRequest;
+use App\Http\Requests\DeleteTransactionRequest;
 use App\Http\Requests\FilterTransactionsRequest;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Account;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\TransactionDeletionService;
 use App\Services\TransactionPostingService;
 use Carbon\CarbonImmutable;
 use DomainException;
@@ -22,7 +24,8 @@ use Illuminate\View\View;
 class TransactionController extends Controller
 {
     public function __construct(
-        private readonly TransactionPostingService $postingService
+        private readonly TransactionPostingService $postingService,
+        private readonly TransactionDeletionService $deletionService
     ) {}
 
     public function index(
@@ -323,6 +326,35 @@ class TransactionController extends Controller
             ->with(
                 'status',
                 'Transaksi berhasil dibatalkan dan saldo telah dikembalikan.'
+            );
+    }
+
+    public function destroy(
+        DeleteTransactionRequest $request,
+        int $transaction
+    ): RedirectResponse {
+        try {
+            $this->deletionService->deletePermanently(
+                user: $request->user(),
+                transactionId: $transaction
+            );
+        } catch (DomainException $exception) {
+            return redirect()
+                ->route(
+                    'transactions.show',
+                    $transaction
+                )
+                ->with(
+                    'warning',
+                    $exception->getMessage()
+                );
+        }
+
+        return redirect()
+            ->route('transactions.index')
+            ->with(
+                'status',
+                'Transaksi dan seluruh ledger terkait berhasil dihapus permanen.'
             );
     }
 

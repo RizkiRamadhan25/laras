@@ -226,6 +226,13 @@ Route::middleware('auth')->group(function (): void {
                 )
                     ->whereNumber('transaction')
                     ->name('cancel');
+
+                Route::delete(
+                    '/{transaction}',
+                    [TransactionController::class, 'destroy']
+                )
+                    ->whereNumber('transaction')
+                    ->name('destroy');
             });
 
         Route::get(
