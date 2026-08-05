@@ -4,7 +4,7 @@
 @section('page-title', 'Transaksi')
 @section(
     'page-description',
-    'Pantau pemasukan, pengeluaran, dan transfer antar-rekening.'
+    'Pantau pemasukan, pengeluaran, serta transfer internal dan eksternal.'
 )
 
 @section('content')
@@ -293,6 +293,10 @@
                     @php
                         $amount = $transaction->displayAmount();
 
+                        $transferKind = $transaction->transferKind();
+                        $externalDestination =
+                            $transaction->externalDestination();
+
                         $typeStyle = match (
                             $transaction->type
                         ) {
@@ -310,13 +314,21 @@
                                 'amountClass' => 'text-rose-700',
                                 'prefix' => '-',
                             ],
-                            default => [
-                                'icon' => 'arrow-left-right',
-                                'iconClass' =>
-                                    'bg-blue-100 text-blue-700',
-                                'amountClass' => 'text-slate-900',
-                                'prefix' => '',
-                            ],
+                            default => $transaction->isExternalTransfer()
+                                ? [
+                                    'icon' => 'arrow-up-right',
+                                    'iconClass' =>
+                                        'bg-rose-100 text-rose-700',
+                                    'amountClass' => 'text-rose-700',
+                                    'prefix' => '-',
+                                ]
+                                : [
+                                    'icon' => 'arrow-left-right',
+                                    'iconClass' =>
+                                        'bg-blue-100 text-blue-700',
+                                    'amountClass' => 'text-slate-900',
+                                    'prefix' => '',
+                                ],
                         };
 
                         $statusClass = match (
@@ -389,6 +401,15 @@
                                 >
                                     {{ $transaction->status->label() }}
                                 </span>
+
+                                @if ($transferKind)
+                                    <span
+                                        data-transaction-transfer-kind="{{ $transferKind->value }}"
+                                        class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"
+                                    >
+                                        {{ $transferKind->label() }}
+                                    </span>
+                                @endif
                             </div>
 
                             <p class="mt-1 truncate text-sm text-slate-400">
@@ -399,8 +420,26 @@
                                     {{ $sourceEntry?->account?->name
                                         ?? 'Rekening sumber' }}
                                     →
-                                    {{ $destinationEntry?->account?->name
-                                        ?? 'Rekening tujuan' }}
+
+                                    @if ($transaction->isExternalTransfer())
+                                        <span data-transaction-external-destination>
+                                            {{ $externalDestination['name']
+                                                ?? 'Tujuan eksternal' }}
+
+                                            @if (
+                                                filled(
+                                                    $externalDestination['institution']
+                                                        ?? null
+                                                )
+                                            )
+                                                •
+                                                {{ $externalDestination['institution'] }}
+                                            @endif
+                                        </span>
+                                    @else
+                                        {{ $destinationEntry?->account?->name
+                                            ?? 'Rekening tujuan' }}
+                                    @endif
                                 @else
                                     {{ $singleEntry?->account?->name
                                         ?? 'Rekening' }}

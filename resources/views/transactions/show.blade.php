@@ -15,6 +15,30 @@
         $timezone = $user->preference?->timezone
             ?? config('laras.defaults.timezone');
 
+        $transferKind = $transaction->transferKind();
+        $externalDestination = $transaction->externalDestination();
+
+        $principalEntries = $transaction->entries->where(
+            'role',
+            \App\Enums\TransactionEntryRole::Principal
+        );
+
+        $sourceEntry = $principalEntries->first(
+            fn ($entry): bool => bccomp(
+                $entry->amount,
+                '0.00',
+                2
+            ) < 0
+        );
+
+        $destinationEntry = $principalEntries->first(
+            fn ($entry): bool => bccomp(
+                $entry->amount,
+                '0.00',
+                2
+            ) > 0
+        );
+
         $statusClass = match ($transaction->status) {
             \App\Enums\TransactionStatus::Posted =>
                 'bg-emerald-50 text-emerald-700',
@@ -51,6 +75,15 @@
                             <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
                                 {{ $transaction->status->label() }}
                             </span>
+
+                            @if ($transferKind)
+                                <span
+                                    data-transaction-transfer-kind="{{ $transferKind->value }}"
+                                    class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
+                                >
+                                    {{ $transferKind->label() }}
+                                </span>
+                            @endif
                         </div>
 
                         <h1 class="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -101,6 +134,75 @@
                                     ) }}
                             </dd>
                         </div>
+
+                        @if ($transferKind)
+                            <div data-transaction-transfer-details>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                    Jenis transfer
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-medium text-slate-800">
+                                    {{ $transferKind->label() }}
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                    Rekening sumber
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-medium text-slate-800">
+                                    {{ $sourceEntry?->account?->name
+                                        ?? 'Rekening tidak tersedia' }}
+                                </dd>
+                            </div>
+
+                            @if ($transaction->isInternalTransfer())
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Rekening tujuan Laras
+                                    </dt>
+
+                                    <dd class="mt-1 text-sm font-medium text-slate-800">
+                                        {{ $destinationEntry?->account?->name
+                                            ?? 'Rekening tidak tersedia' }}
+                                    </dd>
+                                </div>
+                            @else
+                                <div data-transaction-external-destination>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Penerima atau tujuan
+                                    </dt>
+
+                                    <dd class="mt-1 text-sm font-medium text-slate-800">
+                                        {{ $externalDestination['name']
+                                            ?? 'Tujuan eksternal' }}
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Bank atau institusi
+                                    </dt>
+
+                                    <dd class="mt-1 text-sm font-medium text-slate-800">
+                                        {{ $externalDestination['institution']
+                                            ?? '—' }}
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Nomor rekening atau identitas
+                                    </dt>
+
+                                    <dd class="mt-1 break-all text-sm font-medium text-slate-800">
+                                        {{ $externalDestination['account_number']
+                                            ?? '—' }}
+                                    </dd>
+                                </div>
+                            @endif
+                        @endif
 
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
