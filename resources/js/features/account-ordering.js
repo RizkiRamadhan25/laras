@@ -8,6 +8,7 @@ const REDUCED_MOTION = window.matchMedia(
 );
 
 const busyStates = new WeakMap();
+const animationTimers = new WeakMap();
 
 let activeMoveForm = null;
 let lockNoticeShown = false;
@@ -27,7 +28,24 @@ function capturePositions(list) {
     );
 }
 
+function clearMotionStyles(list) {
+    const activeTimer =
+        animationTimers.get(list);
+
+    if (activeTimer !== undefined) {
+        window.clearTimeout(activeTimer);
+        animationTimers.delete(list);
+    }
+
+    cardsIn(list).forEach((card) => {
+        card.style.removeProperty('transition');
+        card.style.removeProperty('transform');
+    });
+}
+
 function animateFromPositions(list, before) {
+    clearMotionStyles(list);
+
     if (REDUCED_MOTION.matches) {
         return;
     }
@@ -54,6 +72,12 @@ function animateFromPositions(list, before) {
 
     window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
+            if (REDUCED_MOTION.matches) {
+                clearMotionStyles(list);
+
+                return;
+            }
+
             cards.forEach((card) => {
                 card.style.transition = [
                     'transform',
@@ -66,12 +90,14 @@ function animateFromPositions(list, before) {
         });
     });
 
-    window.setTimeout(() => {
-        cards.forEach((card) => {
-            card.style.removeProperty('transition');
-            card.style.removeProperty('transform');
-        });
+    const timer = window.setTimeout(() => {
+        clearMotionStyles(list);
     }, ANIMATION_DURATION + 60);
+
+    animationTimers.set(
+        list,
+        timer
+    );
 }
 
 function updateMoveButtons(list) {
@@ -232,6 +258,24 @@ function currentAccountOrder(list) {
         );
 }
 
+function domOrderIsValid(list) {
+    const cards = accountCards(list);
+    const orderedAccountIds =
+        currentAccountOrder(list);
+
+    if (
+        cards.length === 0
+        || orderedAccountIds.length
+            !== cards.length
+    ) {
+        return false;
+    }
+
+    return new Set(
+        orderedAccountIds
+    ).size === orderedAccountIds.length;
+}
+
 function normalizedAccountOrder(
     orderedAccountIds
 ) {
@@ -386,24 +430,41 @@ function moveCard(
     card,
     direction
 ) {
-    const sibling = direction === 'up'
-        ? card.previousElementSibling
-        : card.nextElementSibling;
+    const cards = cardsIn(list);
+    const currentIndex =
+        cards.indexOf(card);
 
-    if (! sibling) {
+    if (currentIndex < 0) {
         return false;
     }
+
+    const targetIndex =
+        direction === 'up'
+            ? currentIndex - 1
+            : currentIndex + 1;
+
+    if (
+        targetIndex < 0
+        || targetIndex >= cards.length
+    ) {
+        updateMoveButtons(list);
+
+        return false;
+    }
+
+    const targetCard =
+        cards[targetIndex];
 
     const before = capturePositions(list);
 
     if (direction === 'up') {
         list.insertBefore(
             card,
-            sibling
+            targetCard
         );
     } else {
         list.insertBefore(
-            sibling,
+            targetCard,
             card
         );
     }
@@ -550,8 +611,20 @@ async function submitMove(
         return;
     }
 
+    if (! domOrderIsValid(list)) {
+        form.submit();
+
+        return;
+    }
+
     const accountId =
         card.dataset.accountId ?? '';
+
+    if (accountId === '') {
+        form.submit();
+
+        return;
+    }
 
     const restoreKeyboardFocus =
         shouldRestoreKeyboardFocus(
@@ -689,6 +762,59 @@ async function submitMove(
     }
 }
 
+function initializeAccountOrdering() {
+    document
+        .querySelectorAll(
+            LIST_SELECTOR
+        )
+        .forEach((list) => {
+            if (! (list instanceof HTMLElement)) {
+                return;
+            }
+
+            clearMotionStyles(list);
+
+            list.setAttribute(
+                'aria-busy',
+                'false'
+            );
+
+            updateMoveButtons(list);
+        });
+}
+
+function handleReducedMotionChange(
+    event
+) {
+    if (! event.matches) {
+        return;
+    }
+
+    document
+        .querySelectorAll(
+            LIST_SELECTOR
+        )
+        .forEach((list) => {
+            if (list instanceof HTMLElement) {
+                clearMotionStyles(list);
+            }
+        });
+}
+
+if (
+    typeof REDUCED_MOTION.addEventListener
+        === 'function'
+) {
+    REDUCED_MOTION.addEventListener(
+        'change',
+        handleReducedMotionChange
+    );
+} else {
+    REDUCED_MOTION.addListener(
+        handleReducedMotionChange
+    );
+}
+
 document.addEventListener(
     'submit',
     (event) => {
@@ -734,3 +860,10 @@ document.addEventListener(
         );
     }
 );
+
+window.addEventListener(
+    'pageshow',
+    initializeAccountOrdering
+);
+
+initializeAccountOrdering();
