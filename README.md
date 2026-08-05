@@ -6,32 +6,43 @@ Laras adalah web app personal untuk membantu satu pengguna mengelola kegiatan, p
 
 ## Status proyek
 
-**MVP Release Candidate — Fase 5D**
+**Laras v1.0.1 — Release Stable**
 
-Fitur inti, hardening keamanan, observability, quality gate, dan production smoke test telah tersedia. Rilis MVP dinyatakan selesai setelah seluruh User Acceptance Test (UAT) dan release checklist berstatus lulus.
+Versi 1.0.1 menyempurnakan interaksi kegiatan dan rekening tanpa reload penuh, memperjelas transfer internal dan eksternal, memperkuat konsistensi ledger, serta menambahkan pembatalan dan penghapusan transfer secara atomik.
 
-## Fitur MVP
+Seluruh regression test, MySQL integration gate, quality gate, production smoke test, final release review, dan User Acceptance Test (UAT) v1.0.1 telah diselesaikan.
+
+## Fitur utama
 
 - Login pribadi, remember me, reset password, dan logout.
 - Provisioning akun awal tanpa registrasi publik.
 - Onboarding preferensi, zona waktu, mata uang, dan rekening awal.
 - Dashboard keuangan, kegiatan, rekomendasi, dan peringatan.
 - Manajemen rekening serta saldo awal.
-- Transaksi pemasukan, pengeluaran, dan transfer antar-rekening.
+- Pengurutan rekening secara asinkron dengan rollback, global lock, busy state, pemulihan fokus keyboard, dan dukungan reduced motion.
+- Transaksi pemasukan dan pengeluaran.
+- Transfer internal antar-rekening Laras.
+- Transfer eksternal ke pihak di luar Laras tanpa menambah saldo rekening Laras lain.
+- Biaya admin sebagai ledger entry terpisah.
+- Riwayat dan detail transfer yang membedakan sumber, tujuan, penerima, institusi, serta identitas rekening.
 - Pembatalan transaksi dengan pencatatan ledger yang konsisten.
+- Penghapusan permanen transaksi yang telah dibatalkan, dengan verifikasi password dan konfirmasi kuat.
+- Penghapusan transfer secara atomik sebagai satu kelompok ledger.
 - Analisis pengeluaran per kategori dan periode.
 - Manajemen kegiatan dan prioritas.
+- Aksi kegiatan secara asinkron dengan refresh ringkasan dan daftar, rollback, serta dukungan aksesibilitas.
+- Arsip dan pemulihan kegiatan tanpa mengubah status penyelesaian.
 - Manajemen langganan, billing, reminder, retry, pause, resume, dan cancel.
 - Anggaran per kategori, periode, penggunaan, peringatan, dan histori.
 - Rekomendasi personal berbasis aturan, feedback, dan riwayat interaksi.
 - Notification center.
 - Profil, preferensi, foto profil, keamanan akun, sesi perangkat, ekspor data, dan penghapusan akun.
 - Custom error page, request ID, security headers, slow-query monitoring, dan query-budget tests.
-- Quality gate, dependency audit, release readiness check, dan production smoke test.
+- Quality gate, dependency audit, release readiness check, production smoke test, dan final release review.
 
-## Di luar ruang lingkup MVP
+## Di luar ruang lingkup v1.0.1
 
-Fitur berikut disiapkan untuk fase setelah MVP:
+Fitur berikut disiapkan untuk fase setelah v1.0.1:
 
 - OCR dan pemindaian bukti transaksi.
 - Lampiran dokumen transaksi.
@@ -142,12 +153,23 @@ Final release review:
 composer release:final
 ```
 
+MySQL integration test:
+
+```powershell
+php vendor/bin/phpunit -c phpunit.mysql.xml
+```
+
+Gunakan database khusus testing dan jangan arahkan konfigurasi tersebut ke database development atau production.
+
 ## Dokumentasi rilis
 
 - [Panduan deployment](docs/DEPLOYMENT.md)
-- [User Acceptance Test MVP](docs/UAT-MVP.md)
-- [Release checklist](docs/RELEASE-CHECKLIST.md)
+- [Release notes v1.0.1](docs/RELEASE-NOTES-v1.0.1.md)
+- [UAT v1.0.1](docs/UAT-v1.0.1.md)
+- [Release checklist v1.0.1](docs/RELEASE-CHECKLIST-v1.0.1.md)
 - [Release notes v1.0.0](docs/RELEASE-NOTES-v1.0.0.md)
+- [User Acceptance Test MVP](docs/UAT-MVP.md)
+- [Release checklist MVP](docs/RELEASE-CHECKLIST.md)
 - [Changelog](CHANGELOG.md)
 
 ## Struktur fitur utama
@@ -184,12 +206,18 @@ tests/
 - Route sensitif dilindungi autentikasi dan onboarding middleware.
 - Session production menggunakan cookie aman dan data terenkripsi.
 - Data export dan penghapusan akun memerlukan password saat ini.
+- Penghapusan transaksi permanen memerlukan password, teks konfirmasi, dan persetujuan eksplisit.
 - Upload foto dinormalisasi dan disimpan sebagai WebP.
 - Response menggunakan Content Security Policy dan security headers lainnya.
 - Setiap request memiliki request ID untuk penelusuran error.
 - Query metric headers tidak diekspos pada production.
+- Transfer dan ledger diproses dalam database transaction untuk menjaga konsistensi saldo.
 
 Jangan commit `.env`, database lokal, file log, `public/hot`, atau data export pengguna.
+
+## Catatan email
+
+Konfigurasi `MAIL_MAILER=log` masih dapat digunakan untuk instalasi personal atau development. Sebelum Laras digunakan oleh pengguna lain, gunakan mail transport nyata agar reset password dan notifikasi email dapat dikirim.
 
 ## Lisensi dan penggunaan
 
