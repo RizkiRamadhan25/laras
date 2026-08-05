@@ -6,6 +6,7 @@ use App\Enums\FinanceFlowType;
 use App\Enums\TransactionEntryRole;
 use App\Enums\TransactionSource;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionTransferKind;
 use App\Enums\TransactionType;
 use App\Models\Account;
 use App\Models\FinanceCategory;
@@ -233,6 +234,11 @@ class TransactionPostingService
                 $sourceDelta
             );
 
+            $data = $this->withTransferMetadata(
+                data: $data,
+                kind: TransactionTransferKind::Internal
+            );
+
             $transaction = $this->createPostedTransaction(
                 user: $user,
                 type: TransactionType::Transfer,
@@ -293,6 +299,155 @@ class TransactionPostingService
             $this->applyBalanceDelta(
                 $destinationAccount,
                 $normalizedAmount
+            );
+
+            $this->budgetUsageSyncService
+                ->syncForTransaction(
+                    $transaction
+                );
+
+            return $transaction->load([
+                'entries.account',
+                'entries.financeCategory',
+            ]);
+        }, 3);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function postExternalTransfer(
+        User $user,
+        int $sourceAccountId,
+        string $destinationName,
+        ?string $destinationInstitution,
+        ?string $destinationAccountNumber,
+        mixed $amount,
+        mixed $adminFee = '0',
+        array $data = []
+    ): Transaction {
+        $normalizedDestinationName = $this->nullableString(
+            $destinationName
+        );
+
+        if ($normalizedDestinationName === null) {
+            throw new DomainException(
+                'Nama penerima atau tujuan eksternal wajib diisi.'
+            );
+        }
+
+        $normalizedInstitution = $this->nullableString(
+            $destinationInstitution
+        );
+
+        $normalizedAccountNumber = $this->nullableString(
+            $destinationAccountNumber
+        );
+
+        $normalizedAmount = $this->normalizePositiveMoney(
+            $amount,
+            'Nominal transfer'
+        );
+
+        $normalizedFee = $this->normalizeNonNegativeMoney(
+            $adminFee,
+            'Biaya admin'
+        );
+
+        return DB::transaction(function () use (
+            $user,
+            $sourceAccountId,
+            $normalizedDestinationName,
+            $normalizedInstitution,
+            $normalizedAccountNumber,
+            $normalizedAmount,
+            $normalizedFee,
+            $data
+        ): Transaction {
+            $sourceAccount = $this
+                ->lockOwnedActiveAccounts(
+                    $user,
+                    [$sourceAccountId]
+                )
+                ->get($sourceAccountId);
+
+            $totalOutgoing = bcadd(
+                $normalizedAmount,
+                $normalizedFee,
+                2
+            );
+
+            $sourceDelta = bcsub(
+                '0',
+                $totalOutgoing,
+                2
+            );
+
+            $this->ensureBalanceIsSufficient(
+                $sourceAccount,
+                $sourceDelta
+            );
+
+            $data['counterparty'] ??=
+                $normalizedDestinationName;
+
+            $data = $this->withTransferMetadata(
+                data: $data,
+                kind: TransactionTransferKind::External,
+                externalDestination: [
+                    'name' => $normalizedDestinationName,
+                    'institution' => $normalizedInstitution,
+                    'account_number' => $normalizedAccountNumber,
+                ]
+            );
+
+            $transaction = $this->createPostedTransaction(
+                user: $user,
+                type: TransactionType::Transfer,
+                data: $data,
+                defaultDescription: sprintf(
+                    'Transfer eksternal ke %s',
+                    $normalizedDestinationName
+                )
+            );
+
+            $entries = [
+                [
+                    'account_id' => $sourceAccount->id,
+                    'finance_category_id' => null,
+                    'amount' => bcsub(
+                        '0',
+                        $normalizedAmount,
+                        2
+                    ),
+                    'role' => TransactionEntryRole::Principal,
+                    'memo' => 'Transfer eksternal',
+                ],
+            ];
+
+            if (bccomp($normalizedFee, '0.00', 2) > 0) {
+                $feeCategory = $this->defaultAdminFeeCategory(
+                    $user
+                );
+
+                $entries[] = [
+                    'account_id' => $sourceAccount->id,
+                    'finance_category_id' => $feeCategory->id,
+                    'amount' => bcsub(
+                        '0',
+                        $normalizedFee,
+                        2
+                    ),
+                    'role' => TransactionEntryRole::Fee,
+                    'memo' => 'Biaya admin transfer eksternal',
+                ];
+            }
+
+            $transaction->entries()->createMany($entries);
+
+            $this->applyBalanceDelta(
+                $sourceAccount,
+                $sourceDelta
             );
 
             $this->budgetUsageSyncService
@@ -477,6 +632,36 @@ class TransactionPostingService
             ->where('flow_type', FinanceFlowType::Expense->value)
             ->where('is_active', true)
             ->firstOrFail();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<string, ?string>|null  $externalDestination
+     * @return array<string, mixed>
+     */
+    private function withTransferMetadata(
+        array $data,
+        TransactionTransferKind $kind,
+        ?array $externalDestination = null
+    ): array {
+        $metadata = is_array($data['metadata'] ?? null)
+            ? $data['metadata']
+            : [];
+
+        $metadata['transfer_kind'] = $kind->value;
+
+        if ($externalDestination !== null) {
+            $metadata['external_destination'] = array_filter(
+                $externalDestination,
+                static fn (?string $value): bool => $value !== null
+            );
+        } else {
+            unset($metadata['external_destination']);
+        }
+
+        $data['metadata'] = $metadata;
+
+        return $data;
     }
 
     /**

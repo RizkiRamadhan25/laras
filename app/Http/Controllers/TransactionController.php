@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FinanceFlowType;
+use App\Enums\TransactionTransferKind;
 use App\Enums\TransactionType;
 use App\Http\Requests\CancelTransactionRequest;
 use App\Http\Requests\FilterTransactionsRequest;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Account;
+use App\Models\Transaction;
+use App\Models\User;
 use App\Services\TransactionPostingService;
 use Carbon\CarbonImmutable;
 use DomainException;
@@ -243,13 +246,9 @@ class TransactionController extends Controller
                     data: $this->transactionMetadata($data)
                 ),
 
-                TransactionType::Transfer->value => $this->postingService->postTransfer(
+                TransactionType::Transfer->value => $this->postTransfer(
                     user: $request->user(),
-                    sourceAccountId: (int) $data['account_id'],
-                    destinationAccountId: (int) $data['destination_account_id'],
-                    amount: $data['amount'],
-                    adminFee: $data['admin_fee'] ?? '0',
-                    data: $this->transactionMetadata($data)
+                    data: $data
                 ),
 
                 default => throw new DomainException(
@@ -325,6 +324,42 @@ class TransactionController extends Controller
                 'status',
                 'Transaksi berhasil dibatalkan dan saldo telah dikembalikan.'
             );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function postTransfer(
+        User $user,
+        array $data
+    ): Transaction {
+        $transferKind = TransactionTransferKind::from(
+            $data['transfer_kind']
+        );
+
+        if ($transferKind === TransactionTransferKind::External) {
+            return $this->postingService->postExternalTransfer(
+                user: $user,
+                sourceAccountId: (int) $data['account_id'],
+                destinationName: $data['external_destination_name'],
+                destinationInstitution: $data['external_destination_institution']
+                    ?? null,
+                destinationAccountNumber: $data['external_destination_account_number']
+                    ?? null,
+                amount: $data['amount'],
+                adminFee: $data['admin_fee'] ?? '0',
+                data: $this->transactionMetadata($data)
+            );
+        }
+
+        return $this->postingService->postTransfer(
+            user: $user,
+            sourceAccountId: (int) $data['account_id'],
+            destinationAccountId: (int) $data['destination_account_id'],
+            amount: $data['amount'],
+            adminFee: $data['admin_fee'] ?? '0',
+            data: $this->transactionMetadata($data)
+        );
     }
 
     /**
