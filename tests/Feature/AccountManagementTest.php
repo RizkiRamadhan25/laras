@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\SubscriptionStatus;
 use App\Models\Account;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -219,12 +221,26 @@ class AccountManagementTest extends TestCase
             'sort_order' => 2,
         ]);
 
-        $this
+        $response = $this
             ->actingAs($user)
-            ->patch(route('accounts.move', $second->id), [
+            ->patchJson(
+                route('accounts.move', $second->id),
+                [
+                    'direction' => 'up',
+                ]
+            );
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Urutan rekening berhasil diperbarui.',
+                'account_id' => $second->id,
                 'direction' => 'up',
-            ])
-            ->assertRedirectToRoute('accounts.index');
+                'ordered_account_ids' => [
+                    $second->id,
+                    $first->id,
+                ],
+            ]);
 
         $this->assertSame(
             [
@@ -233,6 +249,257 @@ class AccountManagementTest extends TestCase
             ],
             $user->accounts()->pluck('id')->all()
         );
+    }
+
+    public function test_account_ordering_returns_authoritative_server_order(): void
+    {
+        $user = $this->completedUser();
+
+        $first = Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Pertama',
+            'sort_order' => 10,
+            'is_active' => true,
+        ]);
+
+        $second = Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Kedua',
+            'sort_order' => 20,
+            'is_active' => true,
+        ]);
+
+        $third = Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Ketiga',
+            'sort_order' => 30,
+            'is_active' => true,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'accounts.move',
+                    $second->id
+                ),
+                [
+                    'direction' => 'down',
+                ]
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Urutan rekening berhasil diperbarui.',
+                'account_id' => $second->id,
+                'direction' => 'down',
+                'ordered_account_ids' => [
+                    $first->id,
+                    $third->id,
+                    $second->id,
+                ],
+            ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $second->id,
+            'sort_order' => 30,
+        ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $third->id,
+            'sort_order' => 20,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'accounts.move',
+                    $second->id
+                ),
+                [
+                    'direction' => 'up',
+                ]
+            )
+            ->assertOk()
+            ->assertJson([
+                'account_id' => $second->id,
+                'direction' => 'up',
+                'ordered_account_ids' => [
+                    $first->id,
+                    $second->id,
+                    $third->id,
+                ],
+            ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $second->id,
+            'sort_order' => 20,
+        ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $third->id,
+            'sort_order' => 30,
+        ]);
+    }
+
+    public function test_account_ordering_keeps_the_same_order_at_boundaries(): void
+    {
+        $user = $this->completedUser();
+
+        $first = Account::factory()->create([
+            'user_id' => $user->id,
+            'sort_order' => 10,
+            'is_active' => true,
+        ]);
+
+        $second = Account::factory()->create([
+            'user_id' => $user->id,
+            'sort_order' => 20,
+            'is_active' => true,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'accounts.move',
+                    $first->id
+                ),
+                [
+                    'direction' => 'up',
+                ]
+            )
+            ->assertOk()
+            ->assertJson([
+                'account_id' => $first->id,
+                'direction' => 'up',
+                'ordered_account_ids' => [
+                    $first->id,
+                    $second->id,
+                ],
+            ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'accounts.move',
+                    $second->id
+                ),
+                [
+                    'direction' => 'down',
+                ]
+            )
+            ->assertOk()
+            ->assertJson([
+                'account_id' => $second->id,
+                'direction' => 'down',
+                'ordered_account_ids' => [
+                    $first->id,
+                    $second->id,
+                ],
+            ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $first->id,
+            'sort_order' => 10,
+        ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $second->id,
+            'sort_order' => 20,
+        ]);
+    }
+
+    public function test_account_ordering_excludes_archived_accounts_from_server_order(): void
+    {
+        $user = $this->completedUser();
+
+        $first = Account::factory()->create([
+            'user_id' => $user->id,
+            'sort_order' => 10,
+            'is_active' => true,
+        ]);
+
+        $archived = Account::factory()->create([
+            'user_id' => $user->id,
+            'sort_order' => 20,
+            'is_active' => false,
+        ]);
+
+        $second = Account::factory()->create([
+            'user_id' => $user->id,
+            'sort_order' => 30,
+            'is_active' => true,
+        ]);
+
+        $archived->delete();
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'accounts.move',
+                    $second->id
+                ),
+                [
+                    'direction' => 'up',
+                ]
+            )
+            ->assertOk()
+            ->assertJson([
+                'ordered_account_ids' => [
+                    $second->id,
+                    $first->id,
+                ],
+            ]);
+
+        $responseOrder = Account::query()
+            ->where('user_id', $user->id)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+
+        $this->assertSame(
+            [
+                $second->id,
+                $first->id,
+            ],
+            $responseOrder
+        );
+    }
+
+    public function test_account_ordering_cannot_move_another_users_account(): void
+    {
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+
+        $account = Account::factory()->create([
+            'user_id' => $otherUser->id,
+            'sort_order' => 10,
+            'is_active' => true,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'accounts.move',
+                    $account->id
+                ),
+                [
+                    'direction' => 'up',
+                ]
+            )
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $account->id,
+            'user_id' => $otherUser->id,
+            'sort_order' => 10,
+        ]);
     }
 
     private function completedUser(): User
@@ -252,5 +519,79 @@ class AccountManagementTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    public function test_account_used_by_active_subscription_cannot_be_archived(): void
+    {
+        $user = $this->completedUser();
+
+        Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Cadangan',
+            'sort_order' => 1,
+        ]);
+
+        $account = Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'BCA Langganan',
+            'sort_order' => 2,
+        ]);
+
+        Subscription::factory()->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'status' => SubscriptionStatus::Active,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->delete(route('accounts.destroy', $account->id));
+
+        $response
+            ->assertRedirectToRoute('accounts.index')
+            ->assertSessionHas('warning');
+
+        $this->assertNotSoftDeleted('accounts', [
+            'id' => $account->id,
+        ]);
+
+        $this->assertDatabaseHas('accounts', [
+            'id' => $account->id,
+            'is_active' => true,
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_account_used_only_by_cancelled_subscription_can_be_archived(): void
+    {
+        $user = $this->completedUser();
+
+        Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Cadangan',
+            'sort_order' => 1,
+        ]);
+
+        $account = Account::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Rekening Lama',
+            'sort_order' => 2,
+        ]);
+
+        Subscription::factory()->create([
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'status' => SubscriptionStatus::Cancelled,
+            'cancelled_at' => now(),
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->delete(route('accounts.destroy', $account->id))
+            ->assertRedirectToRoute('accounts.index');
+
+        $this->assertSoftDeleted('accounts', [
+            'id' => $account->id,
+        ]);
     }
 }

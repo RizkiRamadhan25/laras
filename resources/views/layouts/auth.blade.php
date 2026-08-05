@@ -11,10 +11,31 @@
         content="Laras — Selaraskan hari, tentukan langkah."
     >
 
+    <script>
+        (() => {
+            try {
+                if (
+                    window.sessionStorage.getItem(
+                        'laras:intro-shown:v1'
+                    ) === '1'
+                ) {
+                    document.documentElement.setAttribute(
+                        'data-laras-intro-seen',
+                        'true'
+                    );
+                }
+            } catch (error) {
+                // Aplikasi tetap berjalan ketika sessionStorage dibatasi.
+            }
+        })();
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="min-h-screen bg-slate-50 text-slate-950 antialiased">
+    <x-ui.loading-screen />
+
     <main class="min-h-screen lg:grid lg:grid-cols-[1.05fr_0.95fr]">
         <section
             class="relative hidden overflow-hidden bg-[#0b2a5b] px-12 py-10 text-white lg:flex lg:flex-col lg:justify-between"
@@ -83,5 +104,7 @@
             </div>
         </section>
     </main>
+
+    <x-ui.toast-container />
 </body>
 </html>

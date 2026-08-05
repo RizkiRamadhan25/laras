@@ -7,6 +7,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataPrivacyController;
 use App\Http\Controllers\ExpenseAnalysisController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\RecommendationController;
@@ -69,6 +70,13 @@ Route::middleware('auth')->group(function (): void {
         )->name('dashboard');
 
         Route::get(
+            '/global-search',
+            GlobalSearchController::class
+        )
+            ->middleware('throttle:120,1')
+            ->name('search.global');
+
+        Route::get(
             '/analysis',
             [ExpenseAnalysisController::class, 'index']
         )->name('analysis.index');
@@ -85,6 +93,32 @@ Route::middleware('auth')->group(function (): void {
                     '/history',
                     [RecommendationController::class, 'history']
                 )->name('history');
+
+                Route::post(
+                    '/history/deletion-preview',
+                    [
+                        RecommendationController::class,
+                        'historyDeletionPreview',
+                    ]
+                )->name('history.deletion-preview');
+
+                Route::delete(
+                    '/history/purge',
+                    [
+                        RecommendationController::class,
+                        'purgeHistory',
+                    ]
+                )->name('history.purge');
+
+                Route::delete(
+                    '/history/{interaction}',
+                    [
+                        RecommendationController::class,
+                        'destroyHistory',
+                    ]
+                )
+                    ->whereNumber('interaction')
+                    ->name('history.destroy');
 
                 Route::get(
                     '/{recommendation}/open',
@@ -192,6 +226,13 @@ Route::middleware('auth')->group(function (): void {
                 )
                     ->whereNumber('transaction')
                     ->name('cancel');
+
+                Route::delete(
+                    '/{transaction}',
+                    [TransactionController::class, 'destroy']
+                )
+                    ->whereNumber('transaction')
+                    ->name('destroy');
             });
 
         Route::get(
@@ -283,6 +324,19 @@ Route::middleware('auth')->group(function (): void {
                     [NotificationController::class, 'markAllRead']
                 )->name('read-all');
 
+                Route::post(
+                    '/deletion-preview',
+                    [
+                        NotificationController::class,
+                        'deletionPreview',
+                    ]
+                )->name('deletion-preview');
+
+                Route::delete(
+                    '/purge',
+                    [NotificationController::class, 'purge']
+                )->name('purge');
+
                 Route::get(
                     '/{notification}/open',
                     [NotificationController::class, 'open']
@@ -296,6 +350,13 @@ Route::middleware('auth')->group(function (): void {
                 )
                     ->whereUuid('notification')
                     ->name('read');
+
+                Route::delete(
+                    '/{notification}',
+                    [NotificationController::class, 'destroy']
+                )
+                    ->whereUuid('notification')
+                    ->name('destroy');
             });
 
         Route::prefix('subscriptions')

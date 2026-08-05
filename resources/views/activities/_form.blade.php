@@ -30,12 +30,19 @@
 @endphp
 
 <div
+    data-modern-activity-form
     x-data="{
         type: @js($selectedTypeValue),
         allDay: @js(
             (bool) old(
                 'all_day',
                 $activity->all_day ?? false
+            )
+        ),
+        isFlexible: @js(
+            (bool) old(
+                'is_flexible',
+                $activity->is_flexible ?? true
             )
         ),
     }"
@@ -49,18 +56,24 @@
                 Periksa kembali data aktivitas.
             </p>
 
-            <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-rose-700">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+            <p class="mt-1 text-sm leading-6 text-rose-700">
+                Setiap bagian yang perlu diperbaiki sudah ditandai pada form.
+            </p>
         </div>
     @endif
 
     <section>
-        <h2 class="text-base font-semibold text-slate-900">
-            Jenis aktivitas
-        </h2>
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-base font-semibold text-slate-900">
+                    Jenis aktivitas
+                </h2>
+
+                <p class="mt-1 text-sm leading-6 text-slate-500">
+                    Pilih bentuk aktivitas agar Laras menyesuaikan kebutuhan waktunya.
+                </p>
+            </div>
+        </div>
 
         <div class="mt-4 grid gap-3 sm:grid-cols-3">
             @foreach ($activityTypes as $type)
@@ -78,11 +91,11 @@
                 @endphp
 
                 <label
-                    class="cursor-pointer rounded-2xl border p-4 transition"
-                    x-bind:class="
+                    class="laras-choice-card"
+                    x-bind:data-selected="
                         type === '{{ $type->value }}'
-                            ? 'border-laras-600 bg-laras-50 ring-4 ring-laras-100'
-                            : 'border-slate-200 hover:border-slate-300'
+                            ? 'true'
+                            : 'false'
                     "
                 >
                     <input
@@ -93,22 +106,20 @@
                         class="sr-only"
                     >
 
-                    <span class="flex items-center gap-3">
-                        <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                            <i
-                                data-lucide="{{ $type->icon() }}"
-                                class="size-5"
-                            ></i>
+                    <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                        <i
+                            data-lucide="{{ $type->icon() }}"
+                            class="size-5"
+                        ></i>
+                    </span>
+
+                    <span class="min-w-0">
+                        <span class="block text-sm font-semibold text-slate-900">
+                            {{ $type->label() }}
                         </span>
 
-                        <span>
-                            <span class="block text-sm font-semibold text-slate-900">
-                                {{ $type->label() }}
-                            </span>
-
-                            <span class="mt-1 block text-xs leading-5 text-slate-500">
-                                {{ $typeDescription }}
-                            </span>
+                        <span class="mt-1 block text-xs leading-5 text-slate-500">
+                            {{ $typeDescription }}
                         </span>
                     </span>
                 </label>
@@ -126,257 +137,93 @@
 
     <section class="grid gap-6 lg:grid-cols-2">
         <div class="lg:col-span-2">
-            <label
-                for="title"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Judul aktivitas
-            </label>
-
-            <input
-                id="title"
+            <x-ui.floating-input
                 name="title"
-                type="text"
-                value="{{ old(
-                    'title',
-                    $activity->title ?? ''
-                ) }}"
+                label="Judul aktivitas"
+                :value="$activity->title ?? ''"
+                :required="true"
                 maxlength="160"
-                required
                 autofocus
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                placeholder="Contoh: Menyelesaikan laporan proyek"
-            >
-
-            @error('title')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
+                hint="Gunakan judul singkat dan jelas agar mudah ditemukan."
+            />
         </div>
 
-        <div>
-            <label
-                for="priority"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Prioritas
-            </label>
-
-            <select
-                id="priority"
-                name="priority"
-                required
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-            >
-                @foreach ($priorities as $priority)
-                    <option
-                        value="{{ $priority->value }}"
-                        @selected(
-                            $selectedPriority
-                                === $priority->value
-                        )
-                    >
-                        {{ $priority->label() }}
-                    </option>
-                @endforeach
-            </select>
-
-            @error('priority')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
-        </div>
-
-        <div>
-            <label
-                for="estimated_minutes"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Estimasi durasi
-                <span class="font-normal text-slate-400">
-                    (opsional)
-                </span>
-            </label>
-
-            <div class="flex rounded-xl border border-slate-300 bg-white focus-within:border-laras-600 focus-within:ring-4 focus-within:ring-laras-100">
-                <input
-                    id="estimated_minutes"
-                    name="estimated_minutes"
-                    type="number"
-                    value="{{ old(
-                        'estimated_minutes',
-                        $activity->estimated_minutes ?? ''
-                    ) }}"
-                    min="5"
-                    max="1440"
-                    step="5"
-                    class="min-w-0 flex-1 rounded-l-xl px-4 py-3 text-sm outline-none"
-                    placeholder="60"
+        <x-ui.floating-select
+            name="priority"
+            label="Prioritas"
+            :required="true"
+        >
+            @foreach ($priorities as $priority)
+                <option
+                    value="{{ $priority->value }}"
+                    @selected(
+                        $selectedPriority
+                            === $priority->value
+                    )
                 >
+                    {{ $priority->label() }}
+                </option>
+            @endforeach
+        </x-ui.floating-select>
 
-                <span class="flex items-center border-l border-slate-200 px-4 text-sm text-slate-500">
-                    menit
-                </span>
-            </div>
+        <x-ui.floating-input
+            name="estimated_minutes"
+            type="number"
+            label="Estimasi durasi"
+            :value="$activity->estimated_minutes ?? ''"
+            suffix="menit"
+            min="5"
+            max="1440"
+            step="5"
+            inputmode="numeric"
+            hint="Opsional. Gunakan kelipatan 5 menit."
+        />
 
-            @error('estimated_minutes')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
-        </div>
-
-        <div>
-            <label
-                for="starts_at"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                <span
-                    x-text="
-                        type === 'event'
-                            ? 'Waktu mulai'
-                            : 'Mulai dikerjakan'
-                    "
-                ></span>
-
-                <span
-                    x-show="type !== 'event'"
-                    class="font-normal text-slate-400"
-                >
-                    (opsional)
-                </span>
-            </label>
-
-            <input
-                id="starts_at"
-                name="starts_at"
-                type="datetime-local"
-                value="{{ old(
-                    'starts_at',
-                    $editing
-                        ? $formatDateTime(
-                            $activity->starts_at
-                        )
-                        : ''
-                ) }}"
-                x-bind:required="type === 'event'"
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-            >
-
-            @error('starts_at')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
-        </div>
+        <x-ui.floating-input
+            name="starts_at"
+            type="datetime-local"
+            label="Waktu mulai"
+            :value="$editing
+                ? $formatDateTime($activity->starts_at)
+                : ''"
+            x-bind:required="type === 'event'"
+            hint="Wajib untuk acara dan opsional untuk jenis lainnya."
+        />
 
         <div
             x-cloak
             x-show="type !== 'deadline'"
         >
-            <label
-                for="ends_at"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Waktu selesai
-                <span class="font-normal text-slate-400">
-                    (opsional)
-                </span>
-            </label>
-
-            <input
-                id="ends_at"
+            <x-ui.floating-input
                 name="ends_at"
                 type="datetime-local"
-                value="{{ old(
-                    'ends_at',
-                    $editing
-                        ? $formatDateTime(
-                            $activity->ends_at
-                        )
-                        : ''
-                ) }}"
+                label="Waktu selesai"
+                :value="$editing
+                    ? $formatDateTime($activity->ends_at)
+                    : ''"
                 x-bind:disabled="type === 'deadline'"
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-            >
-
-            @error('ends_at')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
+                hint="Opsional. Pastikan waktunya setelah waktu mulai."
+            />
         </div>
 
-        <div>
-            <label
-                for="due_at"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Tenggat
+        <x-ui.floating-input
+            name="due_at"
+            type="datetime-local"
+            label="Tenggat"
+            :value="$editing
+                ? $formatDateTime($activity->due_at)
+                : ''"
+            x-bind:required="type === 'deadline'"
+            hint="Wajib untuk deadline dan opsional untuk jenis lainnya."
+        />
 
-                <span
-                    x-show="type !== 'deadline'"
-                    class="font-normal text-slate-400"
-                >
-                    (opsional)
-                </span>
-            </label>
-
-            <input
-                id="due_at"
-                name="due_at"
-                type="datetime-local"
-                value="{{ old(
-                    'due_at',
-                    $editing
-                        ? $formatDateTime(
-                            $activity->due_at
-                        )
-                        : ''
-                ) }}"
-                x-bind:required="type === 'deadline'"
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-            >
-
-            @error('due_at')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
-        </div>
-
-        <div>
-            <label
-                for="location"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Lokasi
-                <span class="font-normal text-slate-400">
-                    (opsional)
-                </span>
-            </label>
-
-            <input
-                id="location"
-                name="location"
-                type="text"
-                value="{{ old(
-                    'location',
-                    $activity->location ?? ''
-                ) }}"
-                maxlength="160"
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                placeholder="Contoh: Kampus atau Google Meet"
-            >
-
-            @error('location')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
-        </div>
+        <x-ui.floating-input
+            name="location"
+            label="Lokasi"
+            :value="$activity->location ?? ''"
+            maxlength="160"
+            hint="Opsional, misalnya Kampus atau Google Meet."
+        />
 
         <div>
             <label
@@ -386,23 +233,28 @@
                 Warna penanda
             </label>
 
-            <div class="flex h-[50px] items-center gap-4 rounded-xl border border-slate-300 px-4">
+            <div class="flex min-h-[58px] items-center gap-4 rounded-2xl border border-slate-300 bg-white px-4 transition focus-within:border-laras-600 focus-within:ring-4 focus-within:ring-laras-100">
                 <input
                     id="color"
                     name="color"
                     type="color"
                     value="{{ old(
                         'color',
-                        $activity->color
-                            ?? '#3B82F6'
+                        $activity->color ?? '#3B82F6'
                     ) }}"
                     required
-                    class="size-9 cursor-pointer border-0 bg-transparent p-0"
+                    class="size-10 cursor-pointer rounded-xl border-0 bg-transparent p-0"
                 >
 
-                <span class="text-sm text-slate-500">
-                    Digunakan pada agenda dan prioritas
-                </span>
+                <div>
+                    <p class="text-sm font-semibold text-slate-700">
+                        Pilih warna aktivitas
+                    </p>
+
+                    <p class="mt-0.5 text-xs text-slate-400">
+                        Digunakan pada agenda dan prioritas.
+                    </p>
+                </div>
             </div>
 
             @error('color')
@@ -413,38 +265,22 @@
         </div>
 
         <div class="lg:col-span-2">
-            <label
-                for="description"
-                class="mb-2 block text-sm font-medium text-slate-700"
-            >
-                Deskripsi
-                <span class="font-normal text-slate-400">
-                    (opsional)
-                </span>
-            </label>
-
-            <textarea
-                id="description"
+            <x-ui.floating-textarea
                 name="description"
+                label="Deskripsi"
+                :value="$activity->description ?? ''"
                 rows="5"
                 maxlength="5000"
-                class="w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                placeholder="Tambahkan rincian, catatan, atau tujuan aktivitas"
-            >{{ old(
-                'description',
-                $activity->description ?? ''
-            ) }}</textarea>
-
-            @error('description')
-                <p class="mt-2 text-sm text-rose-600">
-                    {{ $message }}
-                </p>
-            @enderror
+                hint="Opsional. Tambahkan rincian, catatan, atau tujuan aktivitas."
+            />
         </div>
     </section>
 
     <section class="mt-7 grid gap-4 sm:grid-cols-2">
-        <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 transition hover:border-slate-300">
+        <label
+            class="laras-choice-card"
+            x-bind:data-selected="allDay ? 'true' : 'false'"
+        >
             <input
                 type="hidden"
                 name="all_day"
@@ -462,8 +298,10 @@
                         $activity->all_day ?? false
                     )
                 )
-                class="mt-1 size-4 rounded border-slate-300 text-laras-700 focus:ring-laras-500"
+                class="sr-only"
             >
+
+            <span class="laras-choice-card__indicator"></span>
 
             <span>
                 <span class="block text-sm font-semibold text-slate-800">
@@ -476,7 +314,10 @@
             </span>
         </label>
 
-        <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 transition hover:border-slate-300">
+        <label
+            class="laras-choice-card"
+            x-bind:data-selected="isFlexible ? 'true' : 'false'"
+        >
             <input
                 type="hidden"
                 name="is_flexible"
@@ -487,14 +328,17 @@
                 type="checkbox"
                 name="is_flexible"
                 value="1"
+                x-model="isFlexible"
                 @checked(
                     old(
                         'is_flexible',
                         $activity->is_flexible ?? true
                     )
                 )
-                class="mt-1 size-4 rounded border-slate-300 text-laras-700 focus:ring-laras-500"
+                class="sr-only"
             >
+
+            <span class="laras-choice-card__indicator"></span>
 
             <span>
                 <span class="block text-sm font-semibold text-slate-800">
@@ -543,8 +387,13 @@
 
         <button
             type="submit"
-            class="inline-flex items-center justify-center rounded-xl bg-laras-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-laras-800 focus:outline-none focus:ring-4 focus:ring-laras-200"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-laras-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-laras-800 focus:outline-none focus:ring-4 focus:ring-laras-200"
         >
+            <i
+                data-lucide="check"
+                class="size-4"
+            ></i>
+
             {{ $editing
                 ? 'Simpan perubahan'
                 : 'Tambah aktivitas' }}

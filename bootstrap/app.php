@@ -50,7 +50,11 @@ return Application::configure(
             $exceptions->dontReportDuplicates();
 
             $exceptions->shouldRenderJsonWhen(
-                fn (Request $request): bool => $request->is('api/*'),
+                fn (
+                    Request $request,
+                    Throwable $exception
+                ): bool => $request->is('api/*')
+                    || $request->expectsJson(),
             );
 
             $exceptions->respond(

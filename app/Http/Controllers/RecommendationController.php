@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DataDeletionScope;
 use App\Enums\RecommendationInteractionType;
+use App\Http\Requests\PurgeRecommendationInteractionsRequest;
 use App\Http\Requests\RecommendationFeedbackRequest;
 use App\Models\User;
+use App\Services\DataDeletionPreviewService;
+use App\Services\DataDeletionService;
 use App\Services\PersonalRecommendationService;
 use App\Services\RecommendationInteractionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,7 +20,9 @@ class RecommendationController extends Controller
 {
     public function __construct(
         private readonly PersonalRecommendationService $recommendationService,
-        private readonly RecommendationInteractionService $interactionService
+        private readonly RecommendationInteractionService $interactionService,
+        private readonly DataDeletionPreviewService $deletionPreview,
+        private readonly DataDeletionService $deletion
     ) {}
 
     public function index(
@@ -127,6 +134,78 @@ class RecommendationController extends Controller
 
                 'interactions' => $interactions,
             ]
+        );
+    }
+
+    public function historyDeletionPreview(
+        PurgeRecommendationInteractionsRequest $request
+    ): JsonResponse {
+        $validated = $request->validated();
+
+        $preview = $this->deletionPreview
+            ->recommendationInteractions(
+                user: $request->user(),
+                scope: DataDeletionScope::from(
+                    $validated['scope']
+                ),
+                interactionIds: $validated[
+                    'interaction_ids'
+                ] ?? [],
+                olderThanDays: $validated[
+                    'older_than_days'
+                ] ?? null
+            );
+
+        return response()->json([
+            'data' => $preview,
+        ]);
+    }
+
+    public function purgeHistory(
+        PurgeRecommendationInteractionsRequest $request
+    ): RedirectResponse {
+        $validated = $request->validated();
+
+        $deletedCount = $this->deletion
+            ->deleteRecommendationInteractions(
+                user: $request->user(),
+                scope: DataDeletionScope::from(
+                    $validated['scope']
+                ),
+                interactionIds: $validated[
+                    'interaction_ids'
+                ] ?? [],
+                olderThanDays: $validated[
+                    'older_than_days'
+                ] ?? null
+            );
+
+        return back()->with(
+            'status',
+            $deletedCount === 0
+                ? 'Tidak ada riwayat rekomendasi yang dihapus.'
+                : $deletedCount.' riwayat rekomendasi berhasil dihapus.'
+        );
+    }
+
+    public function destroyHistory(
+        Request $request,
+        int $interaction
+    ): RedirectResponse {
+        $deletedCount = $this->deletion
+            ->deleteRecommendationInteractions(
+                user: $request->user(),
+                scope: DataDeletionScope::Selected,
+                interactionIds: [
+                    $interaction,
+                ]
+            );
+
+        return back()->with(
+            'status',
+            $deletedCount === 1
+                ? 'Riwayat rekomendasi berhasil dihapus.'
+                : 'Riwayat rekomendasi tidak ditemukan.'
         );
     }
 

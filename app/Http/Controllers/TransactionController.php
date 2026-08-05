@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FinanceFlowType;
+use App\Enums\TransactionTransferKind;
 use App\Enums\TransactionType;
 use App\Http\Requests\CancelTransactionRequest;
+use App\Http\Requests\DeleteTransactionRequest;
 use App\Http\Requests\FilterTransactionsRequest;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Account;
+use App\Models\Transaction;
+use App\Models\User;
+use App\Services\TransactionDeletionService;
 use App\Services\TransactionPostingService;
 use Carbon\CarbonImmutable;
 use DomainException;
@@ -19,7 +24,8 @@ use Illuminate\View\View;
 class TransactionController extends Controller
 {
     public function __construct(
-        private readonly TransactionPostingService $postingService
+        private readonly TransactionPostingService $postingService,
+        private readonly TransactionDeletionService $deletionService
     ) {}
 
     public function index(
@@ -243,13 +249,9 @@ class TransactionController extends Controller
                     data: $this->transactionMetadata($data)
                 ),
 
-                TransactionType::Transfer->value => $this->postingService->postTransfer(
+                TransactionType::Transfer->value => $this->postTransfer(
                     user: $request->user(),
-                    sourceAccountId: (int) $data['account_id'],
-                    destinationAccountId: (int) $data['destination_account_id'],
-                    amount: $data['amount'],
-                    adminFee: $data['admin_fee'] ?? '0',
-                    data: $this->transactionMetadata($data)
+                    data: $data
                 ),
 
                 default => throw new DomainException(
@@ -325,6 +327,71 @@ class TransactionController extends Controller
                 'status',
                 'Transaksi berhasil dibatalkan dan saldo telah dikembalikan.'
             );
+    }
+
+    public function destroy(
+        DeleteTransactionRequest $request,
+        int $transaction
+    ): RedirectResponse {
+        try {
+            $this->deletionService->deletePermanently(
+                user: $request->user(),
+                transactionId: $transaction
+            );
+        } catch (DomainException $exception) {
+            return redirect()
+                ->route(
+                    'transactions.show',
+                    $transaction
+                )
+                ->with(
+                    'warning',
+                    $exception->getMessage()
+                );
+        }
+
+        return redirect()
+            ->route('transactions.index')
+            ->with(
+                'status',
+                'Transaksi dan seluruh ledger terkait berhasil dihapus permanen.'
+            );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function postTransfer(
+        User $user,
+        array $data
+    ): Transaction {
+        $transferKind = TransactionTransferKind::from(
+            $data['transfer_kind']
+        );
+
+        if ($transferKind === TransactionTransferKind::External) {
+            return $this->postingService->postExternalTransfer(
+                user: $user,
+                sourceAccountId: (int) $data['account_id'],
+                destinationName: $data['external_destination_name'],
+                destinationInstitution: $data['external_destination_institution']
+                    ?? null,
+                destinationAccountNumber: $data['external_destination_account_number']
+                    ?? null,
+                amount: $data['amount'],
+                adminFee: $data['admin_fee'] ?? '0',
+                data: $this->transactionMetadata($data)
+            );
+        }
+
+        return $this->postingService->postTransfer(
+            user: $user,
+            sourceAccountId: (int) $data['account_id'],
+            destinationAccountId: (int) $data['destination_account_id'],
+            amount: $data['amount'],
+            adminFee: $data['admin_fee'] ?? '0',
+            data: $this->transactionMetadata($data)
+        );
     }
 
     /**

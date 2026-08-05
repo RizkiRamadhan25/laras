@@ -7,6 +7,7 @@ use App\Http\Requests\UpdatePreferencesRequest;
 use App\Http\Requests\UpdateProfilePhotoRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\UserPreference;
+use App\Services\DataUsageSummaryService;
 use App\Services\ProfilePhotoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,9 @@ use Illuminate\View\View;
 class SettingsController extends Controller
 {
     public function __construct(
-        private readonly ProfilePhotoService $photoService
+        private readonly ProfilePhotoService $photoService,
+
+        private readonly DataUsageSummaryService $dataUsageSummaryService
     ) {}
 
     public function index(): View
@@ -52,6 +55,10 @@ class SettingsController extends Controller
             ->first()
             ?->occurred_at;
 
+        $dataUsageSummary =
+            $this->dataUsageSummaryService
+                ->summarize($user);
+
         return view(
             'settings.index',
             [
@@ -62,6 +69,8 @@ class SettingsController extends Controller
                 'securityEvents' => $securityEvents,
 
                 'lastPasswordChangedAt' => $lastPasswordChangedAt,
+
+                'dataUsageSummary' => $dataUsageSummary,
 
                 'timezones' => [
                     'Asia/Jakarta' => [

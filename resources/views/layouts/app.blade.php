@@ -11,6 +11,11 @@
     >
 
     <meta
+        name="csrf-token"
+        content="{{ csrf_token() }}"
+    >
+
+    <meta
         name="description"
         content="@yield(
             'meta-description',
@@ -21,6 +26,25 @@
     <title>
         @yield('title', 'Laras')
     </title>
+
+    <script>
+        (() => {
+            try {
+                if (
+                    window.sessionStorage.getItem(
+                        'laras:intro-shown:v1'
+                    ) === '1'
+                ) {
+                    document.documentElement.setAttribute(
+                        'data-laras-intro-seen',
+                        'true'
+                    );
+                }
+            } catch (error) {
+                // Aplikasi tetap berjalan ketika sessionStorage dibatasi.
+            }
+        })();
+    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -34,6 +58,8 @@
     x-on:keydown.escape.window="sidebarOpen = false"
     class="min-h-full bg-slate-50 text-slate-950 antialiased"
 >
+    <x-ui.loading-screen />
+
     <div class="min-h-screen">
         <div
             x-cloak
@@ -56,29 +82,14 @@
 
             <main class="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
                 <div class="mx-auto w-full max-w-[1600px]">
-                    @if (session('status'))
-                        <div
-                            class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800"
-                            role="status"
-                        >
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    @if (session('warning'))
-                        <div
-                            class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900"
-                            role="alert"
-                        >
-                            {{ session('warning') }}
-                        </div>
-                    @endif
-
                     @yield('content')
                 </div>
             </main>
         </div>
     </div>
+
+    <x-ui.toast-container />
+    <x-ui.confirm-dialog />
 
     @stack('scripts')
 </body>

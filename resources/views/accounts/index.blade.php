@@ -90,9 +90,18 @@
             </p>
         </div>
 
-        <div class="space-y-4">
+        <div
+            data-account-order-list
+            class="space-y-4"
+            aria-live="polite"
+            aria-busy="false"
+        >
             @foreach ($accounts as $account)
-                <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras sm:p-6">
+                <article
+                    data-account-order-card
+                    data-account-id="{{ $account->id }}"
+                    class="rounded-2xl border border-slate-200 bg-white p-5 shadow-laras sm:p-6"
+                >
                     <div class="flex flex-col gap-5 lg:flex-row lg:items-center">
                         <div class="flex min-w-0 flex-1 items-center gap-4">
                             <span
@@ -145,6 +154,8 @@
                                     'accounts.move',
                                     $account->id
                                 ) }}"
+                                data-account-move-form
+                                data-direction="up"
                             >
                                 @csrf
                                 @method('PATCH')
@@ -171,6 +182,8 @@
                                     'accounts.move',
                                     $account->id
                                 ) }}"
+                                data-account-move-form
+                                data-direction="down"
                             >
                                 @csrf
                                 @method('PATCH')
@@ -208,9 +221,12 @@
                                     'accounts.destroy',
                                     $account->id
                                 ) }}"
-                                onsubmit="return confirm(
-                                    'Arsipkan rekening {{ addslashes($account->name) }}?'
-                                )"
+                                data-confirm
+                                data-confirm-title="Arsipkan rekening?"
+                                data-confirm-message="Rekening {{ $account->name }} akan dipindahkan dari daftar aktif. Riwayat keuangan tetap disimpan."
+                                data-confirm-label="Arsipkan"
+                                data-confirm-busy-label="Mengarsipkan..."
+                                data-confirm-tone="warning"
                             >
                                 @csrf
                                 @method('DELETE')

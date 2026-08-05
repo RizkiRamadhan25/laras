@@ -9,9 +9,6 @@
 
 @section('content')
     @php
-        $profilePhotoUrl =
-        $user->profilePhotoUrl();
-
         $selectedTimezone = old(
             'timezone',
             $preference?->timezone
@@ -41,22 +38,6 @@
             $preference?->week_starts_on
                 ?? 1
         );
-
-        $initials = collect(
-            preg_split(
-                '/\s+/',
-                trim($user->name)
-            )
-        )
-            ->filter()
-            ->take(2)
-            ->map(
-                fn (string $part): string =>
-                    mb_strtoupper(
-                        mb_substr($part, 0, 1)
-                    )
-            )
-            ->join('');
     @endphp
 
     <div class="mx-auto max-w-6xl">
@@ -79,45 +60,17 @@
             'settings.partials.navigation'
         )
 
-        @if (session('status'))
-            <div
-                role="status"
-                class="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800"
-            >
-                <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                    <i
-                        data-lucide="circle-check"
-                        class="size-4"
-                    ></i>
-                </span>
-
-                <div>
-                    <p class="text-sm font-semibold">
-                        Perubahan berhasil disimpan
-                    </p>
-
-                    <p class="mt-1 text-sm text-emerald-700">
-                        {{ session('status') }}
-                    </p>
-                </div>
-            </div>
-        @endif
 
         <section class="mt-8 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
             <aside class="space-y-6">
                 <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-laras">
                     <div class="flex items-center gap-4">
-                        @if ($profilePhotoUrl !== null)
-                            <img
-                                src="{{ $profilePhotoUrl }}"
-                                alt="Foto profil {{ $user->name }}"
-                                class="size-20 shrink-0 rounded-2xl border border-slate-200 object-cover shadow-sm"
-                            >
-                        @else
-                            <span class="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-laras-950 text-xl font-semibold text-white">
-                                {{ $initials }}
-                            </span>
-                        @endif
+                        <x-ui.user-avatar
+                            :user="$user"
+                            size="xl"
+                            rounded="2xl"
+                            class="shadow-sm"
+                        />
 
                         <div class="min-w-0">
                             <h2 class="truncate text-lg font-semibold text-slate-950">
@@ -204,15 +157,18 @@
                             </label>
                         </form>
 
-                        @if ($profilePhotoUrl !== null)
+                        @if ($user->profilePhotoUrl() !== null)
                             <form
                                 method="POST"
                                 action="{{ route(
                                     'settings.photo.destroy'
                                 ) }}"
-                                onsubmit="return confirm(
-                                    'Hapus foto profil saat ini?'
-                                )"
+                                data-confirm
+                                data-confirm-title="Hapus foto profil?"
+                                data-confirm-message="Foto profil saat ini akan dihapus dan avatar kembali menggunakan inisial nama."
+                                data-confirm-label="Hapus foto"
+                                data-confirm-busy-label="Menghapus..."
+                                data-confirm-tone="danger"
                             >
                                 @csrf
                                 @method('DELETE')
@@ -312,6 +268,7 @@
                     ) }}"
                     data-settings-section
                     data-track-unsaved
+                    data-modern-profile-form
                     class="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-6 shadow-laras sm:p-8"
                 >
                     @csrf
@@ -339,55 +296,27 @@
                         </div>
                     </header>
 
-                    <div class="mt-6">
-                        <label
-                            for="name"
-                            class="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Nama lengkap
-                        </label>
-
-                        <input
-                            id="name"
+                    <div class="mt-6 space-y-5">
+                        <x-ui.floating-input
                             name="name"
-                            type="text"
-                            required
+                            label="Nama lengkap"
+                            :value="$user->name"
+                            :required="true"
+                            autocomplete="name"
                             minlength="2"
                             maxlength="120"
-                            value="{{ old(
-                                'name',
-                                $user->name
-                            ) }}"
-                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                        >
+                        />
 
-                        @error('name')
-                            <p class="mt-2 text-sm text-rose-600">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
-
-                    <div class="mt-5">
-                        <label
-                            for="email"
-                            class="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Alamat email
-                        </label>
-
-                        <input
-                            id="email"
+                        <x-ui.floating-input
+                            name="profile_email_display"
+                            id="profile_email"
                             type="email"
-                            value="{{ $user->email }}"
+                            label="Alamat email"
+                            :value="$user->email"
+                            hint="Perubahan email akan tersedia pada pengaturan keamanan."
+                            autocomplete="email"
                             disabled
-                            class="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-500"
-                        >
-
-                        <p class="mt-2 text-xs leading-5 text-slate-400">
-                            Perubahan email akan tersedia pada
-                            pengaturan keamanan.
-                        </p>
+                        />
                     </div>
 
                     <div class="mt-7 flex flex-col justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center">
@@ -421,6 +350,7 @@
                     ) }}"
                     data-settings-section
                     data-track-unsaved
+                    data-modern-preferences-form
                     class="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-6 shadow-laras sm:p-8"
                 >
                     @csrf
@@ -463,19 +393,12 @@
                         </div>
                     @endif
 
-                    <div class="mt-6">
-                        <label
-                            for="timezone"
-                            class="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Zona waktu
-                        </label>
-
-                        <select
-                            id="timezone"
+                    <div class="mt-6 space-y-5">
+                        <x-ui.floating-select
                             name="timezone"
-                            required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                            label="Zona waktu"
+                            :required="true"
+                            :hint="$timezones[$selectedTimezone]['description'] ?? ''"
                         >
                             @foreach (
                                 $timezones
@@ -488,43 +411,17 @@
                                             === $value
                                     )
                                 >
-                                    {{ $timezone[
-                                        'short_label'
-                                    ] }}
-                                    — {{ $timezone[
-                                        'label'
-                                    ] }}
+                                    {{ $timezone['short_label'] }}
+                                    — {{ $timezone['label'] }}
                                 </option>
                             @endforeach
-                        </select>
+                        </x-ui.floating-select>
 
-                        <p class="mt-2 text-xs leading-5 text-slate-400">
-                            {{ $timezones[
-                                $selectedTimezone
-                            ]['description'] ?? '' }}
-                        </p>
-
-                        @error('timezone')
-                            <p class="mt-2 text-sm text-rose-600">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
-
-                    <div class="mt-6 grid gap-5 sm:grid-cols-2">
-                        <div>
-                            <label
-                                for="date_format"
-                                class="mb-2 block text-sm font-medium text-slate-700"
-                            >
-                                Format tanggal
-                            </label>
-
-                            <select
-                                id="date_format"
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <x-ui.floating-select
                                 name="date_format"
-                                required
-                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                                label="Format tanggal"
+                                :required="true"
                             >
                                 @foreach (
                                     $dateFormats
@@ -540,28 +437,12 @@
                                         {{ $preview }}
                                     </option>
                                 @endforeach
-                            </select>
+                            </x-ui.floating-select>
 
-                            @error('date_format')
-                                <p class="mt-2 text-sm text-rose-600">
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label
-                                for="time_format"
-                                class="mb-2 block text-sm font-medium text-slate-700"
-                            >
-                                Format waktu
-                            </label>
-
-                            <select
-                                id="time_format"
+                            <x-ui.floating-select
                                 name="time_format"
-                                required
-                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                                label="Format waktu"
+                                :required="true"
                             >
                                 @foreach (
                                     $timeFormats
@@ -577,30 +458,15 @@
                                         {{ $preview }}
                                     </option>
                                 @endforeach
-                            </select>
-
-                            @error('time_format')
-                                <p class="mt-2 text-sm text-rose-600">
-                                    {{ $message }}
-                                </p>
-                            @enderror
+                            </x-ui.floating-select>
                         </div>
-                    </div>
 
-                    <div class="mt-6 grid gap-5 sm:grid-cols-2">
-                        <div>
-                            <label
-                                for="currency_code"
-                                class="mb-2 block text-sm font-medium text-slate-700"
-                            >
-                                Mata uang utama
-                            </label>
-
-                            <select
-                                id="currency_code"
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <x-ui.floating-select
                                 name="currency_code"
-                                required
-                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                                label="Mata uang utama"
+                                :required="true"
+                                hint="Mata uang hanya mengatur tampilan data baru dan tidak mengonversi histori."
                             >
                                 @foreach (
                                     $currencies
@@ -618,28 +484,12 @@
                                         ({{ $currency['symbol'] }})
                                     </option>
                                 @endforeach
-                            </select>
+                            </x-ui.floating-select>
 
-                            @error('currency_code')
-                                <p class="mt-2 text-sm text-rose-600">
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label
-                                for="week_starts_on"
-                                class="mb-2 block text-sm font-medium text-slate-700"
-                            >
-                                Awal minggu
-                            </label>
-
-                            <select
-                                id="week_starts_on"
+                            <x-ui.floating-select
                                 name="week_starts_on"
-                                required
-                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                                label="Awal minggu"
+                                :required="true"
                             >
                                 @foreach (
                                     $weekStarts
@@ -655,13 +505,7 @@
                                         {{ $label }}
                                     </option>
                                 @endforeach
-                            </select>
-
-                            @error('week_starts_on')
-                                <p class="mt-2 text-sm text-rose-600">
-                                    {{ $message }}
-                                </p>
-                            @enderror
+                            </x-ui.floating-select>
                         </div>
                     </div>
 

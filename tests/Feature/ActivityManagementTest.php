@@ -16,6 +16,151 @@ class ActivityManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_activity_actions_support_json_responses(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.start',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas mulai dikerjakan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::InProgress->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.complete',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil diselesaikan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Completed->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.reopen',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas dibuka kembali.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Planned->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.cancel',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil dibatalkan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Cancelled->value,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->deleteJson(
+                route(
+                    'activities.destroy',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil diarsipkan.',
+            ]);
+
+        $this->assertSoftDeleted('activities', [
+            'id' => $activity->id,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.restore',
+                    $activity->id
+                )
+            )
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Aktivitas berhasil dipulihkan.',
+            ]);
+
+        $this->assertDatabaseHas('activities', [
+            'id' => $activity->id,
+            'status' => ActivityStatus::Cancelled->value,
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_invalid_activity_action_returns_json_error(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Completed,
+            'completed_at' => now(),
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.start',
+                    $activity->id
+                )
+            )
+            ->assertUnprocessable()
+            ->assertJson([
+                'message' => 'Aktivitas yang sudah selesai tidak dapat dimulai kembali secara langsung.',
+            ]);
+    }
+
     public function test_completed_user_can_view_activity_pages(): void
     {
         $user = $this->completedUser();
@@ -304,12 +449,15 @@ class ActivityManagementTest extends TestCase
         );
     }
 
-    public function test_activity_can_be_archived_and_restored(): void
+    public function test_planned_activity_keeps_its_status_after_archive_restore(): void
     {
         $user = $this->completedUser();
 
         $activity = Activity::factory()->create([
             'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
         ]);
 
         $this
@@ -323,12 +471,9 @@ class ActivityManagementTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('status');
 
-        $this->assertSoftDeleted(
-            'activities',
-            [
-                'id' => $activity->id,
-            ]
-        );
+        $this->assertSoftDeleted('activities', [
+            'id' => $activity->id,
+        ]);
 
         $this
             ->actingAs($user)
@@ -341,13 +486,67 @@ class ActivityManagementTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('status');
 
-        $this->assertDatabaseHas(
-            'activities',
-            [
-                'id' => $activity->id,
-                'status' => 'planned',
-                'deleted_at' => null,
-            ]
+        $restoredActivity = $activity->fresh();
+
+        $this->assertSame(
+            ActivityStatus::Planned,
+            $restoredActivity->status
+        );
+
+        $this->assertNull(
+            $restoredActivity->deleted_at
+        );
+    }
+
+    public function test_completed_activity_keeps_its_status_after_archive_restore(): void
+    {
+        $user = $this->completedUser();
+        $completedAt = now()->subHour();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Completed,
+            'completed_at' => $completedAt,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->delete(
+                route(
+                    'activities.destroy',
+                    $activity->id
+                )
+            )
+            ->assertRedirect();
+
+        $this->assertSoftDeleted('activities', [
+            'id' => $activity->id,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patch(
+                route(
+                    'activities.restore',
+                    $activity->id
+                )
+            )
+            ->assertRedirect();
+
+        $restoredActivity = $activity->fresh();
+
+        $this->assertSame(
+            ActivityStatus::Completed,
+            $restoredActivity->status
+        );
+
+        $this->assertNotNull(
+            $restoredActivity->completed_at
+        );
+
+        $this->assertNull(
+            $restoredActivity->deleted_at
         );
     }
 
@@ -484,5 +683,90 @@ class ActivityManagementTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    public function test_activity_summary_reflects_lifecycle_changes(): void
+    {
+        $user = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $user->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('activities.index'))
+            ->assertOk()
+            ->assertSeeInOrder(
+                [
+                    'data-activity-summary-value="open"',
+                    'data-activity-summary-count="1"',
+                ],
+                false
+            );
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.complete',
+                    $activity->id
+                )
+            )
+            ->assertOk();
+
+        $this
+            ->actingAs($user)
+            ->get(route('activities.index'))
+            ->assertOk()
+            ->assertSeeInOrder(
+                [
+                    'data-activity-summary-value="open"',
+                    'data-activity-summary-count="0"',
+                ],
+                false
+            )
+            ->assertSeeInOrder(
+                [
+                    'data-activity-summary-value="completed_month"',
+                    'data-activity-summary-count="1"',
+                ],
+                false
+            );
+    }
+
+    public function test_async_action_cannot_mutate_another_users_activity(): void
+    {
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+
+        $activity = Activity::factory()->create([
+            'user_id' => $otherUser->id,
+            'status' => ActivityStatus::Planned,
+            'completed_at' => null,
+            'cancelled_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson(
+                route(
+                    'activities.start',
+                    $activity->id
+                )
+            )
+            ->assertNotFound();
+
+        $this->assertDatabaseHas(
+            'activities',
+            [
+                'id' => $activity->id,
+                'user_id' => $otherUser->id,
+                'status' => ActivityStatus::Planned->value,
+            ]
+        );
     }
 }

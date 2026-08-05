@@ -2,14 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Enums\DataDeletionScope;
+use App\Http\Requests\PurgeNotificationsRequest;
+use App\Services\DataDeletionPreviewService;
+use App\Services\DataDeletionService;
+use App\Services\OwnedResourceGuard;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
+    public function __construct(
+        private readonly DataDeletionPreviewService $deletionPreview,
+        private readonly DataDeletionService $deletion,
+        private readonly OwnedResourceGuard $ownership
+    ) {}
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -65,8 +75,8 @@ class NotificationController extends Controller
         Request $request,
         string $notification
     ): RedirectResponse {
-        $ownedNotification =
-            $this->ownedNotification(
+        $ownedNotification = $this->ownership
+            ->notification(
                 $request->user(),
                 $notification
             );
@@ -94,12 +104,84 @@ class NotificationController extends Controller
         );
     }
 
+    public function deletionPreview(
+        PurgeNotificationsRequest $request
+    ): JsonResponse {
+        $validated = $request->validated();
+
+        $preview = $this->deletionPreview
+            ->notifications(
+                user: $request->user(),
+                scope: DataDeletionScope::from(
+                    $validated['scope']
+                ),
+                notificationIds: $validated[
+                    'notification_ids'
+                ] ?? [],
+                olderThanDays: $validated[
+                    'older_than_days'
+                ] ?? null
+            );
+
+        return response()->json([
+            'data' => $preview,
+        ]);
+    }
+
+    public function purge(
+        PurgeNotificationsRequest $request
+    ): RedirectResponse {
+        $validated = $request->validated();
+
+        $deletedCount = $this->deletion
+            ->deleteNotifications(
+                user: $request->user(),
+                scope: DataDeletionScope::from(
+                    $validated['scope']
+                ),
+                notificationIds: $validated[
+                    'notification_ids'
+                ] ?? [],
+                olderThanDays: $validated[
+                    'older_than_days'
+                ] ?? null
+            );
+
+        return back()->with(
+            'status',
+            $deletedCount === 0
+                ? 'Tidak ada notifikasi yang dihapus.'
+                : $deletedCount.' notifikasi berhasil dihapus.'
+        );
+    }
+
+    public function destroy(
+        Request $request,
+        string $notification
+    ): RedirectResponse {
+        $deletedCount = $this->deletion
+            ->deleteNotifications(
+                user: $request->user(),
+                scope: DataDeletionScope::Selected,
+                notificationIds: [
+                    $notification,
+                ]
+            );
+
+        return back()->with(
+            'status',
+            $deletedCount === 1
+                ? 'Notifikasi berhasil dihapus.'
+                : 'Notifikasi tidak ditemukan.'
+        );
+    }
+
     public function open(
         Request $request,
         string $notification
     ): RedirectResponse {
-        $ownedNotification =
-            $this->ownedNotification(
+        $ownedNotification = $this->ownership
+            ->notification(
                 $request->user(),
                 $notification
             );
@@ -209,24 +291,11 @@ class NotificationController extends Controller
             }
         }
 
-        /*
-         * Detail langganan belum memiliki antarmuka.
-         * Setelah Langkah 5C, notifikasi pengingat dan gagal
-         * dapat diarahkan ke halaman detail langganan.
-         */
         return redirect()
             ->route('notifications.index')
             ->with(
                 'status',
                 'Notifikasi telah ditandai sebagai dibaca.'
             );
-    }
-
-    private function ownedNotification(
-        User $user,
-        string $notificationId
-    ): DatabaseNotification {
-        return $user->notifications()
-            ->findOrFail($notificationId);
     }
 }

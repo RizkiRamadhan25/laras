@@ -21,201 +21,123 @@
             )
             : '08:00'
     );
+
+    $currencyCode = $user->preference?->currency_code
+        ?? 'IDR';
 @endphp
 
-@if ($errors->any())
-    <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4">
-        <p class="text-sm font-semibold text-rose-800">
-            Periksa kembali data langganan.
+<div
+    data-modern-subscription-form
+    class="grid gap-6 lg:grid-cols-2"
+>
+    <div class="lg:col-span-2">
+        <x-ui.floating-input
+            name="name"
+            label="Nama langganan"
+            :value="$subscription->name ?? ''"
+            :required="true"
+            hint="Contoh: Netflix Premium atau YouTube Membership."
+            maxlength="160"
+            autofocus
+        />
+    </div>
+
+    <x-ui.floating-input
+        name="provider"
+        label="Penyedia"
+        :value="$subscription->provider ?? ''"
+        hint="Opsional. Contoh: Netflix, Google, atau YouTube."
+        maxlength="120"
+    />
+
+    <x-ui.floating-input
+        name="amount"
+        label="Nominal setiap tagihan"
+        type="number"
+        :value="$subscription->amount ?? ''"
+        :required="true"
+        :prefix="$currencyCode"
+        min="1"
+        max="9999999999999999.99"
+        step="0.01"
+        inputmode="decimal"
+    />
+
+    <x-ui.floating-select
+        name="account_id"
+        label="Rekening pembayaran"
+        :required="true"
+    >
+        <option value="">
+            Pilih rekening
+        </option>
+
+        @foreach ($accounts as $account)
+            <option
+                value="{{ $account->id }}"
+                @selected(
+                    (string) old(
+                        'account_id',
+                        $subscription->account_id ?? ''
+                    ) === (string) $account->id
+                )
+            >
+                {{ $account->name }}
+                — {{ $account->currency_code }}
+                {{ number_format(
+                    (float) $account->cached_balance,
+                    0,
+                    ',',
+                    '.'
+                ) }}
+            </option>
+        @endforeach
+    </x-ui.floating-select>
+
+    <x-ui.floating-select
+        name="finance_category_id"
+        label="Kategori pengeluaran"
+        :required="true"
+    >
+        <option value="">
+            Pilih kategori
+        </option>
+
+        @foreach ($categories as $category)
+            <option
+                value="{{ $category->id }}"
+                @selected(
+                    (string) old(
+                        'finance_category_id',
+                        $subscription->finance_category_id ?? ''
+                    ) === (string) $category->id
+                )
+            >
+                {{ $category->name }}
+            </option>
+        @endforeach
+    </x-ui.floating-select>
+
+    <div>
+        <p class="mb-2 text-sm font-semibold text-slate-800">
+            Siklus pembayaran
         </p>
 
-        <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-rose-700">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
-<div class="grid gap-6 lg:grid-cols-2">
-    <div class="lg:col-span-2">
-        <label
-            for="name"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Nama langganan
-        </label>
-
-        <input
-            id="name"
-            name="name"
-            type="text"
-            maxlength="160"
-            required
-            autofocus
-            value="{{ old(
-                'name',
-                $subscription->name ?? ''
-            ) }}"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-            placeholder="Contoh: Netflix Premium"
-        >
-    </div>
-
-    <div>
-        <label
-            for="provider"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Penyedia
-            <span class="font-normal text-slate-400">
-                (opsional)
-            </span>
-        </label>
-
-        <input
-            id="provider"
-            name="provider"
-            type="text"
-            maxlength="120"
-            value="{{ old(
-                'provider',
-                $subscription->provider ?? ''
-            ) }}"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-            placeholder="Netflix, Google, YouTube..."
-        >
-    </div>
-
-    <div>
-        <label
-            for="amount"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Nominal setiap tagihan
-        </label>
-
-        <div class="flex rounded-xl border border-slate-300 bg-white focus-within:border-laras-600 focus-within:ring-4 focus-within:ring-laras-100">
-            <span class="flex items-center border-r border-slate-200 px-4 text-sm font-semibold text-slate-500">
-                IDR
-            </span>
-
-            <input
-                id="amount"
-                name="amount"
-                type="number"
-                min="1"
-                max="9999999999999999.99"
-                step="0.01"
-                required
-                value="{{ old(
-                    'amount',
-                    $subscription->amount ?? ''
-                ) }}"
-                class="min-w-0 flex-1 rounded-r-xl px-4 py-3 text-sm outline-none"
-                placeholder="186000"
-            >
-        </div>
-    </div>
-
-    <div>
-        <label
-            for="account_id"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Rekening pembayaran
-        </label>
-
-        <select
-            id="account_id"
-            name="account_id"
-            required
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-        >
-            <option value="">
-                Pilih rekening
-            </option>
-
-            @foreach ($accounts as $account)
-                <option
-                    value="{{ $account->id }}"
-                    @selected(
-                        (string) old(
-                            'account_id',
-                            $subscription->account_id ?? ''
-                        ) === (string) $account->id
-                    )
-                >
-                    {{ $account->name }}
-                    — {{ $account->currency_code }}
-                    {{ number_format(
-                        (float) $account->cached_balance,
-                        0,
-                        ',',
-                        '.'
-                    ) }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-
-    <div>
-        <label
-            for="finance_category_id"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Kategori pengeluaran
-        </label>
-
-        <select
-            id="finance_category_id"
-            name="finance_category_id"
-            required
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-        >
-            <option value="">
-                Pilih kategori
-            </option>
-
-            @foreach ($categories as $category)
-                <option
-                    value="{{ $category->id }}"
-                    @selected(
-                        (string) old(
-                            'finance_category_id',
-                            $subscription->finance_category_id ?? ''
-                        ) === (string) $category->id
-                    )
-                >
-                    {{ $category->name }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-
-    <div>
-        <label class="mb-2 block text-sm font-medium text-slate-700">
-            Siklus pembayaran
-        </label>
-
-        <div class="grid grid-cols-[110px_1fr] gap-3">
-            <input
+        <div class="grid grid-cols-[minmax(100px,0.65fr)_minmax(0,1.35fr)] gap-3">
+            <x-ui.floating-input
                 name="interval_count"
+                label="Setiap"
                 type="number"
+                :value="$subscription->interval_count ?? 1"
+                :required="true"
                 min="1"
                 max="365"
-                required
-                value="{{ old(
-                    'interval_count',
-                    $subscription->interval_count ?? 1
-                ) }}"
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-            >
+            />
 
-            <select
+            <x-ui.floating-select
                 name="interval_unit"
-                required
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                label="Satuan"
+                :required="true"
             >
                 @foreach ($intervalUnits as $unit)
                     <option
@@ -231,104 +153,47 @@
                         {{ $unit->label() }}
                     </option>
                 @endforeach
-            </select>
+            </x-ui.floating-select>
         </div>
     </div>
 
-    <div>
-        <label
-            for="billing_time"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Waktu pencatatan otomatis
-        </label>
+    <x-ui.floating-input
+        name="billing_time"
+        label="Waktu pencatatan otomatis"
+        type="time"
+        :value="$billingTime"
+        :required="true"
+    />
 
-        <input
-            id="billing_time"
-            name="billing_time"
-            type="time"
-            required
-            value="{{ $billingTime }}"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-        >
-    </div>
+    <x-ui.floating-input
+        name="started_on"
+        label="Tanggal mulai"
+        type="date"
+        :value="isset($subscription)
+            ? $subscription->started_on->toDateString()
+            : now()->toDateString()"
+        :required="true"
+    />
 
-    <div>
-        <label
-            for="started_on"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Tanggal mulai
-        </label>
+    <x-ui.floating-input
+        name="next_billing_on"
+        label="Tagihan berikutnya"
+        type="date"
+        :value="isset($subscription)
+            ? $subscription->next_billing_on?->toDateString()
+            : now()->toDateString()"
+        :required="true"
+    />
 
-        <input
-            id="started_on"
-            name="started_on"
-            type="date"
-            required
-            value="{{ old(
-                'started_on',
-                isset($subscription)
-                    ? $subscription
-                        ->started_on
-                        ->toDateString()
-                    : now()->toDateString()
-            ) }}"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-        >
-    </div>
-
-    <div>
-        <label
-            for="next_billing_on"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Tagihan berikutnya
-        </label>
-
-        <input
-            id="next_billing_on"
-            name="next_billing_on"
-            type="date"
-            required
-            value="{{ old(
-                'next_billing_on',
-                isset($subscription)
-                    ? $subscription
-                        ->next_billing_on
-                        ?->toDateString()
-                    : now()->toDateString()
-            ) }}"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-        >
-    </div>
-
-    <div>
-        <label
-            for="end_on"
-            class="mb-2 block text-sm font-medium text-slate-700"
-        >
-            Tanggal berakhir
-            <span class="font-normal text-slate-400">
-                (opsional)
-            </span>
-        </label>
-
-        <input
-            id="end_on"
-            name="end_on"
-            type="date"
-            value="{{ old(
-                'end_on',
-                isset($subscription)
-                    ? $subscription
-                        ->end_on
-                        ?->toDateString()
-                    : ''
-            ) }}"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-        >
-    </div>
+    <x-ui.floating-input
+        name="end_on"
+        label="Tanggal berakhir"
+        type="date"
+        :value="isset($subscription)
+            ? $subscription->end_on?->toDateString()
+            : ''"
+        hint="Opsional. Kosongkan jika langganan tidak mempunyai tanggal berakhir."
+    />
 </div>
 
 <section class="mt-7">
@@ -336,14 +201,32 @@
         Waktu pengingat
     </h2>
 
-    <div class="mt-3 grid gap-3 sm:grid-cols-4">
+    <p class="mt-1 text-sm text-slate-500">
+        Pilih kapan Laras perlu mengingatkan tagihan berikutnya.
+    </p>
+
+    <div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         @foreach ([
             7 => '7 hari sebelumnya',
             3 => '3 hari sebelumnya',
             1 => '1 hari sebelumnya',
             0 => 'Pada hari tagihan',
         ] as $days => $label)
-            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-slate-300">
+            <label
+                @class([
+                    'laras-choice-card flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition',
+                    'border-laras-400 bg-laras-50' => in_array(
+                        $days,
+                        $selectedReminders,
+                        true
+                    ),
+                    'border-slate-200 hover:border-slate-300' => ! in_array(
+                        $days,
+                        $selectedReminders,
+                        true
+                    ),
+                ])
+            >
                 <input
                     type="checkbox"
                     name="reminder_days[]"
@@ -373,7 +256,7 @@
         value="0"
     >
 
-    <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-laras-200 bg-laras-50 p-5">
+    <label class="laras-choice-card flex cursor-pointer items-start gap-3 rounded-2xl border border-laras-200 bg-laras-50 p-5">
         <input
             type="checkbox"
             name="auto_post"

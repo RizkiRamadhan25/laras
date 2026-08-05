@@ -1,9 +1,3 @@
-@php
-    $userInitial = mb_strtoupper(
-        mb_substr(auth()->user()->name, 0, 1)
-    );
-@endphp
-
 <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
     <div class="flex h-20 items-center gap-4 px-4 sm:px-6 lg:px-8">
         <button
@@ -29,23 +23,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <button
-                type="button"
-                disabled
-                class="hidden h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-400 md:flex"
-                title="Pencarian akan tersedia pada pengembangan berikutnya"
-            >
-                <i
-                    data-lucide="search"
-                    class="size-4"
-                ></i>
-
-                <span>Cari</span>
-
-                <kbd class="ml-4 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">
-                    /
-                </kbd>
-            </button>
+            <x-ui.global-search />
 
             <div
                 x-data="{ notificationOpen: false }"
@@ -291,9 +269,11 @@
                 x-bind:aria-expanded="profileOpen"
                 aria-haspopup="menu"
             >
-                <span class="flex size-9 items-center justify-center rounded-xl bg-laras-950 text-sm font-semibold text-white">
-                    {{ $userInitial }}
-                </span>
+                <x-ui.user-avatar
+                    :user="auth()->user()"
+                    size="sm"
+                    rounded="xl"
+                />
 
                 <span class="hidden max-w-36 text-left lg:block">
                     <span class="block truncate text-sm font-semibold text-slate-800">

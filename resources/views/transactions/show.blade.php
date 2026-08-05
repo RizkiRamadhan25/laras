@@ -15,6 +15,36 @@
         $timezone = $user->preference?->timezone
             ?? config('laras.defaults.timezone');
 
+        $transferKind = $transaction->transferKind();
+        $externalDestination = $transaction->externalDestination();
+
+        $deleteEntryCount = $transaction->entries->count();
+        $deleteAccountCount = $transaction->entries
+            ->pluck('account_id')
+            ->unique()
+            ->count();
+
+        $principalEntries = $transaction->entries->where(
+            'role',
+            \App\Enums\TransactionEntryRole::Principal
+        );
+
+        $sourceEntry = $principalEntries->first(
+            fn ($entry): bool => bccomp(
+                $entry->amount,
+                '0.00',
+                2
+            ) < 0
+        );
+
+        $destinationEntry = $principalEntries->first(
+            fn ($entry): bool => bccomp(
+                $entry->amount,
+                '0.00',
+                2
+            ) > 0
+        );
+
         $statusClass = match ($transaction->status) {
             \App\Enums\TransactionStatus::Posted =>
                 'bg-emerald-50 text-emerald-700',
@@ -51,6 +81,15 @@
                             <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
                                 {{ $transaction->status->label() }}
                             </span>
+
+                            @if ($transferKind)
+                                <span
+                                    data-transaction-transfer-kind="{{ $transferKind->value }}"
+                                    class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
+                                >
+                                    {{ $transferKind->label() }}
+                                </span>
+                            @endif
                         </div>
 
                         <h1 class="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -101,6 +140,75 @@
                                     ) }}
                             </dd>
                         </div>
+
+                        @if ($transferKind)
+                            <div data-transaction-transfer-details>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                    Jenis transfer
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-medium text-slate-800">
+                                    {{ $transferKind->label() }}
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                    Rekening sumber
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-medium text-slate-800">
+                                    {{ $sourceEntry?->account?->name
+                                        ?? 'Rekening tidak tersedia' }}
+                                </dd>
+                            </div>
+
+                            @if ($transaction->isInternalTransfer())
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Rekening tujuan Laras
+                                    </dt>
+
+                                    <dd class="mt-1 text-sm font-medium text-slate-800">
+                                        {{ $destinationEntry?->account?->name
+                                            ?? 'Rekening tidak tersedia' }}
+                                    </dd>
+                                </div>
+                            @else
+                                <div data-transaction-external-destination>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Penerima atau tujuan
+                                    </dt>
+
+                                    <dd class="mt-1 text-sm font-medium text-slate-800">
+                                        {{ $externalDestination['name']
+                                            ?? 'Tujuan eksternal' }}
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Bank atau institusi
+                                    </dt>
+
+                                    <dd class="mt-1 text-sm font-medium text-slate-800">
+                                        {{ $externalDestination['institution']
+                                            ?? '—' }}
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                        Nomor rekening atau identitas
+                                    </dt>
+
+                                    <dd class="mt-1 break-all text-sm font-medium text-slate-800">
+                                        {{ $externalDestination['account_number']
+                                            ?? '—' }}
+                                    </dd>
+                                </div>
+                            @endif
+                        @endif
 
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -221,15 +329,170 @@
                 $transaction->status
                 === \App\Enums\TransactionStatus::Cancelled
             )
-                <div class="border-t border-slate-100 bg-slate-50 px-6 py-5 sm:px-8">
-                    <p class="text-sm font-semibold text-slate-700">
-                        Transaksi dibatalkan
-                    </p>
+                <div
+                    x-data="{ permanentDeleteOpen: false }"
+                    class="border-t border-slate-100"
+                >
+                    <div class="bg-slate-50 px-6 py-5 sm:px-8">
+                        <p class="text-sm font-semibold text-slate-700">
+                            Transaksi dibatalkan
+                        </p>
 
-                    <p class="mt-1 text-sm text-slate-500">
-                        {{ $transaction->metadata['cancellation_reason']
-                            ?? 'Tidak ada alasan pembatalan.' }}
-                    </p>
+                        <p class="mt-1 text-sm text-slate-500">
+                            {{ $transaction->metadata['cancellation_reason']
+                                ?? 'Tidak ada alasan pembatalan.' }}
+                        </p>
+                    </div>
+
+                    <div class="px-6 py-5 sm:px-8">
+                        <button
+                            type="button"
+                            x-on:click="permanentDeleteOpen = ! permanentDeleteOpen"
+                            class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                            aria-controls="permanent-transaction-delete"
+                            x-bind:aria-expanded="permanentDeleteOpen.toString()"
+                        >
+                            <i
+                                data-lucide="triangle-alert"
+                                class="size-4"
+                            ></i>
+                            Tindakan lanjutan
+                        </button>
+
+                        <form
+                            id="permanent-transaction-delete"
+                            x-cloak
+                            x-show="permanentDeleteOpen"
+                            x-transition
+                            method="POST"
+                            action="{{ route(
+                                'transactions.destroy',
+                                $transaction->id
+                            ) }}"
+                            data-transaction-permanent-delete
+                            class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-5"
+                            data-confirm
+                            data-confirm-title="Hapus transaksi permanen?"
+                            data-confirm-message="Seluruh {{ $deleteEntryCount }} ledger entry pada {{ $deleteAccountCount }} rekening akan dihapus sebagai satu kesatuan. Saldo rekening akan dibangun ulang dan tindakan ini tidak dapat dibatalkan."
+                            data-confirm-label="Hapus permanen"
+                            data-confirm-busy-label="Menghapus..."
+                            data-confirm-tone="danger"
+                        >
+                            @csrf
+                            @method('DELETE')
+
+                            <div class="flex items-start gap-3">
+                                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
+                                    <i
+                                        data-lucide="triangle-alert"
+                                        class="size-4"
+                                    ></i>
+                                </span>
+
+                                <div>
+                                    <p class="text-sm font-semibold text-rose-900">
+                                        Hapus seluruh histori dan ledger
+                                    </p>
+
+                                    <p class="mt-1 text-sm leading-6 text-rose-700">
+                                        {{ $deleteEntryCount }} ledger entry yang memengaruhi
+                                        {{ $deleteAccountCount }} rekening akan dihapus atomik.
+                                        Cached balance rekening terkait akan dihitung ulang.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 grid gap-4">
+                                <div>
+                                    <label
+                                        for="delete_current_password"
+                                        class="mb-2 block text-sm font-medium text-rose-900"
+                                    >
+                                        Kata sandi saat ini
+                                    </label>
+
+                                    <input
+                                        id="delete_current_password"
+                                        name="delete_current_password"
+                                        type="password"
+                                        required
+                                        autocomplete="current-password"
+                                        class="w-full rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
+                                    >
+
+                                    @error('delete_current_password')
+                                        <p class="mt-2 text-sm font-medium text-rose-700">
+                                            {{ $message }}
+                                        </p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label
+                                        for="transaction_delete_confirmation"
+                                        class="mb-2 block text-sm font-medium text-rose-900"
+                                    >
+                                        Ketik HAPUS TRANSAKSI
+                                    </label>
+
+                                    <input
+                                        id="transaction_delete_confirmation"
+                                        name="confirmation"
+                                        type="text"
+                                        required
+                                        value="{{ old('confirmation') }}"
+                                        autocomplete="off"
+                                        class="w-full rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
+                                    >
+
+                                    @error('confirmation')
+                                        <p class="mt-2 text-sm font-medium text-rose-700">
+                                            {{ $message }}
+                                        </p>
+                                    @enderror
+                                </div>
+
+                                <label class="flex items-start gap-3 rounded-xl border border-rose-200 bg-white p-4">
+                                    <input
+                                        type="checkbox"
+                                        name="acknowledge_permanent_deletion"
+                                        value="1"
+                                        required
+                                        @checked(old('acknowledge_permanent_deletion'))
+                                        class="mt-1 rounded border-rose-300 text-rose-700 focus:ring-rose-500"
+                                    >
+
+                                    <span class="text-sm leading-6 text-rose-800">
+                                        Saya memahami bahwa histori, seluruh ledger entry,
+                                        dan informasi tujuan transfer akan dihapus permanen.
+                                    </span>
+                                </label>
+
+                                @error('acknowledge_permanent_deletion')
+                                    <p class="text-sm font-medium text-rose-700">
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            <div class="mt-5 flex flex-wrap gap-3">
+                                <button
+                                    type="submit"
+                                    class="rounded-xl bg-rose-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800"
+                                >
+                                    Hapus permanen
+                                </button>
+
+                                <button
+                                    type="button"
+                                    x-on:click="permanentDeleteOpen = false"
+                                    class="rounded-xl border border-rose-200 px-5 py-2.5 text-sm font-semibold text-rose-700"
+                                >
+                                    Kembali
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             @elseif (
                 $transaction->status
@@ -258,9 +521,12 @@
                             $transaction->id
                         ) }}"
                         class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-5"
-                        onsubmit="return confirm(
-                            'Batalkan transaksi ini dan kembalikan perubahan saldo?'
-                        )"
+                        data-confirm
+                        data-confirm-title="Batalkan transaksi?"
+                        data-confirm-message="Perubahan saldo akan dikembalikan dan transaksi tetap tersimpan sebagai riwayat pembatalan."
+                        data-confirm-label="Batalkan transaksi"
+                        data-confirm-busy-label="Membatalkan..."
+                        data-confirm-tone="danger"
                     >
                         @csrf
                         @method('PATCH')

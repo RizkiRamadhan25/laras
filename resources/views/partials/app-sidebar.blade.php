@@ -85,10 +85,6 @@
             'enabled' => true,
         ],
     ];
-
-    $userInitial = mb_strtoupper(
-        mb_substr(auth()->user()->name, 0, 1)
-    );
 @endphp
 
 <aside
@@ -103,20 +99,22 @@
     <div class="flex h-20 shrink-0 items-center justify-between border-b border-slate-100 px-5">
         <a
             href="{{ route('dashboard') }}"
-            class="flex items-center gap-3 rounded-xl focus:outline-none focus:ring-4 focus:ring-laras-100"
+            class="group flex min-w-0 flex-col items-start rounded-xl focus:outline-none focus:ring-4 focus:ring-laras-100"
+            aria-label="Buka Dashboard Laras"
         >
-            <span class="flex size-11 items-center justify-center rounded-2xl bg-laras-950 text-lg font-bold text-white shadow-sm">
-                L
-            </span>
+            <img
+                src="{{ asset('images/branding/laras-logo.png') }}?v=4"
+                alt="Laras"
+                class="block h-auto w-[110px] max-w-full object-contain object-left transition duration-200 group-hover:scale-[1.02]"
+                width="755"
+                height="252"
+                loading="eager"
+                decoding="async"
+                draggable="false"
+            >
 
-            <span>
-                <span class="block text-lg font-semibold tracking-tight text-slate-950">
-                    Laras
-                </span>
-
-                <span class="block text-xs text-slate-400">
-                    Personal management
-                </span>
+            <span class="mt-0.5 block pl-1 text-xs text-slate-400">
+                Personal management
             </span>
         </a>
 
@@ -292,23 +290,11 @@
 
     <div class="shrink-0 border-t border-slate-100 p-4">
         <div class="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-            @if (auth()->user()->profilePhotoUrl() !== null)
-                <img
-                    src="{{ auth()->user()->profilePhotoUrl() }}"
-                    alt="Foto profil {{ auth()->user()->name }}"
-                    class="size-10 shrink-0 rounded-xl border border-slate-200 object-cover"
-                >
-            @else
-                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-laras-950 text-sm font-semibold text-white">
-                    {{ mb_strtoupper(
-                        mb_substr(
-                            auth()->user()->name,
-                            0,
-                            1
-                        )
-                    ) }}
-                </span>
-            @endif
+            <x-ui.user-avatar
+                :user="auth()->user()"
+                size="md"
+                rounded="xl"
+            />
 
             <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-semibold text-slate-900">

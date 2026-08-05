@@ -13,6 +13,7 @@ use App\Services\ActivityService;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -158,8 +159,10 @@ class ActivityController extends Controller
     public function start(
         Request $request,
         int $activity
-    ): RedirectResponse {
+    ): JsonResponse|RedirectResponse {
         return $this->runStatusAction(
+            request: $request,
+
             callback: fn (): Activity => $this->activityService->start(
                 $request->user(),
                 $activity
@@ -172,8 +175,10 @@ class ActivityController extends Controller
     public function complete(
         Request $request,
         int $activity
-    ): RedirectResponse {
+    ): JsonResponse|RedirectResponse {
         return $this->runStatusAction(
+            request: $request,
+
             callback: fn (): Activity => $this->activityService->complete(
                 $request->user(),
                 $activity
@@ -186,8 +191,10 @@ class ActivityController extends Controller
     public function cancel(
         Request $request,
         int $activity
-    ): RedirectResponse {
+    ): JsonResponse|RedirectResponse {
         return $this->runStatusAction(
+            request: $request,
+
             callback: fn (): Activity => $this->activityService->cancel(
                 $request->user(),
                 $activity
@@ -200,8 +207,10 @@ class ActivityController extends Controller
     public function reopen(
         Request $request,
         int $activity
-    ): RedirectResponse {
+    ): JsonResponse|RedirectResponse {
         return $this->runStatusAction(
+            request: $request,
+
             callback: fn (): Activity => $this->activityService->reopen(
                 $request->user(),
                 $activity
@@ -214,30 +223,37 @@ class ActivityController extends Controller
     public function destroy(
         Request $request,
         int $activity
-    ): RedirectResponse {
-        $this->activityService->archive(
-            user: $request->user(),
-            activityId: $activity
-        );
+    ): JsonResponse|RedirectResponse {
+        return $this->runStatusAction(
+            request: $request,
 
-        return back()->with(
-            'status',
-            'Aktivitas berhasil diarsipkan.'
+            callback: function () use (
+                $request,
+                $activity
+            ): void {
+                $this->activityService->archive(
+                    user: $request->user(),
+                    activityId: $activity
+                );
+            },
+
+            successMessage: 'Aktivitas berhasil diarsipkan.'
         );
     }
 
     public function restore(
         Request $request,
         int $activity
-    ): RedirectResponse {
-        $this->activityService->restore(
-            user: $request->user(),
-            activityId: $activity
-        );
+    ): JsonResponse|RedirectResponse {
+        return $this->runStatusAction(
+            request: $request,
 
-        return back()->with(
-            'status',
-            'Aktivitas berhasil dipulihkan.'
+            callback: fn (): Activity => $this->activityService->restore(
+                user: $request->user(),
+                activityId: $activity
+            ),
+
+            successMessage: 'Aktivitas berhasil dipulihkan.'
         );
     }
 
@@ -704,19 +720,35 @@ class ActivityController extends Controller
     }
 
     /**
-     * @param  callable(): Activity  $callback
+     * @param  callable(): mixed  $callback
      */
     private function runStatusAction(
+        Request $request,
         callable $callback,
         string $successMessage
-    ): RedirectResponse {
+    ): JsonResponse|RedirectResponse {
         try {
             $callback();
         } catch (DomainException $exception) {
+            if ($request->expectsJson()) {
+                return response()->json(
+                    [
+                        'message' => $exception->getMessage(),
+                    ],
+                    422
+                );
+            }
+
             return back()->with(
                 'warning',
                 $exception->getMessage()
             );
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $successMessage,
+            ]);
         }
 
         return back()->with(

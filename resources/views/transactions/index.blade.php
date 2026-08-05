@@ -4,7 +4,7 @@
 @section('page-title', 'Transaksi')
 @section(
     'page-description',
-    'Pantau pemasukan, pengeluaran, dan transfer antar-rekening.'
+    'Pantau pemasukan, pengeluaran, serta transfer internal dan eksternal.'
 )
 
 @section('content')
@@ -79,10 +79,17 @@
         </div>
     </section>
 
+    <div
+        data-finance-browser="transactions"
+        class="relative"
+        aria-live="polite"
+        aria-busy="false"
+    >
     <section class="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-laras">
         <form
             method="GET"
             action="{{ route('transactions.index') }}"
+            data-finance-filter-form
             class="grid gap-4 md:grid-cols-2 xl:grid-cols-6"
         >
             <div class="xl:col-span-2">
@@ -99,6 +106,8 @@
                     type="search"
                     value="{{ $filters['search'] ?? '' }}"
                     maxlength="100"
+                    data-finance-search
+                    autocomplete="off"
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
                     placeholder="Deskripsi, pihak, referensi..."
                 >
@@ -251,6 +260,7 @@
 
                 <a
                     href="{{ route('transactions.index') }}"
+                    data-finance-reset
                     class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
                     Reset
@@ -283,6 +293,10 @@
                     @php
                         $amount = $transaction->displayAmount();
 
+                        $transferKind = $transaction->transferKind();
+                        $externalDestination =
+                            $transaction->externalDestination();
+
                         $typeStyle = match (
                             $transaction->type
                         ) {
@@ -300,13 +314,21 @@
                                 'amountClass' => 'text-rose-700',
                                 'prefix' => '-',
                             ],
-                            default => [
-                                'icon' => 'arrow-left-right',
-                                'iconClass' =>
-                                    'bg-blue-100 text-blue-700',
-                                'amountClass' => 'text-slate-900',
-                                'prefix' => '',
-                            ],
+                            default => $transaction->isExternalTransfer()
+                                ? [
+                                    'icon' => 'arrow-up-right',
+                                    'iconClass' =>
+                                        'bg-rose-100 text-rose-700',
+                                    'amountClass' => 'text-rose-700',
+                                    'prefix' => '-',
+                                ]
+                                : [
+                                    'icon' => 'arrow-left-right',
+                                    'iconClass' =>
+                                        'bg-blue-100 text-blue-700',
+                                    'amountClass' => 'text-slate-900',
+                                    'prefix' => '',
+                                ],
                         };
 
                         $statusClass = match (
@@ -379,6 +401,15 @@
                                 >
                                     {{ $transaction->status->label() }}
                                 </span>
+
+                                @if ($transferKind)
+                                    <span
+                                        data-transaction-transfer-kind="{{ $transferKind->value }}"
+                                        class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"
+                                    >
+                                        {{ $transferKind->label() }}
+                                    </span>
+                                @endif
                             </div>
 
                             <p class="mt-1 truncate text-sm text-slate-400">
@@ -389,8 +420,26 @@
                                     {{ $sourceEntry?->account?->name
                                         ?? 'Rekening sumber' }}
                                     →
-                                    {{ $destinationEntry?->account?->name
-                                        ?? 'Rekening tujuan' }}
+
+                                    @if ($transaction->isExternalTransfer())
+                                        <span data-transaction-external-destination>
+                                            {{ $externalDestination['name']
+                                                ?? 'Tujuan eksternal' }}
+
+                                            @if (
+                                                filled(
+                                                    $externalDestination['institution']
+                                                        ?? null
+                                                )
+                                            )
+                                                •
+                                                {{ $externalDestination['institution'] }}
+                                            @endif
+                                        </span>
+                                    @else
+                                        {{ $destinationEntry?->account?->name
+                                            ?? 'Rekening tujuan' }}
+                                    @endif
                                 @else
                                     {{ $singleEntry?->account?->name
                                         ?? 'Rekening' }}
@@ -436,9 +485,13 @@
                 @endforeach
             </div>
 
-            <div class="border-t border-slate-100 px-5 py-4 sm:px-6">
-                {{ $transactions->links() }}
+            <div
+                data-finance-pagination
+                class="border-t border-slate-100 px-5 py-4 sm:px-6"
+            >
+                {{ $transactions->withQueryString()->links() }}
             </div>
         @endif
     </section>
+    </div>
 @endsection

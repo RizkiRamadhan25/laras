@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\FinanceFlowType;
+use App\Enums\TransactionTransferKind;
 use App\Enums\TransactionType;
 use App\Models\FinanceCategory;
 use Illuminate\Database\Query\Builder;
@@ -19,11 +20,30 @@ class StoreTransactionRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $type = trim((string) $this->input('type'));
+
+        $transferKind = $type === TransactionType::Transfer->value
+            ? trim((string) $this->input(
+                'transfer_kind',
+                TransactionTransferKind::Internal->value
+            ))
+            : null;
+
         $this->merge([
-            'type' => trim((string) $this->input('type')),
+            'type' => $type,
+            'transfer_kind' => $transferKind,
             'amount' => trim((string) $this->input('amount')),
             'admin_fee' => $this->normalizeOptionalMoney(
                 $this->input('admin_fee')
+            ),
+            'external_destination_name' => $this->nullableString(
+                $this->input('external_destination_name')
+            ),
+            'external_destination_institution' => $this->nullableString(
+                $this->input('external_destination_institution')
+            ),
+            'external_destination_account_number' => $this->nullableString(
+                $this->input('external_destination_account_number')
             ),
             'description' => $this->nullableString(
                 $this->input('description')
@@ -75,6 +95,15 @@ class StoreTransactionRequest extends FormRequest
                 ]),
             ],
 
+            'transfer_kind' => [
+                'exclude_unless:type,transfer',
+                'required',
+                Rule::in([
+                    TransactionTransferKind::Internal->value,
+                    TransactionTransferKind::External->value,
+                ]),
+            ],
+
             'account_id' => [
                 'required',
                 'integer',
@@ -82,11 +111,32 @@ class StoreTransactionRequest extends FormRequest
             ],
 
             'destination_account_id' => [
-                'exclude_unless:type,transfer',
+                'exclude_unless:transfer_kind,internal',
                 'required',
                 'integer',
                 'different:account_id',
                 $ownedActiveAccount,
+            ],
+
+            'external_destination_name' => [
+                'exclude_unless:transfer_kind,external',
+                'required',
+                'string',
+                'max:120',
+            ],
+
+            'external_destination_institution' => [
+                'exclude_unless:transfer_kind,external',
+                'nullable',
+                'string',
+                'max:120',
+            ],
+
+            'external_destination_account_number' => [
+                'exclude_unless:transfer_kind,external',
+                'nullable',
+                'string',
+                'max:100',
             ],
 
             'category_id' => [
@@ -200,12 +250,20 @@ class StoreTransactionRequest extends FormRequest
             'type.required' => 'Jenis transaksi wajib dipilih.',
             'type.in' => 'Jenis transaksi tidak tersedia.',
 
+            'transfer_kind.required' => 'Jenis transfer wajib dipilih.',
+            'transfer_kind.in' => 'Jenis transfer tidak tersedia.',
+
             'account_id.required' => 'Rekening wajib dipilih.',
             'account_id.exists' => 'Rekening yang dipilih tidak tersedia.',
 
             'destination_account_id.required' => 'Rekening tujuan wajib dipilih.',
             'destination_account_id.different' => 'Rekening sumber dan tujuan harus berbeda.',
             'destination_account_id.exists' => 'Rekening tujuan tidak tersedia.',
+
+            'external_destination_name.required' => 'Nama penerima atau tujuan eksternal wajib diisi.',
+            'external_destination_name.max' => 'Nama penerima atau tujuan eksternal maksimal 120 karakter.',
+            'external_destination_institution.max' => 'Nama bank atau institusi tujuan maksimal 120 karakter.',
+            'external_destination_account_number.max' => 'Nomor rekening atau identitas tujuan maksimal 100 karakter.',
 
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.exists' => 'Kategori yang dipilih tidak tersedia.',

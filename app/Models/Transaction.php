@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\TransactionEntryRole;
 use App\Enums\TransactionSource;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionTransferKind;
 use App\Enums\TransactionType;
 use Database\Factories\TransactionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use ValueError;
 
 class Transaction extends Model
 {
@@ -63,6 +65,65 @@ class Transaction extends Model
         return $this->hasMany(TransactionEntry::class);
     }
 
+    public function transferKind(): ?TransactionTransferKind
+    {
+        if ($this->type !== TransactionType::Transfer) {
+            return null;
+        }
+
+        $value = $this->metadata['transfer_kind']
+            ?? TransactionTransferKind::Internal->value;
+
+        try {
+            return TransactionTransferKind::from(
+                (string) $value
+            );
+        } catch (ValueError) {
+            return TransactionTransferKind::Internal;
+        }
+    }
+
+    public function isInternalTransfer(): bool
+    {
+        return $this->transferKind()
+            === TransactionTransferKind::Internal;
+    }
+
+    public function isExternalTransfer(): bool
+    {
+        return $this->transferKind()
+            === TransactionTransferKind::External;
+    }
+
+    /**
+     * @return array<string, string|null>|null
+     */
+    public function externalDestination(): ?array
+    {
+        if (! $this->isExternalTransfer()) {
+            return null;
+        }
+
+        $destination = $this->metadata['external_destination']
+            ?? null;
+
+        if (! is_array($destination)) {
+            return null;
+        }
+
+        return [
+            'name' => isset($destination['name'])
+                ? (string) $destination['name']
+                : null,
+            'institution' => isset($destination['institution'])
+                ? (string) $destination['institution']
+                : null,
+            'account_number' => isset($destination['account_number'])
+                ? (string) $destination['account_number']
+                : null,
+        ];
+    }
+
     public function displayAmount(): string
     {
         $entries = $this->relationLoaded('entries')
@@ -70,28 +131,52 @@ class Transaction extends Model
             : $this->entries()->get();
 
         if ($this->type === TransactionType::Transfer) {
-            return $entries
-                ->where(
-                    'role',
-                    TransactionEntryRole::Principal
-                )
-                ->reduce(
-                    static function (
-                        string $total,
-                        TransactionEntry $entry
-                    ): string {
-                        if (bccomp($entry->amount, '0.00', 2) <= 0) {
-                            return $total;
-                        }
+            $principalEntries = $entries->where(
+                'role',
+                TransactionEntryRole::Principal
+            );
 
-                        return bcadd(
-                            $total,
-                            $entry->amount,
-                            2
-                        );
-                    },
-                    '0.00'
-                );
+            $incomingPrincipal = $principalEntries->reduce(
+                static function (
+                    string $total,
+                    TransactionEntry $entry
+                ): string {
+                    if (bccomp($entry->amount, '0.00', 2) <= 0) {
+                        return $total;
+                    }
+
+                    return bcadd(
+                        $total,
+                        $entry->amount,
+                        2
+                    );
+                },
+                '0.00'
+            );
+
+            if (bccomp($incomingPrincipal, '0.00', 2) > 0) {
+                return $incomingPrincipal;
+            }
+
+            $outgoingPrincipal = $principalEntries->reduce(
+                static function (
+                    string $total,
+                    TransactionEntry $entry
+                ): string {
+                    if (bccomp($entry->amount, '0.00', 2) >= 0) {
+                        return $total;
+                    }
+
+                    return bcadd(
+                        $total,
+                        bcsub('0.00', $entry->amount, 2),
+                        2
+                    );
+                },
+                '0.00'
+            );
+
+            return $outgoingPrincipal;
         }
 
         $total = $entries

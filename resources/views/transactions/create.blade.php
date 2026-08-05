@@ -4,7 +4,7 @@
 @section('page-title', 'Tambah transaksi')
 @section(
     'page-description',
-    'Catat pemasukan, pengeluaran, atau transfer antar-rekening.'
+    'Catat pemasukan, pengeluaran, atau transfer internal dan eksternal.'
 )
 
 @section('content')
@@ -13,11 +13,17 @@
             ?? 'IDR';
 
         $oldType = old('type', $selectedType);
+
+        $oldTransferKind = old(
+            'transfer_kind',
+            \App\Enums\TransactionTransferKind::Internal->value
+        );
     @endphp
 
     <div
         x-data="{
             type: @js($oldType),
+            transferKind: @js($oldTransferKind),
         }"
         class="mx-auto max-w-5xl"
     >
@@ -36,35 +42,11 @@
             </p>
         </header>
 
-        @if (session('warning'))
-            <div
-                class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900"
-                role="alert"
-            >
-                {{ session('warning') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div
-                class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4"
-                role="alert"
-            >
-                <p class="text-sm font-semibold text-rose-800">
-                    Periksa kembali data transaksi.
-                </p>
-
-                <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-rose-700">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <form
             method="POST"
             action="{{ route('transactions.store') }}"
+            data-modern-transaction-form
+            data-transaction-transfer-form
             class="rounded-2xl border border-slate-200 bg-white p-6 shadow-laras sm:p-8"
         >
             @csrf
@@ -74,185 +56,223 @@
                     Jenis transaksi
                 </h2>
 
+                <p class="mt-1 text-sm text-slate-500">
+                    Pilih arus dana yang akan dicatat.
+                </p>
+
                 <div class="mt-4 grid gap-3 sm:grid-cols-3">
-                    <label
-                        class="cursor-pointer rounded-2xl border p-4 transition"
-                        x-bind:class="
-                            type === 'income'
-                                ? 'border-emerald-500 bg-emerald-50 ring-4 ring-emerald-100'
-                                : 'border-slate-200 hover:border-slate-300'
-                        "
-                    >
-                        <input
-                            type="radio"
-                            name="type"
-                            value="income"
-                            x-model="type"
-                            class="sr-only"
+                    @foreach ([
+                        [
+                            'value' => 'income',
+                            'label' => 'Pemasukan',
+                            'description' => 'Saldo bertambah',
+                            'icon' => 'arrow-down-left',
+                            'active' => 'border-emerald-500 bg-emerald-50 ring-4 ring-emerald-100',
+                            'iconClass' => 'bg-emerald-100 text-emerald-700',
+                        ],
+                        [
+                            'value' => 'expense',
+                            'label' => 'Pengeluaran',
+                            'description' => 'Saldo berkurang',
+                            'icon' => 'arrow-up-right',
+                            'active' => 'border-rose-500 bg-rose-50 ring-4 ring-rose-100',
+                            'iconClass' => 'bg-rose-100 text-rose-700',
+                        ],
+                        [
+                            'value' => 'transfer',
+                            'label' => 'Transfer',
+                            'description' => 'Internal atau eksternal',
+                            'icon' => 'arrow-left-right',
+                            'active' => 'border-blue-500 bg-blue-50 ring-4 ring-blue-100',
+                            'iconClass' => 'bg-blue-100 text-blue-700',
+                        ],
+                    ] as $option)
+                        <label
+                            class="laras-choice-card cursor-pointer rounded-2xl border p-4 transition"
+                            x-bind:class="
+                                type === @js($option['value'])
+                                    ? @js($option['active'])
+                                    : 'border-slate-200 hover:border-slate-300'
+                            "
                         >
+                            <input
+                                type="radio"
+                                name="type"
+                                value="{{ $option['value'] }}"
+                                x-model="type"
+                                class="sr-only"
+                            >
 
-                        <span class="flex items-center gap-3">
-                            <span class="flex size-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                                <i
-                                    data-lucide="arrow-down-left"
-                                    class="size-5"
-                                ></i>
-                            </span>
-
-                            <span>
-                                <span class="block text-sm font-semibold text-slate-900">
-                                    Pemasukan
+                            <span class="flex items-center gap-3">
+                                <span class="flex size-11 items-center justify-center rounded-xl {{ $option['iconClass'] }}">
+                                    <i
+                                        data-lucide="{{ $option['icon'] }}"
+                                        class="size-5"
+                                    ></i>
                                 </span>
 
-                                <span class="mt-1 block text-xs text-slate-500">
-                                    Saldo bertambah
+                                <span>
+                                    <span class="block text-sm font-semibold text-slate-900">
+                                        {{ $option['label'] }}
+                                    </span>
+
+                                    <span class="mt-1 block text-xs text-slate-500">
+                                        {{ $option['description'] }}
+                                    </span>
                                 </span>
                             </span>
-                        </span>
-                    </label>
-
-                    <label
-                        class="cursor-pointer rounded-2xl border p-4 transition"
-                        x-bind:class="
-                            type === 'expense'
-                                ? 'border-rose-500 bg-rose-50 ring-4 ring-rose-100'
-                                : 'border-slate-200 hover:border-slate-300'
-                        "
-                    >
-                        <input
-                            type="radio"
-                            name="type"
-                            value="expense"
-                            x-model="type"
-                            class="sr-only"
-                        >
-
-                        <span class="flex items-center gap-3">
-                            <span class="flex size-11 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
-                                <i
-                                    data-lucide="arrow-up-right"
-                                    class="size-5"
-                                ></i>
-                            </span>
-
-                            <span>
-                                <span class="block text-sm font-semibold text-slate-900">
-                                    Pengeluaran
-                                </span>
-
-                                <span class="mt-1 block text-xs text-slate-500">
-                                    Saldo berkurang
-                                </span>
-                            </span>
-                        </span>
-                    </label>
-
-                    <label
-                        class="cursor-pointer rounded-2xl border p-4 transition"
-                        x-bind:class="
-                            type === 'transfer'
-                                ? 'border-blue-500 bg-blue-50 ring-4 ring-blue-100'
-                                : 'border-slate-200 hover:border-slate-300'
-                        "
-                    >
-                        <input
-                            type="radio"
-                            name="type"
-                            value="transfer"
-                            x-model="type"
-                            class="sr-only"
-                        >
-
-                        <span class="flex items-center gap-3">
-                            <span class="flex size-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                                <i
-                                    data-lucide="arrow-left-right"
-                                    class="size-5"
-                                ></i>
-                            </span>
-
-                            <span>
-                                <span class="block text-sm font-semibold text-slate-900">
-                                    Transfer
-                                </span>
-
-                                <span class="mt-1 block text-xs text-slate-500">
-                                    Antar-rekening
-                                </span>
-                            </span>
-                        </span>
-                    </label>
+                        </label>
+                    @endforeach
                 </div>
+            </section>
+
+            <section
+                x-cloak
+                x-show="type === 'transfer'"
+                data-transfer-kind-selector
+                class="mt-7 rounded-2xl border border-blue-100 bg-blue-50/60 p-5"
+            >
+                <div class="flex items-start gap-3">
+                    <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                        <i
+                            data-lucide="arrow-left-right"
+                            class="size-5"
+                        ></i>
+                    </span>
+
+                    <div>
+                        <h2 class="text-base font-semibold text-slate-900">
+                            Tujuan transfer
+                        </h2>
+
+                        <p class="mt-1 text-sm leading-6 text-slate-500">
+                            Pilih apakah dana dipindahkan antar-rekening Laras
+                            atau dikirim ke pihak di luar Laras.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                    @foreach ([
+                        [
+                            'value' => 'internal',
+                            'label' => 'Antar-rekening Laras',
+                            'description' => 'Saldo rekening sumber berkurang dan rekening tujuan Laras bertambah.',
+                            'icon' => 'repeat-2',
+                        ],
+                        [
+                            'value' => 'external',
+                            'label' => 'Ke pihak luar Laras',
+                            'description' => 'Dana keluar dari Laras tanpa menambah saldo rekening Laras lain.',
+                            'icon' => 'arrow-up-right',
+                        ],
+                    ] as $option)
+                        <label
+                            class="cursor-pointer rounded-2xl border bg-white p-4 transition"
+                            x-bind:class="
+                                transferKind === @js($option['value'])
+                                    ? 'border-blue-500 ring-4 ring-blue-100'
+                                    : 'border-slate-200 hover:border-slate-300'
+                            "
+                        >
+                            <input
+                                type="radio"
+                                name="transfer_kind"
+                                value="{{ $option['value'] }}"
+                                x-model="transferKind"
+                                x-bind:disabled="type !== 'transfer'"
+                                class="sr-only"
+                            >
+
+                            <span class="flex items-start gap-3">
+                                <span
+                                    class="flex size-10 shrink-0 items-center justify-center rounded-xl"
+                                    x-bind:class="
+                                        transferKind === @js($option['value'])
+                                            ? 'bg-blue-100 text-blue-700'
+                                            : 'bg-slate-100 text-slate-500'
+                                    "
+                                >
+                                    <i
+                                        data-lucide="{{ $option['icon'] }}"
+                                        class="size-4"
+                                    ></i>
+                                </span>
+
+                                <span>
+                                    <span class="block text-sm font-semibold text-slate-900">
+                                        {{ $option['label'] }}
+                                    </span>
+
+                                    <span class="mt-1 block text-xs leading-5 text-slate-500">
+                                        {{ $option['description'] }}
+                                    </span>
+                                </span>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+
+                @error('transfer_kind')
+                    <p class="mt-3 text-sm font-medium text-rose-600">
+                        {{ $message }}
+                    </p>
+                @enderror
             </section>
 
             <hr class="my-7 border-slate-200">
 
             <section class="grid gap-6 lg:grid-cols-2">
-                <div>
-                    <label
-                        for="account_id"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                        x-text="
-                            type === 'transfer'
-                                ? 'Rekening sumber'
-                                : 'Rekening'
-                        "
-                    ></label>
+                <x-ui.floating-select
+                    name="account_id"
+                    label="Rekening"
+                    :required="true"
+                    hint="Rekening yang menerima pemasukan atau menjadi sumber dana."
+                >
+                    <option value="">
+                        Pilih rekening
+                    </option>
 
-                    <select
-                        id="account_id"
-                        name="account_id"
-                        required
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                    >
-                        <option value="">
-                            Pilih rekening
+                    @foreach ($accounts as $account)
+                        <option
+                            value="{{ $account->id }}"
+                            @selected(
+                                (int) old('account_id')
+                                    === $account->id
+                            )
+                        >
+                            {{ $account->name }}
+                            — {{ $account->currency_code }}
+                            {{ number_format(
+                                (float) $account->cached_balance,
+                                0,
+                                ',',
+                                '.'
+                            ) }}
                         </option>
-
-                        @foreach ($accounts as $account)
-                            <option
-                                value="{{ $account->id }}"
-                                @selected(
-                                    (int) old('account_id')
-                                        === $account->id
-                                )
-                            >
-                                {{ $account->name }}
-                                — {{ $account->currency_code }}
-                                {{ number_format(
-                                    (float) $account->cached_balance,
-                                    0,
-                                    ',',
-                                    '.'
-                                ) }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    @error('account_id')
-                        <p class="mt-2 text-sm text-rose-600">
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
+                    @endforeach
+                </x-ui.floating-select>
 
                 <div
                     x-cloak
-                    x-show="type === 'transfer'"
+                    x-show="
+                        type === 'transfer'
+                            && transferKind === 'internal'
+                    "
+                    data-transfer-internal-fields
                 >
-                    <label
-                        for="destination_account_id"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Rekening tujuan
-                    </label>
-
-                    <select
-                        id="destination_account_id"
+                    <x-ui.floating-select
                         name="destination_account_id"
-                        x-bind:disabled="type !== 'transfer'"
-                        x-bind:required="type === 'transfer'"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
+                        label="Rekening tujuan Laras"
+                        x-bind:disabled="
+                            type !== 'transfer'
+                                || transferKind !== 'internal'
+                        "
+                        x-bind:required="
+                            type === 'transfer'
+                                && transferKind === 'internal'
+                        "
+                        hint="Rekening ini akan menerima dana transfer."
                     >
                         <option value="">
                             Pilih rekening tujuan
@@ -267,34 +287,22 @@
                                 )
                             >
                                 {{ $account->name }}
+                                — {{ $account->currency_code }}
                             </option>
                         @endforeach
-                    </select>
-
-                    @error('destination_account_id')
-                        <p class="mt-2 text-sm text-rose-600">
-                            {{ $message }}
-                        </p>
-                    @enderror
+                    </x-ui.floating-select>
                 </div>
 
                 <div
                     x-cloak
                     x-show="type === 'income'"
                 >
-                    <label
-                        for="income_category_id"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Kategori pemasukan
-                    </label>
-
-                    <select
+                    <x-ui.floating-select
                         id="income_category_id"
                         name="category_id"
+                        label="Kategori pemasukan"
                         x-bind:disabled="type !== 'income'"
                         x-bind:required="type === 'income'"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
                     >
                         <option value="">
                             Pilih kategori
@@ -311,26 +319,19 @@
                                 {{ $category->name }}
                             </option>
                         @endforeach
-                    </select>
+                    </x-ui.floating-select>
                 </div>
 
                 <div
                     x-cloak
                     x-show="type === 'expense'"
                 >
-                    <label
-                        for="expense_category_id"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Kategori pengeluaran
-                    </label>
-
-                    <select
+                    <x-ui.floating-select
                         id="expense_category_id"
                         name="category_id"
+                        label="Kategori pengeluaran"
                         x-bind:disabled="type !== 'expense'"
                         x-bind:required="type === 'expense'"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
                     >
                         <option value="">
                             Pilih kategori
@@ -347,194 +348,169 @@
                                 {{ $category->name }}
                             </option>
                         @endforeach
-                    </select>
+                    </x-ui.floating-select>
                 </div>
 
-                <div>
-                    <label
-                        for="amount"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Nominal
-                    </label>
+                <div
+                    x-cloak
+                    x-show="
+                        type === 'transfer'
+                            && transferKind === 'external'
+                    "
+                    data-transfer-external-fields
+                    class="grid gap-6 lg:col-span-2 lg:grid-cols-2"
+                >
+                    <x-ui.floating-input
+                        name="external_destination_name"
+                        label="Nama penerima atau tujuan"
+                        :required="false"
+                        hint="Nama penerima, merchant, organisasi, atau tujuan dana."
+                        maxlength="120"
+                        x-bind:disabled="
+                            type !== 'transfer'
+                                || transferKind !== 'external'
+                        "
+                        x-bind:required="
+                            type === 'transfer'
+                                && transferKind === 'external'
+                        "
+                    />
 
-                    <div class="flex rounded-xl border border-slate-300 bg-white focus-within:border-laras-600 focus-within:ring-4 focus-within:ring-laras-100">
-                        <span class="flex items-center border-r border-slate-200 px-4 text-sm font-semibold text-slate-500">
-                            {{ $currencyCode }}
-                        </span>
+                    <x-ui.floating-input
+                        name="external_destination_institution"
+                        label="Bank atau institusi tujuan"
+                        hint="Opsional. Contoh: BCA, Mandiri, atau nama platform."
+                        maxlength="120"
+                        x-bind:disabled="
+                            type !== 'transfer'
+                                || transferKind !== 'external'
+                        "
+                    />
 
-                        <input
-                            id="amount"
-                            name="amount"
-                            type="number"
-                            value="{{ old('amount') }}"
-                            min="0.01"
-                            max="9999999999999999.99"
-                            step="0.01"
-                            inputmode="decimal"
-                            required
-                            class="min-w-0 flex-1 rounded-r-xl px-4 py-3 text-sm outline-none"
-                            placeholder="0"
-                        >
+                    <div class="lg:col-span-2">
+                        <x-ui.floating-input
+                            name="external_destination_account_number"
+                            label="Nomor rekening atau identitas tujuan"
+                            hint="Opsional. Simpan nomor rekening, nomor virtual account, atau ID penerima."
+                            maxlength="100"
+                            inputmode="numeric"
+                            x-bind:disabled="
+                                type !== 'transfer'
+                                    || transferKind !== 'external'
+                            "
+                        />
                     </div>
-
-                    @error('amount')
-                        <p class="mt-2 text-sm text-rose-600">
-                            {{ $message }}
-                        </p>
-                    @enderror
                 </div>
+
+                <x-ui.floating-input
+                    name="amount"
+                    label="Nominal"
+                    type="number"
+                    :required="true"
+                    :prefix="$currencyCode"
+                    min="0.01"
+                    max="9999999999999999.99"
+                    step="0.01"
+                    inputmode="decimal"
+                />
 
                 <div
                     x-cloak
                     x-show="type === 'transfer'"
                 >
-                    <label
-                        for="admin_fee"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Biaya admin
-                        <span class="font-normal text-slate-400">
-                            (opsional)
-                        </span>
-                    </label>
-
-                    <div class="flex rounded-xl border border-slate-300 bg-white focus-within:border-laras-600 focus-within:ring-4 focus-within:ring-laras-100">
-                        <span class="flex items-center border-r border-slate-200 px-4 text-sm font-semibold text-slate-500">
-                            {{ $currencyCode }}
-                        </span>
-
-                        <input
-                            id="admin_fee"
-                            name="admin_fee"
-                            type="number"
-                            value="{{ old('admin_fee', '0') }}"
-                            min="0"
-                            max="9999999999999999.99"
-                            step="0.01"
-                            inputmode="decimal"
-                            x-bind:disabled="type !== 'transfer'"
-                            class="min-w-0 flex-1 rounded-r-xl px-4 py-3 text-sm outline-none"
-                        >
-                    </div>
-
-                    @error('admin_fee')
-                        <p class="mt-2 text-sm text-rose-600">
-                            {{ $message }}
-                        </p>
-                    @enderror
+                    <x-ui.floating-input
+                        name="admin_fee"
+                        label="Biaya admin"
+                        type="number"
+                        value="0"
+                        :prefix="$currencyCode"
+                        hint="Opsional. Biaya ini ikut mengurangi saldo rekening sumber."
+                        min="0"
+                        max="9999999999999999.99"
+                        step="0.01"
+                        inputmode="decimal"
+                        x-bind:disabled="type !== 'transfer'"
+                    />
                 </div>
 
-                <div>
-                    <label
-                        for="occurred_at"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Tanggal dan waktu
-                    </label>
+                <x-ui.floating-input
+                    name="occurred_at"
+                    label="Tanggal dan waktu"
+                    type="datetime-local"
+                    :value="$defaultOccurredAt"
+                    :required="true"
+                />
 
-                    <input
-                        id="occurred_at"
-                        name="occurred_at"
-                        type="datetime-local"
-                        value="{{ old(
-                            'occurred_at',
-                            $defaultOccurredAt
-                        ) }}"
-                        required
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                    >
-
-                    @error('occurred_at')
-                        <p class="mt-2 text-sm text-rose-600">
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label
-                        for="counterparty"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Pihak terkait
-                        <span class="font-normal text-slate-400">
-                            (opsional)
-                        </span>
-                    </label>
-
-                    <input
-                        id="counterparty"
-                        name="counterparty"
-                        type="text"
-                        value="{{ old('counterparty') }}"
-                        maxlength="120"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                        placeholder="Contoh: FamilyMart, Klien"
-                    >
-                </div>
+                <x-ui.floating-input
+                    name="counterparty"
+                    label="Pihak terkait"
+                    hint="Opsional. Contoh: FamilyMart, klien, atau penerima dana."
+                    maxlength="120"
+                />
 
                 <div class="lg:col-span-2">
-                    <label
-                        for="description"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Deskripsi
-                        <span class="font-normal text-slate-400">
-                            (opsional)
-                        </span>
-                    </label>
-
-                    <input
-                        id="description"
+                    <x-ui.floating-input
                         name="description"
-                        type="text"
-                        value="{{ old('description') }}"
+                        label="Deskripsi"
+                        hint="Opsional. Ringkas tujuan transaksi."
                         maxlength="160"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                        placeholder="Contoh: Makan siang bersama teman"
-                    >
+                    />
                 </div>
 
-                <div>
-                    <label
-                        for="reference_number"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Nomor referensi
-                        <span class="font-normal text-slate-400">
-                            (opsional)
-                        </span>
-                    </label>
-
-                    <input
-                        id="reference_number"
-                        name="reference_number"
-                        type="text"
-                        value="{{ old('reference_number') }}"
-                        maxlength="100"
-                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                    >
-                </div>
+                <x-ui.floating-input
+                    name="reference_number"
+                    label="Nomor referensi"
+                    hint="Opsional. Gunakan nomor dari bukti transaksi."
+                    maxlength="100"
+                />
 
                 <div class="lg:col-span-2">
-                    <label
-                        for="notes"
-                        class="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Catatan
-                        <span class="font-normal text-slate-400">
-                            (opsional)
-                        </span>
-                    </label>
-
-                    <textarea
-                        id="notes"
+                    <x-ui.floating-textarea
                         name="notes"
+                        label="Catatan"
+                        hint="Opsional. Tambahkan informasi yang perlu disimpan."
                         rows="4"
                         maxlength="2000"
-                        class="w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-laras-600 focus:ring-4 focus:ring-laras-100"
-                    >{{ old('notes') }}</textarea>
+                    />
+                </div>
+            </section>
+
+            <section
+                x-cloak
+                x-show="type === 'transfer'"
+                data-transfer-impact-summary
+                class="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                aria-live="polite"
+            >
+                <div class="flex items-start gap-3">
+                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm">
+                        <i
+                            data-lucide="arrow-left-right"
+                            class="size-4"
+                        ></i>
+                    </span>
+
+                    <div>
+                        <p class="text-sm font-semibold text-slate-900">
+                            Dampak pada saldo
+                        </p>
+
+                        <p
+                            x-show="transferKind === 'internal'"
+                            class="mt-1 text-sm leading-6 text-slate-500"
+                        >
+                            Nominal dan biaya admin mengurangi rekening sumber.
+                            Nominal transfer menambah rekening tujuan Laras.
+                        </p>
+
+                        <p
+                            x-show="transferKind === 'external'"
+                            class="mt-1 text-sm leading-6 text-slate-500"
+                        >
+                            Nominal dan biaya admin mengurangi rekening sumber.
+                            Tidak ada rekening Laras lain yang menerima saldo.
+                        </p>
+                    </div>
                 </div>
             </section>
 

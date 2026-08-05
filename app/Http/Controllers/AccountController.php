@@ -8,6 +8,7 @@ use App\Http\Requests\SaveAccountRequest;
 use App\Models\Account;
 use App\Services\AccountService;
 use DomainException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -138,14 +139,21 @@ class AccountController extends Controller
     public function move(
         MoveAccountRequest $request,
         int $account
-    ): RedirectResponse {
-        $this->accountService->move(
+    ): JsonResponse {
+        $orderedAccountIds = $this->accountService->move(
             $request->user(),
             $account,
             $request->validated('direction')
         );
 
-        return redirect()->route('accounts.index');
+        return response()->json([
+            'message' => 'Urutan rekening berhasil diperbarui.',
+            'account_id' => $account,
+            'direction' => $request->validated(
+                'direction'
+            ),
+            'ordered_account_ids' => $orderedAccountIds,
+        ]);
     }
 
     private function ownedAccount(
